@@ -1,0 +1,10 @@
+# Development tools for the Ladon project
+# Install with:
+#   pip install -r requirements-dev.txt
+
+black
+ruff
+isort
+pytest
+pre-commit
+pyright
