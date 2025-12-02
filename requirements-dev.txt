@@ -6,5 +6,6 @@ black
 ruff
 isort
 pytest
+pytest-cov
 pre-commit
 pyright
