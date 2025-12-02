@@ -4,10 +4,7 @@ version = "0.0.1"
 description = "A resilient, extensible web crawling framework."
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [
-    {name = "Alessio Pascucci", email = "feeder81@gmail.com"}
-]
-license = {text = "MIT"}  # You can switch to Apache-2.0 later
+license = {text = "AGPL-3.0-or-later"}  # Upgraded to Affero GPL v3 or later
 
 dependencies = [
     # Core runtime dependencies will be added here later
@@ -72,4 +69,3 @@ extend-exclude = [
 typeCheckingMode = "strict"
 venvPath = ".."
 venv = ".venv"
-
