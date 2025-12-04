@@ -25,3 +25,9 @@ repos:
     hooks:
       - id: pyright
         args: ["--project", "pyproject.toml"]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.5.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
