@@ -69,3 +69,9 @@ extend-exclude = [
 typeCheckingMode = "strict"
 venvPath = ".."
 venv = ".venv"
+
+# ----------------------------------------
+# PYTEST
+# ----------------------------------------
+[tool.pytest.ini_options]
+pythonpath = ["src"]
