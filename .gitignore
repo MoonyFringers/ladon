@@ -3,3 +3,9 @@ __pycache__/
 .env
 .coverage
 coverage.xml
+.pytest_cache/
+.ruff_cache/
+.venv/
+.vscode/
+pyrightconfig.json
+*.egg-info/
