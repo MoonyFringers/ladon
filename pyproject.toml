@@ -69,3 +69,5 @@ extend-exclude = [
 typeCheckingMode = "strict"
 venvPath = ".."
 venv = ".venv"
+include = ["src", "tests"]
+extraPaths = ["src"]
