@@ -71,3 +71,9 @@ venvPath = ".."
 venv = ".venv"
 include = ["src", "tests"]
 extraPaths = ["src"]
+
+# ----------------------------------------
+# PYTEST
+# ----------------------------------------
+[tool.pytest.ini_options]
+pythonpath = ["src"]
