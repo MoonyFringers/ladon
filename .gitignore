@@ -3,9 +3,12 @@ __pycache__/
 .env
 .coverage
 coverage.xml
-.vscode/
-*.egg-info/
+.pytest_cache/
+.ruff_cache/
 .venv/
+.vscode/
+pyrightconfig.json
+*.egg-info/
 .gemini/
 
 # Environment specific files
