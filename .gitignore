@@ -3,3 +3,12 @@ __pycache__/
 .env
 .coverage
 coverage.xml
+.vscode/
+*.egg-info/
+.venv/
+.gemini/
+
+# Environment specific files
+.envrc
+.pre-commit-cache/
+.virtualenv-appdata/
