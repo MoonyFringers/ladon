@@ -2,6 +2,7 @@
 # Install with:
 #   pip install -r requirements-dev.txt
 
+-e .
 black
 ruff
 isort
