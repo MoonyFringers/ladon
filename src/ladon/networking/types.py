@@ -12,8 +12,8 @@ from typing import Any, Generic, TypeVar
 
 from .errors import HttpClientError
 
-T = TypeVar("T")
-E = TypeVar("E", bound=BaseException)
+T = TypeVar("T", covariant=True)
+E = TypeVar("E", bound=BaseException, covariant=True)
 
 
 Meta = dict[str, Any]
@@ -52,7 +52,7 @@ def Ok(value: T, meta: Meta | None = None) -> Result[T, HttpClientError]:
 
 def Err(
     error: HttpClientError, meta: Meta | None = None
-) -> Result[None, HttpClientError]:
+) -> Result[Any, HttpClientError]:
     """Construct a failed Result with optional metadata."""
 
     return Result(value=None, error=error, meta=meta or {})
