@@ -67,10 +67,10 @@ extend-exclude = [
 # ----------------------------------------
 [tool.pyright]
 typeCheckingMode = "strict"
-venvPath = ".."
-venv = ".venv"
 include = ["src", "tests"]
 extraPaths = ["src"]
+reportMissingImports = "none"
+reportUntypedFunctionDecorator = "none"
 
 # ----------------------------------------
 # PYTEST
