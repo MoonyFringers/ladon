@@ -9,8 +9,11 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+import requests
+
 from .config import HttpClientConfig
-from .types import Result
+from .errors import HttpClientError, RequestTimeoutError, RetryableHttpError
+from .types import Err, Ok, Result
 
 
 class HttpClient:
@@ -28,6 +31,58 @@ class HttpClient:
             config: Configuration for timeouts, headers, and policy settings.
         """
         self._config = config
+        self._session = requests.Session()
+        if self._config.user_agent:
+            self._session.headers["User-Agent"] = self._config.user_agent
+        self._session.headers.update(self._config.default_headers)
+
+    def _get_timeout(self, override: float | None) -> float | None:
+        """Resolve timeout preference."""
+        return (
+            override if override is not None else self._config.timeout_seconds
+        )
+
+    def _build_meta(
+        self,
+        response: requests.Response | None,
+        context: Mapping[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Construct metadata dictionary from response and context."""
+        meta: dict[str, Any] = {}
+        if context:
+            meta.update(context)
+
+        if response is not None:
+            meta["status"] = response.status_code
+            meta["url"] = response.url
+            meta["reason"] = response.reason
+            try:
+                meta["elapsed"] = response.elapsed.total_seconds()
+            except AttributeError:
+                pass  # In case elapsed is not available or mocked
+            # Include headers in meta? It can be large.
+            # For now, let's keep it lightweight or specifically requested.
+            # But the 'head' method returns headers as value.
+
+        return meta
+
+    def _handle_request_exception(
+        self,
+        e: requests.exceptions.RequestException,
+        context: Mapping[str, Any] | None,
+    ) -> Result[Any, Exception]:
+        """Map requests exceptions to Ladon errors."""
+        response = e.response
+        meta = self._build_meta(response, context)
+
+        if isinstance(e, requests.exceptions.Timeout):
+            return Err(RequestTimeoutError(str(e)), meta=meta)
+
+        if isinstance(e, requests.exceptions.ConnectionError):
+            return Err(RetryableHttpError(str(e)), meta=meta)
+
+        # Generic fallback for other request exceptions
+        return Err(HttpClientError(str(e)), meta=meta)
 
     def get(
         self,
@@ -52,7 +107,21 @@ class HttpClient:
         Returns:
             Result containing response bytes on success, or an error on failure.
         """
-        raise NotImplementedError
+        try:
+            resp = self._session.get(
+                url,
+                headers=headers,
+                params=params,
+                timeout=self._get_timeout(timeout),
+                allow_redirects=allow_redirects,
+            )
+            return Ok(resp.content, meta=self._build_meta(resp, context))
+        except requests.exceptions.RequestException as e:
+            return self._handle_request_exception(e, context)
+        except Exception as e:
+            return Err(
+                HttpClientError(str(e)), meta=self._build_meta(None, context)
+            )
 
     def head(
         self,
@@ -78,7 +147,22 @@ class HttpClient:
             Result containing response metadata on success, or an error on
             failure.
         """
-        raise NotImplementedError
+        try:
+            resp = self._session.head(
+                url,
+                headers=headers,
+                params=params,
+                timeout=self._get_timeout(timeout),
+                allow_redirects=allow_redirects,
+            )
+            # For HEAD, the value is the headers.
+            return Ok(dict(resp.headers), meta=self._build_meta(resp, context))
+        except requests.exceptions.RequestException as e:
+            return self._handle_request_exception(e, context)
+        except Exception as e:
+            return Err(
+                HttpClientError(str(e)), meta=self._build_meta(None, context)
+            )
 
     def post(
         self,
@@ -105,7 +189,22 @@ class HttpClient:
         Returns:
             Result containing response bytes on success, or an error on failure.
         """
-        raise NotImplementedError
+        try:
+            resp = self._session.post(
+                url,
+                headers=headers,
+                data=data,
+                json=json,
+                timeout=self._get_timeout(timeout),
+                allow_redirects=allow_redirects,
+            )
+            return Ok(resp.content, meta=self._build_meta(resp, context))
+        except requests.exceptions.RequestException as e:
+            return self._handle_request_exception(e, context)
+        except Exception as e:
+            return Err(
+                HttpClientError(str(e)), meta=self._build_meta(None, context)
+            )
 
     def download(
         self,
@@ -115,7 +214,7 @@ class HttpClient:
         timeout: float | None = None,
         allow_redirects: bool = True,
         context: Mapping[str, Any] | None = None,
-    ) -> Result[Any, Exception]:
+    ) -> Result[requests.Response, Exception]:
         """Stream a download request.
 
         Args:
@@ -129,4 +228,19 @@ class HttpClient:
             Result containing a stream/handle or download descriptor on success,
             or an error on failure.
         """
-        raise NotImplementedError
+        try:
+            resp = self._session.get(
+                url,
+                headers=headers,
+                timeout=self._get_timeout(timeout),
+                allow_redirects=allow_redirects,
+                stream=True,
+            )
+            # We return the response object itself as the "stream handle"
+            return Ok(resp, meta=self._build_meta(resp, context))
+        except requests.exceptions.RequestException as e:
+            return self._handle_request_exception(e, context)
+        except Exception as e:
+            return Err(
+                HttpClientError(str(e)), meta=self._build_meta(None, context)
+            )
