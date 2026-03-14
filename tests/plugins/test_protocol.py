@@ -1,18 +1,18 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 # pyright: reportUnknownArgumentType=false, reportArgumentType=false
 # pyright: reportUnknownParameterType=false, reportMissingParameterType=false
-"""Contract tests for Ladon plugin protocols and the runner.
+"""Contract tests for Ladon crawl plugin protocols and the runner.
 
 A minimal mock plugin is built entirely from plain Python classes
 with no inheritance from ladon.plugins. The tests verify that:
   - The mock satisfies the runtime Protocol checks.
-  - run_auction() correctly drives the adapter stack.
+  - run_crawl() correctly drives the adapter stack.
   - Error taxonomy is propagated correctly.
 """
 
 from __future__ import annotations
 
-import datetime
+from dataclasses import dataclass, field
 from typing import Sequence
 from unittest.mock import MagicMock
 
@@ -21,67 +21,49 @@ import pytest
 from ladon.networking.client import HttpClient
 from ladon.networking.config import HttpClientConfig
 from ladon.plugins.errors import (
-    HighlightsOnlyError,
-    LotListUnavailableError,
-    LotUnavailableError,
-    PreviewAuctionError,
+    ChildListUnavailableError,
+    ExpansionNotReadyError,
+    LeafUnavailableError,
+    PartialExpansionError,
 )
-from ladon.plugins.models import (
-    AuctionRecord,
-    AuctionRef,
-    AuctionStatus,
-    LotRecord,
-    LotRef,
-)
+from ladon.plugins.models import Expansion, Ref
 from ladon.plugins.protocol import (
-    AuctionLoader,
-    Discoverer,
-    HousePlugin,
-    LotParser,
+    CrawlPlugin,
+    Expander,
+    Sink,
+    Source,
 )
-from ladon.runner import RunConfig, RunResult, run_auction
+from ladon.runner import RunConfig, RunResult, run_crawl
+
+# ---------------------------------------------------------------------------
+# Local domain-neutral test types (no auction vocabulary)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class _DemoRecord:
+    name: str
+    number: str
+
+
+@dataclass(frozen=True)
+class _DemoLeafRecord:
+    leaf_id: str
+    url: str
+    assets: list[str] = field(default_factory=list)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _make_auction(lot_refs: list[LotRef]) -> AuctionRecord:
-    return AuctionRecord(
-        url="https://demo.example.com/auction/D001",
-        house="demo",
-        name="Demo Sale",
-        number="D001",
-        date=datetime.date(2026, 3, 14),
-        date_end=None,
-        location="New York",
-        currency="USD",
-        status=AuctionStatus.LIVE,
-        lot_refs=lot_refs,
-    )
+def _make_record() -> _DemoRecord:
+    return _DemoRecord(name="Demo Collection", number="D001")
 
 
-def _make_lot(lot_number: str) -> LotRecord:
-    return LotRecord(
-        lot_number=lot_number,
-        url=f"https://demo.example.com/lot/{lot_number}",
-        title=f"Lot {lot_number}",
-        artist="Demo Artist",
-        description="",
-        medium="",
-        dimensions="",
-        year="",
-        catalogue_note="",
-        estimate_low="1000",
-        estimate_high="2000",
-        estimate_currency="USD",
-        realized_price=None,
-        realized_currency=None,
-        provenance=[],
-        literature=[],
-        exhibited=[],
-        images=[],
-    )
+def _make_leaf(leaf_id: str, url: str) -> _DemoLeafRecord:
+    return _DemoLeafRecord(leaf_id=leaf_id, url=url)
 
 
 # ---------------------------------------------------------------------------
@@ -89,49 +71,38 @@ def _make_lot(lot_number: str) -> LotRecord:
 # ---------------------------------------------------------------------------
 
 
-class _MockDiscoverer:
-    """Satisfies Discoverer protocol by structure."""
+class _MockSource:
+    """Satisfies Source protocol by structure."""
 
-    def discover(self, client: HttpClient) -> Sequence[AuctionRef]:
-        return [AuctionRef(url="https://demo.example.com/a1", house="demo")]
-
-
-class _MockAuctionLoader:
-    """Returns a fixed AuctionRecord with two lots."""
-
-    def __init__(self, lot_refs: list[LotRef]) -> None:
-        self._lot_refs = lot_refs
-
-    def load(
-        self,
-        ref: AuctionRef,
-        client: HttpClient,
-    ) -> AuctionRecord:
-        return _make_auction(self._lot_refs)
+    def discover(self, client: HttpClient) -> Sequence[Ref]:
+        return [Ref(url="https://demo.example.com/top/1")]
 
 
-class _MockLotParser:
-    """Returns a LotRecord for each LotRef without network calls."""
+class _MockExpander:
+    """Returns a fixed Expansion with the given child refs."""
 
-    def parse(
-        self,
-        lot_ref: LotRef,
-        auction: AuctionRecord,
-        client: HttpClient,
-        image_dir: str | None,
-    ) -> LotRecord:
-        return _make_lot(lot_ref.lot_number)
+    def __init__(self, child_refs: list[Ref]) -> None:
+        self._child_refs = child_refs
+
+    def expand(self, ref: object, client: HttpClient) -> Expansion:
+        return Expansion(record=_make_record(), child_refs=self._child_refs)
+
+
+class _MockSink:
+    """Returns a leaf record for each ref without network calls."""
+
+    def consume(self, ref: object, client: HttpClient) -> _DemoLeafRecord:
+        r = ref if isinstance(ref, Ref) else Ref(url=str(ref))
+        return _make_leaf(leaf_id=r.url.split("/")[-1], url=r.url)
 
 
 class _MockPlugin:
-    """Satisfies HousePlugin protocol by structure."""
+    """Satisfies CrawlPlugin protocol by structure."""
 
-    house = "demo"
-
-    def __init__(self, lot_refs: list[LotRef]) -> None:
-        self.discoverer = _MockDiscoverer()
-        self.auction_loader = _MockAuctionLoader(lot_refs)
-        self.lot_parser = _MockLotParser()
+    def __init__(self, child_refs: list[Ref]) -> None:
+        self.source = _MockSource()
+        self.expanders: list[object] = [_MockExpander(child_refs)]
+        self.sink: object = _MockSink()
 
 
 # ---------------------------------------------------------------------------
@@ -145,17 +116,17 @@ def http_client() -> HttpClient:
 
 
 @pytest.fixture()
-def lot_refs() -> list[LotRef]:
+def child_refs() -> list[Ref]:
     return [
-        LotRef(url="https://demo.example.com/lot/1", lot_number="1"),
-        LotRef(url="https://demo.example.com/lot/2", lot_number="2"),
-        LotRef(url="https://demo.example.com/lot/3", lot_number="3"),
+        Ref(url="https://demo.example.com/leaf/1"),
+        Ref(url="https://demo.example.com/leaf/2"),
+        Ref(url="https://demo.example.com/leaf/3"),
     ]
 
 
 @pytest.fixture()
-def plugin(lot_refs: list[LotRef]) -> _MockPlugin:
-    return _MockPlugin(lot_refs)
+def plugin(child_refs: list[Ref]) -> _MockPlugin:
+    return _MockPlugin(child_refs)
 
 
 @pytest.fixture()
@@ -164,8 +135,8 @@ def config() -> RunConfig:
 
 
 @pytest.fixture()
-def auction_ref() -> AuctionRef:
-    return AuctionRef(url="https://demo.example.com/a1", house="demo")
+def top_ref() -> Ref:
+    return Ref(url="https://demo.example.com/top/1")
 
 
 # ---------------------------------------------------------------------------
@@ -174,17 +145,17 @@ def auction_ref() -> AuctionRef:
 
 
 class TestProtocolStructure:
-    def test_discoverer_satisfied(self, plugin: _MockPlugin) -> None:
-        assert isinstance(plugin.discoverer, Discoverer)
+    def test_source_satisfied(self, plugin: _MockPlugin) -> None:
+        assert isinstance(plugin.source, Source)
 
-    def test_auction_loader_satisfied(self, plugin: _MockPlugin) -> None:
-        assert isinstance(plugin.auction_loader, AuctionLoader)
+    def test_expander_satisfied(self, plugin: _MockPlugin) -> None:
+        assert isinstance(plugin.expanders[0], Expander)
 
-    def test_lot_parser_satisfied(self, plugin: _MockPlugin) -> None:
-        assert isinstance(plugin.lot_parser, LotParser)
+    def test_sink_satisfied(self, plugin: _MockPlugin) -> None:
+        assert isinstance(plugin.sink, Sink)
 
-    def test_house_plugin_satisfied(self, plugin: _MockPlugin) -> None:
-        assert isinstance(plugin, HousePlugin)
+    def test_crawl_plugin_satisfied(self, plugin: _MockPlugin) -> None:
+        assert isinstance(plugin, CrawlPlugin)
 
 
 # ---------------------------------------------------------------------------
@@ -195,87 +166,91 @@ class TestProtocolStructure:
 class TestRunnerHappyPath:
     def test_returns_run_result(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        result = run_auction(auction_ref, plugin, http_client, config)
+        result = run_crawl(top_ref, plugin, http_client, config)
         assert isinstance(result, RunResult)
 
-    def test_lots_parsed_count(
+    def test_leaves_parsed_count(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        result = run_auction(auction_ref, plugin, http_client, config)
-        assert result.lots_parsed == 3
-        assert result.lots_failed == 0
+        result = run_crawl(top_ref, plugin, http_client, config)
+        assert result.leaves_parsed == 3
+        assert result.leaves_failed == 0
         assert result.errors == ()
 
-    def test_auction_record_attached(
+    def test_record_attached(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        result = run_auction(auction_ref, plugin, http_client, config)
-        assert result.auction.name == "Demo Sale"
-        assert result.auction.number == "D001"
+        result = run_crawl(top_ref, plugin, http_client, config)
+        assert isinstance(result.record, _DemoRecord)
+        rec = result.record
+        assert rec.name == "Demo Collection"  # type: ignore[union-attr]
+        assert rec.number == "D001"  # type: ignore[union-attr]
 
-    def test_on_lot_callback_called_per_lot(
+    def test_on_leaf_callback_called_per_leaf(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        on_lot = MagicMock()
-        result = run_auction(
-            auction_ref, plugin, http_client, config, on_lot=on_lot
+        on_leaf = MagicMock()
+        result = run_crawl(
+            top_ref, plugin, http_client, config, on_leaf=on_leaf
         )
-        assert on_lot.call_count == 3
-        assert result.lots_parsed == 3
+        assert on_leaf.call_count == 3
+        assert result.leaves_parsed == 3
 
-    def test_on_lot_receives_lot_and_auction(
+    def test_on_leaf_receives_leaf_and_parent(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        captured: list[tuple[LotRecord, AuctionRecord]] = []
+        captured: list[tuple[object, object]] = []
 
-        def on_lot(lot: LotRecord, auction: AuctionRecord) -> None:
-            captured.append((lot, auction))
+        def on_leaf(leaf: object, parent: object) -> None:
+            captured.append((leaf, parent))
 
-        run_auction(auction_ref, plugin, http_client, config, on_lot=on_lot)
+        run_crawl(top_ref, plugin, http_client, config, on_leaf=on_leaf)
         assert len(captured) == 3
-        lot_numbers = {lot.lot_number for lot, _ in captured}
-        assert lot_numbers == {"1", "2", "3"}
+        leaf_ids = {
+            leaf.leaf_id for leaf, _ in captured  # type: ignore[union-attr]
+        }
+        assert leaf_ids == {"1", "2", "3"}
 
-    def test_lot_limit_respected(
+    def test_leaf_limit_respected(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
     ) -> None:
-        cfg = RunConfig(lot_limit=2)
-        result = run_auction(auction_ref, plugin, http_client, cfg)
-        assert result.lots_parsed == 2
+        cfg = RunConfig(leaf_limit=2)
+        result = run_crawl(top_ref, plugin, http_client, cfg)
+        assert result.leaves_parsed == 2
 
-    def test_zero_lot_limit_means_no_limit(
+    def test_zero_leaf_limit_means_no_limit(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         plugin: _MockPlugin,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        result = run_auction(auction_ref, plugin, http_client, config)
-        assert result.lots_parsed == 3
+        result = run_crawl(top_ref, plugin, http_client, config)
+        assert result.leaves_parsed == 3
 
 
 # ---------------------------------------------------------------------------
@@ -284,142 +259,126 @@ class TestRunnerHappyPath:
 
 
 class TestRunnerErrors:
-    def test_preview_auction_error_propagates(
+    def test_expansion_not_ready_propagates(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         http_client: HttpClient,
         config: RunConfig,
-        lot_refs: list[LotRef],
+        child_refs: list[Ref],
     ) -> None:
-        class _PreviewLoader:
-            def load(
-                self, ref: AuctionRef, client: HttpClient
-            ) -> AuctionRecord:
-                raise PreviewAuctionError("not live yet")
+        class _NotReadyExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise ExpansionNotReadyError("not ready yet")
 
-        p = _MockPlugin(lot_refs)
-        p.auction_loader = _PreviewLoader()  # type: ignore[assignment]
-        with pytest.raises(PreviewAuctionError):
-            run_auction(auction_ref, p, http_client, config)
+        p = _MockPlugin(child_refs)
+        p.expanders = [_NotReadyExpander()]
+        with pytest.raises(ExpansionNotReadyError):
+            run_crawl(top_ref, p, http_client, config)
 
-    def test_highlights_only_error_propagates(
+    def test_partial_expansion_propagates(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         http_client: HttpClient,
         config: RunConfig,
-        lot_refs: list[LotRef],
+        child_refs: list[Ref],
     ) -> None:
-        class _HighlightsLoader:
-            def load(
-                self, ref: AuctionRef, client: HttpClient
-            ) -> AuctionRecord:
-                raise HighlightsOnlyError("partial")
+        class _PartialExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise PartialExpansionError("partial")
 
-        p = _MockPlugin(lot_refs)
-        p.auction_loader = _HighlightsLoader()  # type: ignore[assignment]
-        with pytest.raises(HighlightsOnlyError):
-            run_auction(auction_ref, p, http_client, config)
+        p = _MockPlugin(child_refs)
+        p.expanders = [_PartialExpander()]
+        with pytest.raises(PartialExpansionError):
+            run_crawl(top_ref, p, http_client, config)
 
-    def test_lot_list_unavailable_propagates(
+    def test_child_list_unavailable_propagates(
         self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         http_client: HttpClient,
         config: RunConfig,
-        lot_refs: list[LotRef],
+        child_refs: list[Ref],
     ) -> None:
-        class _BrokenLoader:
-            def load(
-                self, ref: AuctionRef, client: HttpClient
-            ) -> AuctionRecord:
-                raise LotListUnavailableError("API down")
+        class _BrokenExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise ChildListUnavailableError("API down")
 
-        p = _MockPlugin(lot_refs)
-        p.auction_loader = _BrokenLoader()  # type: ignore[assignment]
-        with pytest.raises(LotListUnavailableError):
-            run_auction(auction_ref, p, http_client, config)
+        p = _MockPlugin(child_refs)
+        p.expanders = [_BrokenExpander()]
+        with pytest.raises(ChildListUnavailableError):
+            run_crawl(top_ref, p, http_client, config)
 
-    def test_lot_unavailable_is_non_fatal(
+    def test_leaf_unavailable_is_non_fatal(
         self,
-        auction_ref: AuctionRef,
-        http_client: HttpClient,
-        config: RunConfig,
-    ) -> None:
-        failing_refs = [
-            LotRef(url="https://demo.example.com/lot/1", lot_number="1"),
-            LotRef(url="https://demo.example.com/lot/2", lot_number="2"),
-        ]
-
-        class _FailingParser:
-            def parse(
-                self,
-                lot_ref: LotRef,
-                auction: AuctionRecord,
-                client: HttpClient,
-                image_dir: str | None,
-            ) -> LotRecord:
-                if lot_ref.lot_number == "1":
-                    raise LotUnavailableError("404")
-                return _make_lot(lot_ref.lot_number)
-
-        p = _MockPlugin(failing_refs)
-        p.lot_parser = _FailingParser()  # type: ignore[assignment]
-        result = run_auction(auction_ref, p, http_client, config)
-        assert result.lots_parsed == 1
-        assert result.lots_failed == 1
-        assert len(result.errors) == 1
-        assert "lot 1" in result.errors[0]
-
-    def test_all_lots_fail_returns_result_not_exception(
-        self,
-        auction_ref: AuctionRef,
-        http_client: HttpClient,
-        config: RunConfig,
-        lot_refs: list[LotRef],
-    ) -> None:
-        class _AlwaysFailParser:
-            def parse(
-                self,
-                lot_ref: LotRef,
-                auction: AuctionRecord,
-                client: HttpClient,
-                image_dir: str | None,
-            ) -> LotRecord:
-                raise LotUnavailableError("always fails")
-
-        p = _MockPlugin(lot_refs)
-        p.lot_parser = _AlwaysFailParser()  # type: ignore[assignment]
-        result = run_auction(auction_ref, p, http_client, config)
-        assert result.lots_parsed == 0
-        assert result.lots_failed == 3
-        assert len(result.errors) == 3
-
-    def test_on_lot_not_called_for_failed_lots(
-        self,
-        auction_ref: AuctionRef,
+        top_ref: Ref,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
         refs = [
-            LotRef(url="u/1", lot_number="1"),
-            LotRef(url="u/2", lot_number="2"),
+            Ref(url="https://demo.example.com/leaf/1"),
+            Ref(url="https://demo.example.com/leaf/2"),
         ]
 
-        class _MixedParser:
-            def parse(
-                self,
-                lot_ref: LotRef,
-                auction: AuctionRecord,
-                client: HttpClient,
-                image_dir: str | None,
-            ) -> LotRecord:
-                if lot_ref.lot_number == "2":
-                    raise LotUnavailableError("missing")
-                return _make_lot(lot_ref.lot_number)
+        class _FailingSink:
+            def consume(
+                self, ref: object, client: HttpClient
+            ) -> _DemoLeafRecord:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/1"):
+                    raise LeafUnavailableError("404")
+                return _make_leaf(leaf_id="2", url=r.url)
 
         p = _MockPlugin(refs)
-        p.lot_parser = _MixedParser()  # type: ignore[assignment]
-        on_lot = MagicMock()
-        result = run_auction(auction_ref, p, http_client, config, on_lot=on_lot)
-        assert on_lot.call_count == 1
-        assert result.lots_parsed == 1
-        assert result.lots_failed == 1
+        p.sink = _FailingSink()
+        result = run_crawl(top_ref, p, http_client, config)
+        assert result.leaves_parsed == 1
+        assert result.leaves_failed == 1
+        assert len(result.errors) == 1
+        assert "ref[0]" in result.errors[0]
+
+    def test_all_leaves_fail_returns_result_not_exception(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        child_refs: list[Ref],
+    ) -> None:
+        class _AlwaysFailSink:
+            def consume(
+                self, ref: object, client: HttpClient
+            ) -> _DemoLeafRecord:
+                raise LeafUnavailableError("always fails")
+
+        p = _MockPlugin(child_refs)
+        p.sink = _AlwaysFailSink()
+        result = run_crawl(top_ref, p, http_client, config)
+        assert result.leaves_parsed == 0
+        assert result.leaves_failed == 3
+        assert len(result.errors) == 3
+
+    def test_on_leaf_not_called_for_failed_leaves(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        refs = [
+            Ref(url="https://demo.example.com/leaf/1"),
+            Ref(url="https://demo.example.com/leaf/2"),
+        ]
+
+        class _MixedSink:
+            def consume(
+                self, ref: object, client: HttpClient
+            ) -> _DemoLeafRecord:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/2"):
+                    raise LeafUnavailableError("missing")
+                return _make_leaf(leaf_id="1", url=r.url)
+
+        p = _MockPlugin(refs)
+        p.sink = _MixedSink()
+        on_leaf = MagicMock()
+        result = run_crawl(top_ref, p, http_client, config, on_leaf=on_leaf)
+        assert on_leaf.call_count == 1
+        assert result.leaves_parsed == 1
+        assert result.leaves_failed == 1

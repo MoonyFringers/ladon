@@ -1,47 +1,39 @@
-"""Plugin/adapter interface for Ladon house-specific crawlers.
+"""Plugin/adapter interface for Ladon crawl plugins.
 
-A house plugin bundles three adapters — Discoverer, AuctionLoader,
-LotParser — that together implement the five-step crawl loop for one
-auction house. Adapters are defined as typing.Protocol classes so that
-third-party implementations need not import from this package.
+A crawl plugin bundles three adapters — Source, Expander list, Sink —
+that together implement the crawl pipeline for one domain. Adapters are
+defined as typing.Protocol classes so that third-party implementations
+need not import from this package.
 """
 
 from .errors import (
-    HighlightsOnlyError,
-    ImageDownloadError,
-    LotListUnavailableError,
-    LotUnavailableError,
+    AssetDownloadError,
+    ChildListUnavailableError,
+    ExpansionNotReadyError,
+    LeafUnavailableError,
+    PartialExpansionError,
     PluginError,
-    PreviewAuctionError,
 )
 from .models import (
-    AuctionRecord,
-    AuctionRef,
-    AuctionStatus,
-    ImageRecord,
-    LotRecord,
-    LotRef,
+    Expansion,
+    Ref,
 )
-from .protocol import AuctionLoader, Discoverer, HousePlugin, LotParser
+from .protocol import CrawlPlugin, Expander, Sink, Source
 
 __all__ = [
     # Protocols
-    "Discoverer",
-    "AuctionLoader",
-    "LotParser",
-    "HousePlugin",
+    "Source",
+    "Expander",
+    "Sink",
+    "CrawlPlugin",
     # Models
-    "AuctionRef",
-    "AuctionRecord",
-    "LotRef",
-    "LotRecord",
-    "ImageRecord",
-    "AuctionStatus",
+    "Ref",
+    "Expansion",
     # Errors
     "PluginError",
-    "PreviewAuctionError",
-    "HighlightsOnlyError",
-    "LotListUnavailableError",
-    "LotUnavailableError",
-    "ImageDownloadError",
+    "ExpansionNotReadyError",
+    "PartialExpansionError",
+    "ChildListUnavailableError",
+    "LeafUnavailableError",
+    "AssetDownloadError",
 ]

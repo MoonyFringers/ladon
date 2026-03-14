@@ -1,12 +1,12 @@
-"""Ladon auction runner — the core orchestrator.
+"""Ladon crawl runner — the core orchestrator.
 
-The runner drives the crawl loop for a single auction:
-  1. Load auction metadata and lot list via AuctionLoader.
-  2. For each lot ref, call LotParser.parse().
-  3. Invoke ``on_lot`` callback after each successful parse.
+The runner drives the crawl loop for a single top-level ref:
+  1. Expand the ref via plugin.expanders[0].expand().
+  2. For each child leaf ref, call plugin.sink.consume().
+  3. Invoke ``on_leaf`` callback after each successful consume.
 
 Persistence (DB writes, file serialization) is the caller's
-responsibility and is injected via the ``on_lot`` callback. The runner
+responsibility and is injected via the ``on_leaf`` callback. The runner
 itself has no DB dependency.
 """
 
@@ -16,108 +16,90 @@ from dataclasses import dataclass
 from typing import Callable
 
 from ladon.networking.client import HttpClient
-from ladon.plugins.errors import LotUnavailableError
-from ladon.plugins.models import AuctionRecord, AuctionRef, LotRecord
-from ladon.plugins.protocol import HousePlugin
+from ladon.plugins.errors import LeafUnavailableError
+from ladon.plugins.protocol import CrawlPlugin
 
 
 @dataclass(frozen=True)
 class RunConfig:
     """Configuration for a single runner invocation.
 
-    ``lot_limit`` caps the number of lots parsed; 0 means no limit.
-    ``skip_images`` suppresses image downloads (useful for fast canary
-    runs). ``output_dir`` must be set when images are enabled.
+    ``leaf_limit`` caps the number of leaves parsed; 0 means no limit.
+    ``skip_assets`` suppresses asset downloads (useful for fast canary
+    runs). ``output_dir`` must be set when assets are enabled.
     """
 
-    lot_limit: int = 0
-    skip_images: bool = False
-    skip_pdf: bool = False
+    leaf_limit: int = 0
+    skip_assets: bool = False
     output_dir: str | None = None
 
 
 @dataclass(frozen=True)
 class RunResult:
-    """Outcome of a single run_auction() call."""
+    """Outcome of a single run_crawl() call."""
 
-    auction: AuctionRecord
-    lots_parsed: int
-    lots_failed: int
-    images_downloaded: int
-    pdf_downloaded: bool
-    skipped_preview: bool
+    record: object
+    leaves_parsed: int
+    leaves_failed: int
     errors: tuple[str, ...]
 
 
-def run_auction(
-    auction_ref: AuctionRef,
-    plugin: HousePlugin,
+def run_crawl(
+    top_ref: object,
+    plugin: CrawlPlugin,
     client: HttpClient,
     config: RunConfig,
-    on_lot: Callable[[LotRecord, AuctionRecord], None] | None = None,
+    on_leaf: Callable[[object, object], None] | None = None,
 ) -> RunResult:
-    """Run a single auction through the plugin adapter stack.
+    """Run a single top-level ref through the plugin adapter stack.
 
     Args:
-        auction_ref:  Reference returned by a Discoverer.
-        plugin:       House plugin providing the three adapters.
-        client:       Configured HttpClient instance.
-        config:       Run-level configuration (limits, flags).
-        on_lot:       Optional callback invoked after each successful
-                      lot parse. Use this hook for DB writes, XLSX
-                      serialization, etc.
+        top_ref:  Reference to the resource to expand.
+        plugin:   Crawl plugin providing source, expanders, and sink.
+        client:   Configured HttpClient instance.
+        config:   Run-level configuration (limits, flags).
+        on_leaf:  Optional callback invoked after each successful leaf
+                  consume. Use this hook for DB writes, serialization,
+                  etc. Receives (leaf_record, parent_record).
 
     Returns:
-        RunResult with counts and any per-lot error messages.
+        RunResult with counts and any per-leaf error messages.
 
     Raises:
-        PreviewAuctionError:      Auction is not yet live. Caller
-                                  should record a PREVIEW event and
-                                  move on.
-        HighlightsOnlyError:      Partial lot list. Caller should
-                                  download without persisting to DB.
-        LotListUnavailableError:  Fatal for this auction run.
+        ExpansionNotReadyError:     Top-level ref is not yet ready.
+                                    Caller should record the event and
+                                    move on.
+        PartialExpansionError:      Incomplete child list. Caller should
+                                    download without persisting to DB.
+        ChildListUnavailableError:  Fatal for this run.
     """
-    auction = plugin.auction_loader.load(auction_ref, client)
+    expansion = plugin.expanders[0].expand(top_ref, client)
+    parent_record = expansion.record
 
-    lot_refs = list(auction.lot_refs)
-    if config.lot_limit > 0:
-        lot_refs = lot_refs[: config.lot_limit]
+    leaf_refs = list(expansion.child_refs)
+    if config.leaf_limit > 0:
+        leaf_refs = leaf_refs[: config.leaf_limit]
 
-    image_dir: str | None = None
-    if not config.skip_images and config.output_dir is not None:
-        image_dir = config.output_dir
-
-    lots_parsed = 0
-    lots_failed = 0
-    images_downloaded = 0
+    leaves_parsed = 0
+    leaves_failed = 0
     errors: list[str] = []
 
-    for lot_ref in lot_refs:
+    for i, leaf_ref in enumerate(leaf_refs):
         try:
-            lot = plugin.lot_parser.parse(
-                lot_ref,
-                auction,
-                client,
-                image_dir,
-            )
-        except LotUnavailableError as exc:
-            lots_failed += 1
-            errors.append(f"lot {lot_ref.lot_number}: {exc}")
+            leaf_record = plugin.sink.consume(leaf_ref, client)
+        except LeafUnavailableError as exc:
+            leaves_failed += 1
+            errors.append(f"ref[{i}]: {exc}")
             continue
 
-        lots_parsed += 1
-        images_downloaded += len(lot.images)
+        leaves_parsed += 1
 
-        if on_lot is not None:
-            on_lot(lot, auction)
+        if on_leaf is not None:
+            on_leaf(leaf_record, parent_record)
 
     return RunResult(
-        auction=auction,
-        lots_parsed=lots_parsed,
-        lots_failed=lots_failed,
-        images_downloaded=images_downloaded,
-        pdf_downloaded=False,
-        skipped_preview=False,
+        record=parent_record,
+        leaves_parsed=leaves_parsed,
+        leaves_failed=leaves_failed,
         errors=tuple(errors),
     )
