@@ -1,8 +1,10 @@
 """Ladon crawl runner — the core orchestrator.
 
 The runner drives the crawl loop for a single top-level ref:
-  1. Expand the ref via plugin.expanders[0].expand().
-  2. For each child leaf ref, call plugin.sink.consume().
+  1. Traverse plugin.expanders in order, each expanding the refs
+     produced by the previous one (multi-level tree traversal).
+  2. For each leaf ref produced by the last expander, call
+     plugin.sink.consume().
   3. Invoke ``on_leaf`` callback after each successful consume.
 
 Persistence (DB writes, file serialization) is the caller's
@@ -87,18 +89,39 @@ def run_crawl(
         extra={"plugin": plugin.name, "ref": str(top_ref)},
     )
 
-    expansion = plugin.expanders[0].expand(top_ref, client)
-    parent_record = expansion.record
+    # Phase 1 — traverse all expanders in order.
+    #
+    # The first expander handles top_ref and yields the top-level record
+    # (e.g. AuctionRecord) stored in RunResult.record. Remaining expanders
+    # chain through the refs produced by the previous level, carrying
+    # (child_ref, parent_record) pairs so each leaf knows its direct parent.
+    #
+    # Single-expander behaviour is identical to the previous implementation.
+    first_expansion = plugin.expanders[0].expand(top_ref, client)
+    top_record: object = first_expansion.record
+    pairs: list[tuple[object, object]] = [
+        (child_ref, first_expansion.record)
+        for child_ref in first_expansion.child_refs
+    ]
 
-    leaf_refs = list(expansion.child_refs)
+    for expander in plugin.expanders[1:]:
+        next_pairs: list[tuple[object, object]] = []
+        for ref, _ in pairs:
+            expansion = expander.expand(ref, client)
+            for child_ref in expansion.child_refs:
+                next_pairs.append((child_ref, expansion.record))
+        pairs = next_pairs
+
+    # Phase 2 — apply leaf limit at the leaf level.
     if config.leaf_limit > 0:
-        leaf_refs = leaf_refs[: config.leaf_limit]
+        pairs = pairs[: config.leaf_limit]
 
+    # Phase 3 — sink consumes each leaf ref.
     leaves_parsed = 0
     leaves_failed = 0
     errors: list[str] = []
 
-    for i, leaf_ref in enumerate(leaf_refs):
+    for i, (leaf_ref, parent_record) in enumerate(pairs):
         try:
             leaf_record = plugin.sink.consume(leaf_ref, client)
         except LeafUnavailableError as exc:
@@ -141,7 +164,7 @@ def run_crawl(
     )
 
     return RunResult(
-        record=parent_record,
+        record=top_record,
         leaves_parsed=leaves_parsed,
         leaves_failed=leaves_failed,
         errors=tuple(errors),
