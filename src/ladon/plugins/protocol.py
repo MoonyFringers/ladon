@@ -69,10 +69,15 @@ class Sink(Protocol):
 class CrawlPlugin(Protocol):
     """Bundle of all adapters for one crawl domain.
 
-    ``source`` produces top-level refs. ``expanders`` is an ordered list
-    of expansion steps (one per tree level above the leaves). ``sink``
-    consumes the leaf refs produced by the last expander.
+    ``name`` is a short identifier used in log lines and error messages
+    (e.g. ``"christies_online"``, ``"sothebys"``). ``source`` produces
+    top-level refs. ``expanders`` is an ordered list of expansion steps
+    (one per tree level above the leaves). ``sink`` consumes the leaf
+    refs produced by the last expander.
     """
+
+    @property
+    def name(self) -> str: ...
 
     @property
     def source(self) -> Source: ...
