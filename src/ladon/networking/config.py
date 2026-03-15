@@ -28,12 +28,15 @@ class HttpClientConfig:
     read_timeout_seconds: float | None = None
     backoff_base_seconds: float = 0.0
     timeout_seconds: float | None = None
+    min_request_interval_seconds: float = 0.0
 
     def __post_init__(self) -> None:
         if self.retries < 0:
             raise ValueError("retries must be >= 0")
         if self.backoff_base_seconds < 0:
             raise ValueError("backoff_base_seconds must be >= 0")
+        if self.min_request_interval_seconds < 0:
+            raise ValueError("min_request_interval_seconds must be >= 0")
 
         has_connect_timeout = self.connect_timeout_seconds is not None
         has_read_timeout = self.read_timeout_seconds is not None
