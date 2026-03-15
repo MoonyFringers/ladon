@@ -27,12 +27,7 @@ from ladon.plugins.errors import (
     PartialExpansionError,
 )
 from ladon.plugins.models import Expansion, Ref
-from ladon.plugins.protocol import (
-    CrawlPlugin,
-    Expander,
-    Sink,
-    Source,
-)
+from ladon.plugins.protocol import CrawlPlugin, Expander, Sink, Source
 from ladon.runner import RunConfig, RunResult, run_crawl
 
 # ---------------------------------------------------------------------------
