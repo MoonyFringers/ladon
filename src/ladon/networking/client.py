@@ -39,6 +39,16 @@ class HttpClient:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
 
+    def close(self) -> None:
+        """Close the underlying session and release pooled connections."""
+        self._session.close()
+
+    def __enter__(self) -> HttpClient:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
+
     def _get_timeout(
         self, override: float | None
     ) -> float | tuple[float, float] | None:
