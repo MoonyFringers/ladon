@@ -101,7 +101,11 @@ def run_crawl(
         leaves_parsed += 1
 
         if on_leaf is not None:
-            on_leaf(leaf_record, parent_record)
+            try:
+                on_leaf(leaf_record, parent_record)
+            except Exception as exc:
+                leaves_failed += 1
+                errors.append(f"ref[{i}] on_leaf callback failed: {exc}")
 
     return RunResult(
         record=parent_record,
