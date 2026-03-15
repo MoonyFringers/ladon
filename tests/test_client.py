@@ -46,6 +46,25 @@ def _mock_response(
     return response
 
 
+def test_close_closes_session(config):
+    with patch("requests.Session.close") as mock_close:
+        client = HttpClient(config)
+        client.close()
+    mock_close.assert_called_once()
+
+
+def test_context_manager_closes_session_on_exit(config):
+    with patch("requests.Session.close") as mock_close:
+        with HttpClient(config):
+            pass
+    mock_close.assert_called_once()
+
+
+def test_context_manager_returns_client_instance(config):
+    with HttpClient(config) as client:
+        assert isinstance(client, HttpClient)
+
+
 def test_init_sets_user_agent_and_default_headers(client):
     assert client._session.headers["User-Agent"] == "TestAgent/1.0"
     assert client._session.headers["X-Test"] == "yes"
