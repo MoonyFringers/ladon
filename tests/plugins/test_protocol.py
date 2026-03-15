@@ -533,6 +533,38 @@ class TestRunnerLogging:
         assert warn.plugin == "mock_plugin"  # type: ignore[attr-defined]
         assert warn.ref_index == 0  # type: ignore[attr-defined]
 
+    def test_expander_branch_failure_emits_warning(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        section_a = Ref(url="https://demo.example.com/section/a")
+
+        class _FirstExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(record=_make_record(), child_refs=[section_a])
+
+        class _FailingExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise ChildListUnavailableError("API down")
+
+        p = _MockPlugin([])
+        p.expanders = [_FirstExpander(), _FailingExpander()]
+
+        with caplog.at_level(logging.WARNING, logger="ladon.runner"):
+            run_crawl(top_ref, p, http_client, config)
+
+        warn = next(
+            r for r in caplog.records if "expander branch failed" in r.message
+        )
+        assert warn.levelno == logging.WARNING
+        assert warn.plugin == "mock_plugin"  # type: ignore[attr-defined]
+        assert warn.error_type == "ChildListUnavailableError"  # type: ignore[attr-defined]
+
     def test_on_leaf_failure_emits_warning(
         self,
         top_ref: Ref,
@@ -664,17 +696,16 @@ class TestMultiExpander:
         result = run_crawl(top_ref, two_expander_plugin, http_client, cfg)
         assert result.leaves_parsed == 2
 
-    def test_intermediate_expander_error_propagates(
+    def test_intermediate_expansion_not_ready_propagates(
         self,
         top_ref: Ref,
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
-        """An exception from a non-first expander propagates and aborts the run.
+        """ExpansionNotReadyError from a non-first expander aborts the run.
 
-        See issue #29 — this currently discards leaf refs already collected
-        from other branches. Behaviour is documented here so any future change
-        to per-branch isolation is explicit.
+        The whole run is globally premature — the caller should skip this
+        top_ref entirely and retry on the next scheduled run.
         """
 
         class _FirstExpander:
@@ -684,14 +715,119 @@ class TestMultiExpander:
                     child_refs=[Ref(url="https://demo.example.com/section/a")],
                 )
 
-        class _FailingSecondExpander:
+        class _NotReadySecondExpander:
             def expand(self, ref: object, client: HttpClient) -> Expansion:
-                raise PartialExpansionError("section unavailable")
+                raise ExpansionNotReadyError("section not live yet")
 
         p = _MockPlugin([])
-        p.expanders = [_FirstExpander(), _FailingSecondExpander()]
-        with pytest.raises(PartialExpansionError):
+        p.expanders = [_FirstExpander(), _NotReadySecondExpander()]
+        with pytest.raises(ExpansionNotReadyError):
             run_crawl(top_ref, p, http_client, config)
+
+    def test_intermediate_partial_expansion_is_isolated(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        """PartialExpansionError from a non-first expander is isolated.
+
+        The failing branch is skipped and recorded in errors; other branches
+        and the overall run continue normally. Closes #29.
+        """
+        section_a = Ref(url="https://demo.example.com/section/a")
+        section_b = Ref(url="https://demo.example.com/section/b")
+        item_1 = Ref(url="https://demo.example.com/item/1")
+
+        class _FirstExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(
+                    record=_make_record(),
+                    child_refs=[section_a, section_b],
+                )
+
+        class _SectionExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/a"):
+                    raise PartialExpansionError("section_a unavailable")
+                return Expansion(record=_make_record(), child_refs=[item_1])
+
+        p = _MockPlugin([])
+        p.expanders = [_FirstExpander(), _SectionExpander()]
+        result = run_crawl(top_ref, p, http_client, config)
+
+        assert result.leaves_parsed == 1
+        assert result.leaves_failed == 0
+        assert len(result.errors) == 1
+        assert "section_a" in result.errors[0]
+
+    def test_intermediate_child_list_unavailable_is_isolated(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        """ChildListUnavailableError from a non-first expander is isolated.
+
+        The failing branch is skipped and recorded in errors; other branches
+        continue. Closes #29.
+        """
+        section_a = Ref(url="https://demo.example.com/section/a")
+        section_b = Ref(url="https://demo.example.com/section/b")
+        item_1 = Ref(url="https://demo.example.com/item/1")
+
+        class _FirstExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(
+                    record=_make_record(),
+                    child_refs=[section_a, section_b],
+                )
+
+        class _SectionExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/b"):
+                    raise ChildListUnavailableError("API down")
+                return Expansion(record=_make_record(), child_refs=[item_1])
+
+        p = _MockPlugin([])
+        p.expanders = [_FirstExpander(), _SectionExpander()]
+        result = run_crawl(top_ref, p, http_client, config)
+
+        assert result.leaves_parsed == 1
+        assert result.leaves_failed == 0
+        assert len(result.errors) == 1
+        assert "section/b" in result.errors[0]
+
+    def test_all_branches_fail_returns_empty_result(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        """If every branch of a non-first expander fails, result has no leaves."""
+        section_a = Ref(url="https://demo.example.com/section/a")
+        section_b = Ref(url="https://demo.example.com/section/b")
+
+        class _FirstExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(
+                    record=_make_record(),
+                    child_refs=[section_a, section_b],
+                )
+
+        class _AlwaysFailExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise ChildListUnavailableError("API down")
+
+        p = _MockPlugin([])
+        p.expanders = [_FirstExpander(), _AlwaysFailExpander()]
+        result = run_crawl(top_ref, p, http_client, config)
+
+        assert result.leaves_parsed == 0
+        assert result.leaves_failed == 0
+        assert len(result.errors) == 2  # one per failed branch
 
     def test_zero_leaves_when_first_expander_returns_empty(
         self,
