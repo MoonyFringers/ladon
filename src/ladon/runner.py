@@ -12,12 +12,15 @@ itself has no DB dependency.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Callable
 
 from ladon.networking.client import HttpClient
 from ladon.plugins.errors import LeafUnavailableError
 from ladon.plugins.protocol import CrawlPlugin
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -79,6 +82,11 @@ def run_crawl(
             f"CrawlPlugin '{plugin.name}' has no expanders configured"
         )
 
+    logger.info(
+        "run_crawl started",
+        extra={"plugin": plugin.name, "ref": str(top_ref)},
+    )
+
     expansion = plugin.expanders[0].expand(top_ref, client)
     parent_record = expansion.record
 
@@ -96,6 +104,14 @@ def run_crawl(
         except LeafUnavailableError as exc:
             leaves_failed += 1
             errors.append(f"ref[{i}]: {exc}")
+            logger.warning(
+                "leaf unavailable",
+                extra={
+                    "plugin": plugin.name,
+                    "ref_index": i,
+                    "error": str(exc),
+                },
+            )
             continue
 
         leaves_parsed += 1
@@ -106,6 +122,23 @@ def run_crawl(
             except Exception as exc:
                 leaves_failed += 1
                 errors.append(f"ref[{i}] on_leaf callback failed: {exc}")
+                logger.warning(
+                    "on_leaf callback failed",
+                    extra={
+                        "plugin": plugin.name,
+                        "ref_index": i,
+                        "error": str(exc),
+                    },
+                )
+
+    logger.info(
+        "run_crawl finished",
+        extra={
+            "plugin": plugin.name,
+            "leaves_parsed": leaves_parsed,
+            "leaves_failed": leaves_failed,
+        },
+    )
 
     return RunResult(
         record=parent_record,

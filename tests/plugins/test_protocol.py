@@ -446,3 +446,113 @@ class TestRunnerErrors:
         assert result.leaves_failed == 1
         assert len(result.errors) == 1
         assert "on_leaf callback failed" in result.errors[0]
+
+
+# ---------------------------------------------------------------------------
+# Runner — logging
+# ---------------------------------------------------------------------------
+
+
+class TestRunnerLogging:
+    def test_start_and_finish_logged(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            run_crawl(top_ref, plugin, http_client, config)
+
+        messages = [r.message for r in caplog.records]
+        assert any("run_crawl started" in m for m in messages)
+        assert any("run_crawl finished" in m for m in messages)
+
+    def test_start_record_has_plugin_and_ref(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            run_crawl(top_ref, plugin, http_client, config)
+
+        start = next(r for r in caplog.records if "started" in r.message)
+        assert start.plugin == "mock_plugin"  # type: ignore[attr-defined]
+        assert start.ref == str(top_ref)  # type: ignore[attr-defined]
+
+    def test_finish_record_has_counts(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            run_crawl(top_ref, plugin, http_client, config)
+
+        finish = next(r for r in caplog.records if "finished" in r.message)
+        assert finish.leaves_parsed == 3  # type: ignore[attr-defined]
+        assert finish.leaves_failed == 0  # type: ignore[attr-defined]
+
+    def test_leaf_unavailable_emits_warning(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        refs = [Ref(url="https://demo.example.com/leaf/1")]
+
+        class _FailSink:
+            def consume(self, ref: object, client: HttpClient) -> object:
+                raise LeafUnavailableError("gone")
+
+        p = _MockPlugin(refs)
+        p.sink = _FailSink()
+
+        with caplog.at_level(logging.WARNING, logger="ladon.runner"):
+            run_crawl(top_ref, p, http_client, config)
+
+        warn = next(
+            r for r in caplog.records if "leaf unavailable" in r.message
+        )
+        assert warn.levelno == logging.WARNING
+        assert warn.plugin == "mock_plugin"  # type: ignore[attr-defined]
+        assert warn.ref_index == 0  # type: ignore[attr-defined]
+
+    def test_on_leaf_failure_emits_warning(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        def _bad_on_leaf(leaf: object, parent: object) -> None:
+            raise RuntimeError("db down")
+
+        with caplog.at_level(logging.WARNING, logger="ladon.runner"):
+            run_crawl(
+                top_ref, plugin, http_client, config, on_leaf=_bad_on_leaf
+            )
+
+        warnings = [
+            r for r in caplog.records if "on_leaf callback failed" in r.message
+        ]
+        assert len(warnings) == 3
+        assert all(w.plugin == "mock_plugin" for w in warnings)  # type: ignore[attr-defined]
