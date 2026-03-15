@@ -556,3 +556,157 @@ class TestRunnerLogging:
         ]
         assert len(warnings) == 3
         assert all(w.plugin == "mock_plugin" for w in warnings)  # type: ignore[attr-defined]
+
+
+# ---------------------------------------------------------------------------
+# Multi-expander traversal
+# ---------------------------------------------------------------------------
+
+
+class TestMultiExpander:
+    """Verify 2-expander tree: top_ref → [section_a, section_b] → leaves."""
+
+    @pytest.fixture()
+    def two_expander_plugin(self) -> _MockPlugin:
+        """Plugin with 2 expanders:
+        Expander1: top_ref  → (catalog_record, [section_a, section_b])
+        Expander2: section_a → (section_a_record, [item_1, item_2])
+                   section_b → (section_b_record, [item_3])
+        Sink:      item_ref  → leaf_record
+        """
+        section_a = Ref(url="https://demo.example.com/section/a")
+        section_b = Ref(url="https://demo.example.com/section/b")
+        item_1 = Ref(url="https://demo.example.com/item/1")
+        item_2 = Ref(url="https://demo.example.com/item/2")
+        item_3 = Ref(url="https://demo.example.com/item/3")
+
+        @dataclass(frozen=True)
+        class _CatalogRecord:
+            name: str = "catalog"
+
+        @dataclass(frozen=True)
+        class _SectionRecord:
+            name: str
+
+        class _CatalogExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(
+                    record=_CatalogRecord(),
+                    child_refs=[section_a, section_b],
+                )
+
+        class _SectionExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/a"):
+                    return Expansion(
+                        record=_SectionRecord(name="section_a"),
+                        child_refs=[item_1, item_2],
+                    )
+                return Expansion(
+                    record=_SectionRecord(name="section_b"),
+                    child_refs=[item_3],
+                )
+
+        p = _MockPlugin([])
+        p.expanders = [_CatalogExpander(), _SectionExpander()]
+        return p
+
+    def test_all_leaves_reached(
+        self,
+        top_ref: Ref,
+        two_expander_plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        result = run_crawl(top_ref, two_expander_plugin, http_client, config)
+        assert result.leaves_parsed == 3
+        assert result.leaves_failed == 0
+
+    def test_top_record_is_first_expander_record(
+        self,
+        top_ref: Ref,
+        two_expander_plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        result = run_crawl(top_ref, two_expander_plugin, http_client, config)
+        assert getattr(result.record, "name", None) == "catalog"
+
+    def test_on_leaf_parent_is_direct_section_record(
+        self,
+        top_ref: Ref,
+        two_expander_plugin: _MockPlugin,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        parents: list[object] = []
+
+        def capture(leaf: object, parent: object) -> None:
+            parents.append(parent)
+
+        run_crawl(
+            top_ref, two_expander_plugin, http_client, config, on_leaf=capture
+        )
+
+        assert len(parents) == 3
+        parent_names = [p.name for p in parents]  # type: ignore[union-attr]
+        # items 1,2 come from section_a; item 3 from section_b
+        assert parent_names == ["section_a", "section_a", "section_b"]
+
+    def test_leaf_limit_applies_at_leaf_level(
+        self,
+        top_ref: Ref,
+        two_expander_plugin: _MockPlugin,
+        http_client: HttpClient,
+    ) -> None:
+        cfg = RunConfig(leaf_limit=2)
+        result = run_crawl(top_ref, two_expander_plugin, http_client, cfg)
+        assert result.leaves_parsed == 2
+
+    def test_intermediate_expander_error_propagates(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        """An exception from a non-first expander propagates and aborts the run.
+
+        See issue #29 — this currently discards leaf refs already collected
+        from other branches. Behaviour is documented here so any future change
+        to per-branch isolation is explicit.
+        """
+
+        class _FirstExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(
+                    record=_make_record(),
+                    child_refs=[Ref(url="https://demo.example.com/section/a")],
+                )
+
+        class _FailingSecondExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                raise PartialExpansionError("section unavailable")
+
+        p = _MockPlugin([])
+        p.expanders = [_FirstExpander(), _FailingSecondExpander()]
+        with pytest.raises(PartialExpansionError):
+            run_crawl(top_ref, p, http_client, config)
+
+    def test_zero_leaves_when_first_expander_returns_empty(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+    ) -> None:
+        class _EmptyExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                return Expansion(record=_make_record(), child_refs=[])
+
+        p = _MockPlugin([])
+        p.expanders = [_EmptyExpander()]
+        result = run_crawl(top_ref, p, http_client, config)
+        assert result.leaves_parsed == 0
+        assert result.leaves_failed == 0
+        assert result.errors == ()
+        assert isinstance(result.record, _DemoRecord)
