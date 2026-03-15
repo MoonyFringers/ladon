@@ -14,10 +14,7 @@ from .errors import (
     PartialExpansionError,
     PluginError,
 )
-from .models import (
-    Expansion,
-    Ref,
-)
+from .models import Expansion, Ref
 from .protocol import CrawlPlugin, Expander, Sink, Source
 
 __all__ = [
