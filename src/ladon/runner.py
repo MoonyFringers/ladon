@@ -19,7 +19,12 @@ from dataclasses import dataclass
 from typing import Callable
 
 from ladon.networking.client import HttpClient
-from ladon.plugins.errors import LeafUnavailableError
+from ladon.plugins.errors import (
+    ChildListUnavailableError,
+    ExpansionNotReadyError,
+    LeafUnavailableError,
+    PartialExpansionError,
+)
 from ladon.plugins.protocol import CrawlPlugin
 
 logger = logging.getLogger(__name__)
@@ -41,7 +46,14 @@ class RunConfig:
 
 @dataclass(frozen=True)
 class RunResult:
-    """Outcome of a single run_crawl() call."""
+    """Outcome of a single run_crawl() call.
+
+    ``errors`` accumulates both expander branch failures (Phase 1, format
+    ``"expander branch '...': ..."`` ) and leaf-level failures (Phase 3,
+    format ``"ref[N]: ..."`` ).  A result with ``leaves_failed == 0`` may
+    still contain branch errors — always inspect ``errors`` for a complete
+    picture of what went wrong.
+    """
 
     record: object
     leaves_parsed: int
@@ -71,12 +83,17 @@ def run_crawl(
         RunResult with counts and any per-leaf error messages.
 
     Raises:
-        ExpansionNotReadyError:     Top-level ref is not yet ready.
+        ExpansionNotReadyError:     Raised from any expander. The ref (or
+                                    an intermediate ref) is not yet ready.
                                     Caller should record the event and
-                                    move on.
-        PartialExpansionError:      Incomplete child list. Caller should
-                                    download without persisting to DB.
-        ChildListUnavailableError:  Fatal for this run.
+                                    move on; retry on the next scheduled run.
+        PartialExpansionError:      Raised only from the first expander.
+                                    From non-first expanders the failing
+                                    branch is isolated and recorded in
+                                    RunResult.errors instead.
+        ChildListUnavailableError:  Raised only from the first expander.
+                                    Same isolation rule applies to non-first
+                                    expanders as for PartialExpansionError.
         ValueError:                 Plugin has no expanders configured.
     """
     if not plugin.expanders:
@@ -89,6 +106,8 @@ def run_crawl(
         extra={"plugin": plugin.name, "ref": str(top_ref)},
     )
 
+    errors: list[str] = []
+
     # Phase 1 — traverse all expanders in order.
     #
     # The first expander handles top_ref and yields the top-level record
@@ -97,6 +116,11 @@ def run_crawl(
     # (child_ref, parent_record) pairs so each leaf knows its direct parent.
     #
     # Single-expander behaviour is identical to the previous implementation.
+    #
+    # For non-first expanders, exceptions are isolated per branch:
+    #   - ExpansionNotReadyError  → re-raised (run is globally premature)
+    #   - PartialExpansionError   → branch skipped, error accumulated
+    #   - ChildListUnavailableError → branch skipped, error accumulated
     first_expansion = plugin.expanders[0].expand(top_ref, client)
     top_record: object = first_expansion.record
     pairs: list[tuple[object, object]] = [
@@ -107,7 +131,22 @@ def run_crawl(
     for expander in plugin.expanders[1:]:
         next_pairs: list[tuple[object, object]] = []
         for ref, _ in pairs:
-            expansion = expander.expand(ref, client)
+            try:
+                expansion = expander.expand(ref, client)
+            except ExpansionNotReadyError:
+                raise  # run is globally premature — abort
+            except (PartialExpansionError, ChildListUnavailableError) as exc:
+                errors.append(f"expander branch '{ref}': {exc}")
+                logger.warning(
+                    "expander branch failed",
+                    extra={
+                        "plugin": plugin.name,
+                        "ref": str(ref),
+                        "error": str(exc),
+                        "error_type": type(exc).__name__,
+                    },
+                )
+                continue
             for child_ref in expansion.child_refs:
                 next_pairs.append((child_ref, expansion.record))
         pairs = next_pairs
@@ -119,7 +158,6 @@ def run_crawl(
     # Phase 3 — sink consumes each leaf ref.
     leaves_parsed = 0
     leaves_failed = 0
-    errors: list[str] = []
 
     for i, (leaf_ref, parent_record) in enumerate(pairs):
         try:
