@@ -254,6 +254,18 @@ class TestRunnerHappyPath:
 
 
 class TestRunnerErrors:
+    def test_empty_expanders_raises_value_error(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        child_refs: list[Ref],
+    ) -> None:
+        p = _MockPlugin(child_refs)
+        p.expanders = []
+        with pytest.raises(ValueError, match="no expanders configured"):
+            run_crawl(top_ref, p, http_client, config)
+
     def test_expansion_not_ready_propagates(
         self,
         top_ref: Ref,
