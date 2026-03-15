@@ -54,13 +54,15 @@ extend_skip_glob = ["resources/*"]
 # ----------------------------------------
 [tool.ruff]
 line-length = 80
-select = ["E", "F", "W", "B"]
-ignore = [
-    "E501"  # Handled by Black
-]
 respect-gitignore = true
 extend-exclude = [
-    "resources/*"
+    "resources/*",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = [
+    "E501",  # Handled by Black
 ]
 
 # ----------------------------------------
