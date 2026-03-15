@@ -7,8 +7,9 @@ robots enforcement are applied by the concrete implementation.
 
 from __future__ import annotations
 
-from time import sleep
+from time import monotonic, sleep
 from typing import Any, Callable, Mapping, TypeVar
+from urllib.parse import urlparse
 
 import requests
 
@@ -35,6 +36,7 @@ class HttpClient:
         """
         self._config = config
         self._session = requests.Session()
+        self._last_request_time: dict[str, float] = {}
         if self._config.user_agent:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
@@ -88,6 +90,29 @@ class HttpClient:
         if backoff_base <= 0:
             return
         sleep(backoff_base * (2 ** max(0, attempt - 1)))
+
+    def _enforce_rate_limit(self, url: str) -> None:
+        """Enforce per-host politeness delay before issuing a request.
+
+        If ``min_request_interval_seconds`` is set, sleeps for however long
+        remains since the last request to the same host, then records the
+        current time as the new last-request timestamp for that host.
+
+        No-op when ``min_request_interval_seconds`` is zero (the default).
+        """
+        interval = self._config.min_request_interval_seconds
+        if interval <= 0:
+            return
+        host = urlparse(url).netloc
+        if not host:
+            return  # malformed URL — skip rather than poisoning the empty-key slot
+        last = self._last_request_time.get(host)
+        if last is not None:
+            elapsed = monotonic() - last
+            remaining = interval - elapsed
+            if remaining > 0:
+                sleep(remaining)
+        self._last_request_time[host] = monotonic()
 
     def _build_meta(
         self,
@@ -166,6 +191,7 @@ class HttpClient:
         value_builder: Callable[[requests.Response], ResponseValue],
     ) -> Result[ResponseValue, Exception]:
         """Execute request with retries and normalized metadata."""
+        self._enforce_rate_limit(url)
         attempts = 0
         last_error: requests.exceptions.RequestException | None = None
         for _ in range(self._max_attempts()):
