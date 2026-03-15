@@ -99,6 +99,10 @@ class _MockPlugin:
         self.expanders: list[object] = [_MockExpander(child_refs)]
         self.sink: object = _MockSink()
 
+    @property
+    def name(self) -> str:
+        return "mock_plugin"
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -151,6 +155,9 @@ class TestProtocolStructure:
 
     def test_crawl_plugin_satisfied(self, plugin: _MockPlugin) -> None:
         assert isinstance(plugin, CrawlPlugin)
+
+    def test_crawl_plugin_name(self, plugin: _MockPlugin) -> None:
+        assert plugin.name == "mock_plugin"
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +270,9 @@ class TestRunnerErrors:
     ) -> None:
         p = _MockPlugin(child_refs)
         p.expanders = []
-        with pytest.raises(ValueError, match="no expanders configured"):
+        with pytest.raises(
+            ValueError, match="mock_plugin.*no expanders configured"
+        ):
             run_crawl(top_ref, p, http_client, config)
 
     def test_expansion_not_ready_propagates(
