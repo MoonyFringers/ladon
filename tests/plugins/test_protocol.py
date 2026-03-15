@@ -398,3 +398,51 @@ class TestRunnerErrors:
         assert on_leaf.call_count == 1
         assert result.leaves_parsed == 1
         assert result.leaves_failed == 1
+
+    def test_on_leaf_exception_is_non_fatal(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        child_refs: list[Ref],
+    ) -> None:
+        """on_leaf failure must not abort the run — remaining leaves continue."""
+
+        def _failing_on_leaf(leaf: object, parent: object) -> None:
+            raise RuntimeError("DB write failed")
+
+        p = _MockPlugin(child_refs)
+        result = run_crawl(
+            top_ref, p, http_client, config, on_leaf=_failing_on_leaf
+        )
+        # All 3 leaves were consumed by the sink; all 3 on_leaf calls failed
+        assert result.leaves_parsed == 3
+        assert result.leaves_failed == 3
+        assert len(result.errors) == 3
+        assert all("on_leaf callback failed" in e for e in result.errors)
+
+    def test_on_leaf_exception_every_other_leaf(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        child_refs: list[Ref],
+    ) -> None:
+        """Alternating on_leaf failure: parsed count stays correct."""
+        call_count = 0
+
+        def _alternating_on_leaf(leaf: object, parent: object) -> None:
+            nonlocal call_count
+            call_count += 1
+            if call_count % 2 == 0:
+                raise RuntimeError("intermittent failure")
+
+        p = _MockPlugin(child_refs)
+        result = run_crawl(
+            top_ref, p, http_client, config, on_leaf=_alternating_on_leaf
+        )
+        # 3 leaves: calls 1, 3 succeed; call 2 fails
+        assert result.leaves_parsed == 3
+        assert result.leaves_failed == 1
+        assert len(result.errors) == 1
+        assert "on_leaf callback failed" in result.errors[0]
