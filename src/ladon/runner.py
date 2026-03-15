@@ -72,7 +72,11 @@ def run_crawl(
         PartialExpansionError:      Incomplete child list. Caller should
                                     download without persisting to DB.
         ChildListUnavailableError:  Fatal for this run.
+        ValueError:                 Plugin has no expanders configured.
     """
+    if not plugin.expanders:
+        raise ValueError("CrawlPlugin has no expanders configured")
+
     expansion = plugin.expanders[0].expand(top_ref, client)
     parent_record = expansion.record
 
