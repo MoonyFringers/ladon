@@ -34,14 +34,10 @@ logger = logging.getLogger(__name__)
 class RunConfig:
     """Configuration for a single runner invocation.
 
-    ``leaf_limit`` caps the number of leaves parsed; 0 means no limit.
-    ``skip_assets`` suppresses asset downloads (useful for fast canary
-    runs). ``output_dir`` must be set when assets are enabled.
+    ``leaf_limit`` caps the number of leaves processed; 0 means no limit.
     """
 
     leaf_limit: int = 0
-    skip_assets: bool = False
-    output_dir: str | None = None
 
 
 @dataclass(frozen=True)
