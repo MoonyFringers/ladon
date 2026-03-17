@@ -124,7 +124,6 @@ def test_get_rejects_non_positive_timeout_override(client):
 @patch("requests.Session.get")
 def test_get_uses_connect_read_timeout_tuple(mock_get):
     config = HttpClientConfig(
-        timeout_seconds=None,
         connect_timeout_seconds=1.0,
         read_timeout_seconds=3.0,
     )
