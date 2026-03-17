@@ -53,7 +53,7 @@ class HttpClient:
 
     def _get_timeout(
         self, override: float | None
-    ) -> float | tuple[float, float] | None:
+    ) -> float | tuple[float, float]:
         """Resolve timeout preference."""
         if override is not None:
             if override <= 0:
