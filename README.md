@@ -27,22 +27,25 @@ Ladon aims to provide:
 - **Testable, modular design** suitable for research, automation, and data
   pipelines
 
-This project is currently in its **early planning and design phase**. The
-initial goal is to build the core networking client and the abstractions for
-adapters.
+This project is in **active development**. The core networking layer and
+plugin architecture are implemented and tested; site-specific adapters are
+being built in separate repositories.
 
 ---
 
 ## 🧱 Current Status
 
-Ladon is under active development. Documentation, architecture notes, and
-roadmap details will be gradually added to the repository.
+The core framework is functional:
 
-For now, the project consists of:
-
-- This README
-- Basic repository structure
-- Design work happening upstream, preparing for implementation
+- **Networking layer** — `HttpClient` with retries, backoff, per-domain rate
+  limiting, connect/read timeout control, and structured result metadata
+- **Plugin protocol** — `CrawlPlugin`, `Expander`, `Sink`, `Expansion` —
+  domain-agnostic contracts for site adapters
+- **Runner** — `run_crawl()` orchestrates multi-level tree traversal, leaf
+  consumption, and an optional persistence callback
+- **Error taxonomy** — `ExpansionNotReadyError`, `PartialExpansionError`,
+  `ChildListUnavailableError`, `LeafUnavailableError`, `AssetDownloadError`
+- **119 tests**, pre-commit hooks (black, ruff, isort, pyright strict)
 
 ---
 
@@ -57,8 +60,7 @@ the source:
 pip install .
 ```
 
-This command will automatically install all required dependencies (like
-`requests`).
+This command will automatically install all required dependencies.
 
 ### For Developers
 
@@ -89,31 +91,28 @@ initial architecture stabilizes.
 
 ## 📜 License
 
-Ladon will be released under a permissive open-source license (likely MIT or
-Apache 2.0). The final license choice will be added here soon.
+Ladon is released under the **GNU Affero General Public License v3.0 or later
+(AGPL-3.0-or-later)**. See [`LICENSE`](LICENSE) for the full text.
+
+AGPL was chosen to ensure that improvements to the core framework — including
+when deployed as a service — remain open and available to the community.
 
 ---
 
 ## 🔮 Roadmap (High-level)
 
-Early planned milestones include:
-
-1. **Core networking layer**
-   - HttpClient abstraction
-   - Retry/backoff logic
-   - Rate limiting per domain
-   - Circuit breaker system
-   - Robots.txt handler
-2. **Result and metadata model**
-3. **Plugin architecture** for site adapters
-4. **CLI tool** for running crawlers
-5. **Documentation site** (MkDocs Material)
-6. **Example adapters** (non-proprietary websites)
-7. **Testing framework** and contract tests
+1. ✅ **Core networking layer** — HttpClient, retries, backoff, rate limiting
+2. ✅ **Plugin architecture** — Expander / Sink / CrawlPlugin protocol
+3. ✅ **Runner** — multi-level traversal, leaf isolation, persistence hook
+4. 🔲 **Site adapters** — built in separate repos (`ladon-<house>`)
+5. 🔲 **Circuit breaker** — `CircuitOpenError` reserved, not yet implemented
+6. 🔲 **robots.txt enforcement** — `RobotsBlockedError` reserved, not yet implemented
+7. 🔲 **CLI tool** for running crawlers
+8. 🔲 **Documentation site** (MkDocs Material)
 
 ---
 
 ## 🧭 Stay Updated
 
-Project updates and design discussions will be published directly in this
-repository as the implementation begins.
+Project updates and design discussions are published directly in this
+repository as development progresses.
