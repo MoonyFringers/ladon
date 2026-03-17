@@ -10,6 +10,12 @@ The runner drives the crawl loop for a single top-level ref:
 Persistence (DB writes, file serialization) is the caller's
 responsibility and is injected via the ``on_leaf`` callback. The runner
 itself has no DB dependency.
+
+``ExpansionNotReadyError`` is assumed to be a globally premature
+condition: when any expander raises it, the run is aborted immediately
+and the exception propagates to the caller. The caller must treat it as
+"not yet ready" and schedule a retry on the next run — it is never
+silently swallowed or converted into a partial result.
 """
 
 from __future__ import annotations
@@ -44,6 +50,9 @@ class RunConfig:
 class RunResult:
     """Outcome of a single run_crawl() call.
 
+    ``leaves_fetched`` counts leaves for which ``sink.consume()`` succeeded.
+    ``leaves_persisted`` counts leaves for which the ``on_leaf`` callback
+    completed without raising (always 0 when no callback is supplied).
     ``errors`` accumulates both expander branch failures (Phase 1, format
     ``"expander branch '...': ..."`` ) and leaf-level failures (Phase 3,
     format ``"ref[N]: ..."`` ).  A result with ``leaves_failed == 0`` may
@@ -52,7 +61,8 @@ class RunResult:
     """
 
     record: object
-    leaves_parsed: int
+    leaves_fetched: int
+    leaves_persisted: int
     leaves_failed: int
     errors: tuple[str, ...]
 
@@ -152,7 +162,8 @@ def run_crawl(
         pairs = pairs[: config.leaf_limit]
 
     # Phase 3 — sink consumes each leaf ref.
-    leaves_parsed = 0
+    leaves_fetched = 0
+    leaves_persisted = 0
     leaves_failed = 0
 
     for i, (leaf_ref, parent_record) in enumerate(pairs):
@@ -171,11 +182,12 @@ def run_crawl(
             )
             continue
 
-        leaves_parsed += 1
+        leaves_fetched += 1
 
         if on_leaf is not None:
             try:
                 on_leaf(leaf_record, parent_record)
+                leaves_persisted += 1
             except Exception as exc:
                 leaves_failed += 1
                 errors.append(f"ref[{i}] on_leaf callback failed: {exc}")
@@ -192,14 +204,16 @@ def run_crawl(
         "run_crawl finished",
         extra={
             "plugin": plugin.name,
-            "leaves_parsed": leaves_parsed,
+            "leaves_fetched": leaves_fetched,
+            "leaves_persisted": leaves_persisted,
             "leaves_failed": leaves_failed,
         },
     )
 
     return RunResult(
         record=top_record,
-        leaves_parsed=leaves_parsed,
+        leaves_fetched=leaves_fetched,
+        leaves_persisted=leaves_persisted,
         leaves_failed=leaves_failed,
         errors=tuple(errors),
     )
