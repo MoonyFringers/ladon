@@ -6,11 +6,19 @@ class HttpClientError(Exception):
 
 
 class CircuitOpenError(HttpClientError):
-    """Raised when the circuit breaker blocks a request."""
+    """Raised when the circuit breaker blocks a request.
+
+    Not yet implemented — reserved so plugin authors can reference this class
+    in ``except`` clauses without a future import change.
+    """
 
 
 class RobotsBlockedError(HttpClientError):
-    """Raised when robots.txt disallows a request."""
+    """Raised when robots.txt disallows a request.
+
+    Not yet implemented — reserved so plugin authors can reference this class
+    in ``except`` clauses without a future import change.
+    """
 
 
 class RequestTimeoutError(HttpClientError):

@@ -8,7 +8,6 @@ license = {text = "AGPL-3.0-or-later"}  # Upgraded to Affero GPL v3 or later
 
 dependencies = [
     "requests",
-    "beautifulsoup4",
 ]
 
 [project.urls]
