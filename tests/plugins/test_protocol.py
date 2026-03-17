@@ -176,7 +176,7 @@ class TestRunnerHappyPath:
         result = run_crawl(top_ref, plugin, http_client, config)
         assert isinstance(result, RunResult)
 
-    def test_leaves_parsed_count(
+    def test_leaves_fetched_count(
         self,
         top_ref: Ref,
         plugin: _MockPlugin,
@@ -184,7 +184,8 @@ class TestRunnerHappyPath:
         config: RunConfig,
     ) -> None:
         result = run_crawl(top_ref, plugin, http_client, config)
-        assert result.leaves_parsed == 3
+        assert result.leaves_fetched == 3
+        assert result.leaves_persisted == 0
         assert result.leaves_failed == 0
         assert result.errors == ()
 
@@ -213,7 +214,8 @@ class TestRunnerHappyPath:
             top_ref, plugin, http_client, config, on_leaf=on_leaf
         )
         assert on_leaf.call_count == 3
-        assert result.leaves_parsed == 3
+        assert result.leaves_fetched == 3
+        assert result.leaves_persisted == 3
 
     def test_on_leaf_receives_leaf_and_parent(
         self,
@@ -242,7 +244,7 @@ class TestRunnerHappyPath:
     ) -> None:
         cfg = RunConfig(leaf_limit=2)
         result = run_crawl(top_ref, plugin, http_client, cfg)
-        assert result.leaves_parsed == 2
+        assert result.leaves_fetched == 2
 
     def test_zero_leaf_limit_means_no_limit(
         self,
@@ -252,7 +254,7 @@ class TestRunnerHappyPath:
         config: RunConfig,
     ) -> None:
         result = run_crawl(top_ref, plugin, http_client, config)
-        assert result.leaves_parsed == 3
+        assert result.leaves_fetched == 3
 
 
 # ---------------------------------------------------------------------------
@@ -346,7 +348,8 @@ class TestRunnerErrors:
         p = _MockPlugin(refs)
         p.sink = _FailingSink()
         result = run_crawl(top_ref, p, http_client, config)
-        assert result.leaves_parsed == 1
+        assert result.leaves_fetched == 1
+        assert result.leaves_persisted == 0
         assert result.leaves_failed == 1
         assert len(result.errors) == 1
         assert "ref[0]" in result.errors[0]
@@ -367,7 +370,8 @@ class TestRunnerErrors:
         p = _MockPlugin(child_refs)
         p.sink = _AlwaysFailSink()
         result = run_crawl(top_ref, p, http_client, config)
-        assert result.leaves_parsed == 0
+        assert result.leaves_fetched == 0
+        assert result.leaves_persisted == 0
         assert result.leaves_failed == 3
         assert len(result.errors) == 3
 
@@ -396,7 +400,8 @@ class TestRunnerErrors:
         on_leaf = MagicMock()
         result = run_crawl(top_ref, p, http_client, config, on_leaf=on_leaf)
         assert on_leaf.call_count == 1
-        assert result.leaves_parsed == 1
+        assert result.leaves_fetched == 1
+        assert result.leaves_persisted == 1
         assert result.leaves_failed == 1
 
     def test_on_leaf_exception_is_non_fatal(
@@ -416,7 +421,8 @@ class TestRunnerErrors:
             top_ref, p, http_client, config, on_leaf=_failing_on_leaf
         )
         # All 3 leaves were consumed by the sink; all 3 on_leaf calls failed
-        assert result.leaves_parsed == 3
+        assert result.leaves_fetched == 3
+        assert result.leaves_persisted == 0
         assert result.leaves_failed == 3
         assert len(result.errors) == 3
         assert all("on_leaf callback failed" in e for e in result.errors)
@@ -441,8 +447,9 @@ class TestRunnerErrors:
         result = run_crawl(
             top_ref, p, http_client, config, on_leaf=_alternating_on_leaf
         )
-        # 3 leaves: calls 1, 3 succeed; call 2 fails
-        assert result.leaves_parsed == 3
+        # 3 leaves fetched; calls 1, 3 persist successfully; call 2 fails
+        assert result.leaves_fetched == 3
+        assert result.leaves_persisted == 2
         assert result.leaves_failed == 1
         assert len(result.errors) == 1
         assert "on_leaf callback failed" in result.errors[0]
@@ -502,7 +509,8 @@ class TestRunnerLogging:
             run_crawl(top_ref, plugin, http_client, config)
 
         finish = next(r for r in caplog.records if "finished" in r.message)
-        assert finish.leaves_parsed == 3  # type: ignore[attr-defined]
+        assert finish.leaves_fetched == 3  # type: ignore[attr-defined]
+        assert finish.leaves_persisted == 0  # type: ignore[attr-defined]
         assert finish.leaves_failed == 0  # type: ignore[attr-defined]
 
     def test_leaf_unavailable_emits_warning(
@@ -652,7 +660,7 @@ class TestMultiExpander:
         config: RunConfig,
     ) -> None:
         result = run_crawl(top_ref, two_expander_plugin, http_client, config)
-        assert result.leaves_parsed == 3
+        assert result.leaves_fetched == 3
         assert result.leaves_failed == 0
 
     def test_top_record_is_first_expander_record(
@@ -694,7 +702,7 @@ class TestMultiExpander:
     ) -> None:
         cfg = RunConfig(leaf_limit=2)
         result = run_crawl(top_ref, two_expander_plugin, http_client, cfg)
-        assert result.leaves_parsed == 2
+        assert result.leaves_fetched == 2
 
     def test_intermediate_expansion_not_ready_propagates(
         self,
@@ -757,7 +765,7 @@ class TestMultiExpander:
         p.expanders = [_FirstExpander(), _SectionExpander()]
         result = run_crawl(top_ref, p, http_client, config)
 
-        assert result.leaves_parsed == 1
+        assert result.leaves_fetched == 1
         assert result.leaves_failed == 0
         assert len(result.errors) == 1
         assert "section_a" in result.errors[0]
@@ -795,7 +803,7 @@ class TestMultiExpander:
         p.expanders = [_FirstExpander(), _SectionExpander()]
         result = run_crawl(top_ref, p, http_client, config)
 
-        assert result.leaves_parsed == 1
+        assert result.leaves_fetched == 1
         assert result.leaves_failed == 0
         assert len(result.errors) == 1
         assert "section/b" in result.errors[0]
@@ -825,7 +833,7 @@ class TestMultiExpander:
         p.expanders = [_FirstExpander(), _AlwaysFailExpander()]
         result = run_crawl(top_ref, p, http_client, config)
 
-        assert result.leaves_parsed == 0
+        assert result.leaves_fetched == 0
         assert result.leaves_failed == 0
         assert len(result.errors) == 2  # one per failed branch
 
@@ -842,7 +850,7 @@ class TestMultiExpander:
         p = _MockPlugin([])
         p.expanders = [_EmptyExpander()]
         result = run_crawl(top_ref, p, http_client, config)
-        assert result.leaves_parsed == 0
+        assert result.leaves_fetched == 0
         assert result.leaves_failed == 0
         assert result.errors == ()
         assert isinstance(result.record, _DemoRecord)
