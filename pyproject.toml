@@ -10,6 +10,9 @@ dependencies = [
     "requests",
 ]
 
+[project.scripts]
+ladon = "ladon.cli:main"
+
 [project.urls]
 Repository = "https://github.com/moonyfringers/ladon"
 Issues = "https://github.com/moonyfringers/ladon/issues"
