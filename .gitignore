@@ -11,6 +11,8 @@ pyrightconfig.json
 *.egg-info/
 .gemini/
 
+site/
+
 # Environment specific files
 .envrc
 .pre-commit-cache/
