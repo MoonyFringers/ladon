@@ -13,8 +13,14 @@ from urllib.parse import urlparse
 
 import requests
 
+from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
-from .errors import HttpClientError, RequestTimeoutError, RetryableHttpError
+from .errors import (
+    CircuitOpenError,
+    HttpClientError,
+    RequestTimeoutError,
+    RetryableHttpError,
+)
 from .types import Err, Ok, Result
 
 ResponseValue = TypeVar("ResponseValue")
@@ -26,6 +32,12 @@ class HttpClient:
     All outbound HTTP in Ladon must go through this client to ensure consistent
     politeness, resilience, and observability. Methods return a Result that
     contains either a value or an error plus request metadata.
+
+    Thread safety
+    -------------
+    ``HttpClient`` is **not** thread-safe.  It is designed for the
+    single-threaded, single-run crawler model.  Do not share an instance
+    across threads without external locking.
     """
 
     def __init__(self, config: HttpClientConfig) -> None:
@@ -37,6 +49,7 @@ class HttpClient:
         self._config = config
         self._session = requests.Session()
         self._last_request_time: dict[str, float] = {}
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
         if self._config.user_agent:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
@@ -180,6 +193,39 @@ class HttpClient:
         # Generic fallback for other request exceptions
         return Err(HttpClientError(str(e)), meta=meta)
 
+    def _get_circuit_breaker(self, url: str) -> CircuitBreaker | None:
+        """Return the CircuitBreaker for the host of *url*, or None if disabled."""
+        threshold = self._config.circuit_breaker_failure_threshold
+        if threshold is None:
+            return None
+        host = urlparse(url).netloc
+        if not host:
+            return None
+        if host not in self._circuit_breakers:
+            self._circuit_breakers[host] = CircuitBreaker(
+                threshold=threshold,
+                recovery_seconds=self._config.circuit_breaker_recovery_seconds,
+            )
+        return self._circuit_breakers[host]
+
+    def circuit_state(self, url: str) -> CircuitState | None:
+        """Return the current circuit-breaker state for *url*'s host.
+
+        Returns ``None`` when the circuit breaker is disabled
+        (``circuit_breaker_failure_threshold`` is ``None``) or when no
+        request has been made to the host yet.
+
+        Intended for logging, metrics, and operational dashboards — lets
+        callers surface open circuits without touching private state.
+
+        Args:
+            url: Any URL on the host to query (only the ``netloc`` is used).
+        """
+        cb = self._circuit_breakers.get(urlparse(url).netloc)
+        if cb is None:
+            return None
+        return cb.state
+
     def _request(
         self,
         method: str,
@@ -191,6 +237,22 @@ class HttpClient:
         value_builder: Callable[[requests.Response], ResponseValue],
     ) -> Result[ResponseValue, Exception]:
         """Execute request with retries and normalized metadata."""
+        cb = self._get_circuit_breaker(url)
+        if cb is not None and not cb.allow_request():
+            meta = self._build_meta(
+                method=method,
+                request_url=url,
+                response=None,
+                context=context,
+                attempts=0,
+                timeout=timeout,
+                final_error="CircuitOpenError",
+            )
+            return Err(
+                CircuitOpenError(f"circuit open for {urlparse(url).netloc}"),
+                meta=meta,
+            )
+
         self._enforce_rate_limit(url)
         attempts = 0
         last_error: requests.exceptions.RequestException | None = None
@@ -198,6 +260,8 @@ class HttpClient:
             attempts += 1
             try:
                 response = request_fn()
+                if cb is not None:
+                    cb.record_success()
                 return Ok(
                     value_builder(response),
                     meta=self._build_meta(
@@ -218,6 +282,8 @@ class HttpClient:
                     break
                 self._sleep_between_attempts(attempts)
             except Exception as exc:  # pragma: no cover - defensive fallback
+                if cb is not None:
+                    cb.record_failure()
                 return Err(
                     HttpClientError(str(exc)),
                     meta=self._build_meta(
@@ -232,6 +298,8 @@ class HttpClient:
                 )
 
         assert last_error is not None
+        if cb is not None:
+            cb.record_failure()
         return self._handle_request_exception(
             method=method,
             request_url=url,

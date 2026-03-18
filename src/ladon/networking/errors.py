@@ -8,16 +8,16 @@ class HttpClientError(Exception):
 class CircuitOpenError(HttpClientError):
     """Raised when the circuit breaker blocks a request.
 
-    Not yet implemented — reserved so plugin authors can reference this class
-    in ``except`` clauses without a future import change.
+    Inspect ``error.args[0]`` for the host that triggered the open state.
+    The circuit will probe again after ``circuit_breaker_recovery_seconds``.
     """
 
 
 class RobotsBlockedError(HttpClientError):
-    """Raised when robots.txt disallows a request.
+    """Raised when ``robots.txt`` disallows a request.
 
-    Not yet implemented — reserved so plugin authors can reference this class
-    in ``except`` clauses without a future import change.
+    Only raised when ``HttpClientConfig.respect_robots_txt`` is ``True``.
+    The disallowed URL is included in ``error.args[0]``.
     """
 
 
