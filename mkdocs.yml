@@ -1,0 +1,70 @@
+site_name: Ladon
+site_description: "Resilient, extensible web crawling framework."
+site_url: https://moonyfringers.github.io/ladon/
+repo_url: https://github.com/moonyfringers/ladon
+repo_name: moonyfringers/ladon
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+exclude_docs: |
+  README.md
+  decisions/README.md
+  decisions/adr-template.md
+  development.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            members_order: source
+            filters: ["!^_"]
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Guides:
+    - Authoring Plugins: guides/authoring-plugins.md
+  - API Reference:
+    - Networking: api/networking.md
+    - Runner: api/runner.md
+    - Plugins: api/plugins.md
+  - Decisions:
+    - Overview: decisions/index.md
+    - ADR-001 Architecture: decisions/adr-001-ladon-architecture.md
+    - ADR-002 HTTP Result Contract: decisions/adr-002-http-status-result-contract.md
+    - ADR-003 Plugin Interface: decisions/adr-003-plugin-adapter-interface.md
+    - ADR-007 Circuit Breaker: decisions/adr-007-circuit-breaker.md
+    - ADR-008 robots.txt: decisions/adr-008-robots-txt.md

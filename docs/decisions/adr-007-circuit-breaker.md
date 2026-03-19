@@ -72,7 +72,9 @@ CLOSED ─(failures >= threshold)─► OPEN ─(recovery elapsed)─► HALF_OP
   invocation), not individual HTTP attempts.  With `retries=2` and
   `threshold=3`, the circuit opens after 3 exhausted call sequences (up to
   9 underlying HTTP attempts).  Operators should size `threshold` with this
-  in mind — a value of 3 is more tolerant than it first appears.
+  in mind — a value of 3 is more tolerant than it first appears.  During
+  HALF_OPEN, the single probe may itself involve up to `retries + 1` raw
+  HTTP attempts; observers watching traffic may see more than one request.
 * **Bad**: no persistence across `HttpClient` instances — circuit state
   resets on every new client construction (acceptable for sync/single-run).
 
