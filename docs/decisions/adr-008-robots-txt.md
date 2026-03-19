@@ -115,6 +115,16 @@ distinct robots.txt files across schemes.
 caller's latency budget.  A hard-coded timeout could be too long for
 time-sensitive crawlers or too short for slow hosts.
 
+### TLS verification for robots.txt fetches
+
+`RobotsCache` accepts a `verify_tls` parameter forwarded from
+`HttpClientConfig.verify_tls`.
+
+**Why:** When `verify_tls=False` is configured (e.g. for hosts using
+self-signed certificates), the robots.txt fetch must honour the same setting.
+Without this, the fetch raises `SSLError`, is caught by the fail-open handler,
+and robots.txt is silently skipped even when `respect_robots_txt=True`.
+
 ### Session bypass: raw `session.get` for robots.txt fetches
 
 `RobotsCache` calls `session.get` directly rather than going through
