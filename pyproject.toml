@@ -88,3 +88,9 @@ reportUntypedFunctionDecorator = "none"
 # ----------------------------------------
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+# ----------------------------------------
+# COVERAGE
+# ----------------------------------------
+[tool.coverage.run]
+source = ["ladon"]
