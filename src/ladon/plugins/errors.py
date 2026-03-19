@@ -47,6 +47,8 @@ class LeafUnavailableError(PluginError):
 class AssetDownloadError(PluginError):
     """An asset download failed.
 
-    Non-fatal below the runner's asset failure threshold. The runner
-    records the failure and continues.
+    Reserved for plugin use. The runner does not currently catch this
+    exception — if raised it propagates as a fatal error and aborts the
+    run. Plugins that need non-fatal asset download handling must catch
+    it internally before returning from the Sink or Expander.
     """
