@@ -2,8 +2,13 @@
 
 ## Installation
 
+Ladon is not yet published on PyPI — a release will follow once example
+adapters are available. Install from source:
+
 ```bash
-pip install ladon
+git clone https://github.com/moonyfringers/ladon.git
+cd ladon
+pip install -e .
 ```
 
 Ladon requires Python 3.12+.  The only runtime dependency is `requests`.
@@ -32,10 +37,9 @@ with HttpClient(config) as client:
 ## Using the CLI
 
 !!! note "CLI entry point"
-    The `ladon` command is installed via the `[project.scripts]` entry point
-    added in the CLI feature.  If `ladon --version` reports "command not found",
-    ensure you are running a version of the package that includes the CLI
-    (re-install with `pip install --upgrade ladon`).
+    The `ladon` command is installed via the `[project.scripts]` entry point.
+    If `ladon --version` reports "command not found", re-run the editable
+    install from the repo root: `pip install -e .`
 
 After installation the `ladon` command is available:
 
