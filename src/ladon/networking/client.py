@@ -20,7 +20,9 @@ from .errors import (
     HttpClientError,
     RequestTimeoutError,
     RetryableHttpError,
+    RobotsBlockedError,
 )
+from .robots import RobotsCache
 from .types import Err, Ok, Result
 
 ResponseValue = TypeVar("ResponseValue")
@@ -53,6 +55,19 @@ class HttpClient:
         if self._config.user_agent:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
+        self._robots_cache: RobotsCache | None = (
+            RobotsCache(
+                self._session,
+                self._config.user_agent or "*",
+                fetch_timeout=self._config.timeout_seconds,
+                verify_tls=self._config.verify_tls,
+            )
+            if self._config.respect_robots_txt
+            else None
+        )
+        # Per-host Crawl-delay overrides populated by _enforce_robots.
+        # These take precedence over min_request_interval_seconds when larger.
+        self._crawl_delay_overrides: dict[str, float] = {}
 
     def close(self) -> None:
         """Close the underlying session and release pooled connections."""
@@ -104,6 +119,47 @@ class HttpClient:
             return
         sleep(backoff_base * (2 ** max(0, attempt - 1)))
 
+    def _enforce_robots(self, url: str) -> None:
+        """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
+
+        No-op when ``respect_robots_txt`` is False (the default) or when the
+        robots.txt fetch fails (fail-open behaviour).
+
+        Called before ``_enforce_rate_limit`` so that blocked requests are
+        rejected before the rate-limit slot is consumed — honouring the spirit
+        of the robots.txt contract: don't even waste a rate-limit slot on a
+        host that has explicitly opted out of being crawled.
+
+        Known limitation — robots.txt fetch bypasses rate-limiter
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ``RobotsCache`` fetches ``/robots.txt`` via a raw ``session.get``
+        call that is invisible to ``_enforce_rate_limit``.  On the first
+        request to any origin this produces two outbound HTTP requests to
+        that host in rapid succession (robots.txt fetch + the actual request),
+        regardless of ``min_request_interval_seconds``.  The cache guarantees
+        at most one robots.txt fetch per origin per session, so subsequent
+        requests to the same host are unaffected.  This trade-off is
+        documented in ADR-008.
+        """
+        if self._robots_cache is None:
+            return
+        if not self._robots_cache.is_allowed(url):
+            raise RobotsBlockedError(f"robots.txt disallows: {url}")
+        # Propagate Crawl-delay into the rate limiter for this host.
+        # HttpClientConfig is frozen so we maintain a side-table of per-host
+        # delay overrides rather than mutating config.
+        # Note: Crawl-delay is only registered here, on the *allowed* path.
+        # A domain that disallows all URLs but advertises Crawl-delay will
+        # have the delay present in RobotsCache._crawl_delays (populated at
+        # fetch time) but absent from _crawl_delay_overrides (since no request
+        # is ever made to that host, there is nothing to throttle).
+        delay = self._robots_cache.crawl_delay(url)
+        if delay is not None:
+            host = urlparse(url).netloc
+            current = self._config.min_request_interval_seconds
+            if delay > current:
+                self._crawl_delay_overrides[host] = delay
+
     def _enforce_rate_limit(self, url: str) -> None:
         """Enforce per-host politeness delay before issuing a request.
 
@@ -113,12 +169,15 @@ class HttpClient:
 
         No-op when ``min_request_interval_seconds`` is zero (the default).
         """
-        interval = self._config.min_request_interval_seconds
-        if interval <= 0:
-            return
         host = urlparse(url).netloc
         if not host:
             return  # malformed URL — skip rather than poisoning the empty-key slot
+        interval = max(
+            self._config.min_request_interval_seconds,
+            self._crawl_delay_overrides.get(host, 0.0),
+        )
+        if interval <= 0:
+            return
         last = self._last_request_time.get(host)
         if last is not None:
             elapsed = monotonic() - last
@@ -252,6 +311,20 @@ class HttpClient:
                 CircuitOpenError(f"circuit open for {urlparse(url).netloc}"),
                 meta=meta,
             )
+
+        try:
+            self._enforce_robots(url)
+        except RobotsBlockedError as exc:
+            meta = self._build_meta(
+                method=method,
+                request_url=url,
+                response=None,
+                context=context,
+                attempts=0,
+                timeout=timeout,
+                final_error="RobotsBlockedError",
+            )
+            return Err(exc, meta=meta)
 
         self._enforce_rate_limit(url)
         attempts = 0
