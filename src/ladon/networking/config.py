@@ -29,6 +29,11 @@ class HttpClientConfig:
     backoff_base_seconds: float = 0.0
     timeout_seconds: float = 30.0
     min_request_interval_seconds: float = 0.0
+    # Threshold counts *call sequences*, not individual HTTP attempts.
+    # With retries=2 and threshold=3, the circuit opens after 3 fully-exhausted
+    # sequences (up to 9 individual HTTP failures).  See CircuitBreaker docstring.
+    circuit_breaker_failure_threshold: int | None = None
+    circuit_breaker_recovery_seconds: float = 60.0
 
     def __post_init__(self) -> None:
         if self.retries < 0:
@@ -37,6 +42,15 @@ class HttpClientConfig:
             raise ValueError("backoff_base_seconds must be >= 0")
         if self.min_request_interval_seconds < 0:
             raise ValueError("min_request_interval_seconds must be >= 0")
+        if (
+            self.circuit_breaker_failure_threshold is not None
+            and self.circuit_breaker_failure_threshold <= 0
+        ):
+            raise ValueError(
+                "circuit_breaker_failure_threshold must be > 0 when provided"
+            )
+        if self.circuit_breaker_recovery_seconds <= 0:
+            raise ValueError("circuit_breaker_recovery_seconds must be > 0")
 
         has_connect_timeout = self.connect_timeout_seconds is not None
         has_read_timeout = self.read_timeout_seconds is not None
