@@ -18,6 +18,24 @@ class HttpClientConfig:
     """Configuration for HttpClient behavior.
 
     This config is expected to grow as policy modules are implemented.
+
+    Ethical note on robots.txt
+    --------------------------
+    ``respect_robots_txt`` is disabled by default to avoid breaking callers
+    that crawl their own infrastructure or operate under explicit agreements.
+    **If you are crawling third-party public websites, you are strongly
+    encouraged to enable it:**
+
+    .. code-block:: python
+
+        HttpClientConfig(respect_robots_txt=True)
+
+    Respecting robots.txt is the long-established community norm for web
+    crawlers, codified as an IETF Proposed Standard in RFC 9309 (2022).
+    Academic and legal literature on web data collection treats compliance
+    as a baseline ethical expectation.  EU data-protection authorities have
+    indicated that ignoring robots.txt can undermine the *legitimate interest*
+    legal basis required for scraping personal data under GDPR.
     """
 
     user_agent: str | None = None
@@ -34,6 +52,8 @@ class HttpClientConfig:
     # sequences (up to 9 individual HTTP failures).  See CircuitBreaker docstring.
     circuit_breaker_failure_threshold: int | None = None
     circuit_breaker_recovery_seconds: float = 60.0
+    # Disabled by default; enable for any public-web crawl — see class docstring.
+    respect_robots_txt: bool = False
 
     def __post_init__(self) -> None:
         if self.retries < 0:
