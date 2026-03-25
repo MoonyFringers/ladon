@@ -1,0 +1,1907 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Resilient, extensible web crawling framework.">
+      
+      
+      
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-004-ses-protocol-design/">
+      
+      
+        <link rel="prev" href="../adr-003-plugin-adapter-interface/">
+      
+      
+        <link rel="next" href="../adr-007-circuit-breaker/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>ADR-004 SES Protocol Design - Ladon</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#adr-004-source-expander-sink-protocol-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ladon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ADR-004 SES Protocol Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moonyfringers/ladon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moonyfringers/ladon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/networking/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Decisions
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Ladon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moonyfringers/ladon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moonyfringers/ladon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Ladon Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authoring Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/runner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runner
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--proposed"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 HTTP Result Contract
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Plugin Interface
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 SES Protocol Design
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 SES Protocol Design
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context-and-problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-a-pipeline-and-not-a-recursive-visitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why a pipeline and not a recursive visitor?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-a-list-of-expanders-and-not-a-single-recursive-expander" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why a list of Expanders and not a single recursive Expander?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structural-subtyping-via-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structural Subtyping via Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-result-type-railway-oriented-programming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Result Type — Railway-Oriented Programming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immutable-value-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immutable Value Objects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context-propagation-via-refraw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Propagation via ref.raw
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-taxonomy-and-isolation-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Taxonomy and Isolation Semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-injection-via-on_leaf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency Injection via on_leaf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-intra-run-parallelism-farm-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future: Intra-run Parallelism (FARM model)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patterns-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patterns Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-adrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related ADRs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Circuit Breaker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 robots.txt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context-and-problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-a-pipeline-and-not-a-recursive-visitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why a pipeline and not a recursive visitor?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-a-list-of-expanders-and-not-a-single-recursive-expander" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why a list of Expanders and not a single recursive Expander?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structural-subtyping-via-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structural Subtyping via Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-result-type-railway-oriented-programming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Result Type — Railway-Oriented Programming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immutable-value-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immutable Value Objects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context-propagation-via-refraw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Propagation via ref.raw
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-taxonomy-and-isolation-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Taxonomy and Isolation Semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-injection-via-on_leaf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency Injection via on_leaf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-intra-run-parallelism-farm-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future: Intra-run Parallelism (FARM model)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patterns-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patterns Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-adrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related ADRs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="adr-004-source-expander-sink-protocol-design">ADR-004 — Source / Expander / Sink Protocol Design</h1>
+<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
+<p>Ladon is a generic crawling framework. Its networking core (<code>HttpClient</code>,
+ADR-001) is stable and policy-enforcing. The question this ADR addresses is:
+<strong>what is the shape of the plugin interface that sits above the networking
+layer?</strong></p>
+<p>The interface must be:</p>
+<ul>
+<li>Domain-agnostic — not tied to any specific website structure or data model.</li>
+<li>Depth-independent — capable of expressing a flat (single-level) crawl or an
+  arbitrarily deep tree (multi-level categories → items → sub-items).</li>
+<li>Decoupled from persistence — the runner must not own database writes or file
+  I/O; those are application concerns.</li>
+<li>Plugin-friendly — third-party plugins must not import Ladon base classes.
+  Adapters should depend only on the types they explicitly use.</li>
+</ul>
+<h2 id="decision-drivers">Decision Drivers</h2>
+<ul>
+<li>Adapters must use <code>HttpClient</code> only — no direct <code>requests</code> usage.</li>
+<li>Data contracts must be typed and immutable — mutable side-effect models
+  cause fragile, hard-to-test crawlers.</li>
+<li>The error taxonomy must be explicit — catch-all <code>except Exception</code> in
+  orchestrators masks real bugs.</li>
+<li>The runner must be decoupled from DB persistence and file I/O.</li>
+<li>Framework vocabulary must not bake in any domain's concepts — future use
+  cases (news, financial data, catalogues, social) must fit the same pipeline
+  without awkward wrapping.</li>
+</ul>
+<h2 id="considered-options">Considered Options</h2>
+<ul>
+<li>
+<p><strong>Option A: Single-method plugin</strong> — one <code>crawl(top_ref, client) -&gt; list[Record]</code>
+  function per plugin. Simple but conflates traversal, parsing, and error
+  handling in one unstructured blob.</p>
+</li>
+<li>
+<p><strong>Option B: Abstract Base Classes</strong> — explicit inheritance from Ladon base
+  classes. Couples every third-party plugin to Ladon's internal hierarchy;
+  breaks on any base class <code>__init__</code> change.</p>
+</li>
+<li>
+<p><strong>Option C: Source / Expander / Sink pipeline via <code>Protocol</code></strong> — three
+  composable roles, each independently testable, connected by an ordered
+  pipeline. Chosen.</p>
+</li>
+</ul>
+<h2 id="decision-outcome">Decision Outcome</h2>
+<p><strong>Option C: Source → [Expander, …] → Sink pipeline.</strong></p>
+<p>The crawl of any tree-structured web resource is decomposed into three roles:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Source  →  [Expander, …]  →  Sink
+</code></pre></div>
+<p><code>CrawlPlugin</code> is their composition:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">CrawlPlugin</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="nd">@property</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="nd">@property</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Source</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="nd">@property</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">expanders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Expander</span><span class="p">]:</span> <span class="o">...</span>   <span class="c1"># ordered; len &gt;= 1</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="nd">@property</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sink</span><span class="p">:</span> <span class="o">...</span>
+</code></pre></div>
+<p>The runner drives the pipeline for a single <code>top_ref</code>:</p>
+<ol>
+<li><strong>Phase 1 — Expand</strong>: traverse <code>expanders</code> in order; each level produces
+   refs for the next.</li>
+<li><strong>Phase 2 — Limit</strong>: apply <code>RunConfig.leaf_limit</code> if set.</li>
+<li><strong>Phase 3 — Sink</strong>: consume each leaf ref; fire <code>on_leaf</code> callback after
+   each success.</li>
+</ol>
+<h3 id="the-three-roles">The three roles</h3>
+<p><strong>Source</strong> discovers top-level refs. It takes an <code>HttpClient</code> and returns
+<code>Sequence[object]</code> — top-level reference objects whose type is defined by the
+plugin, not the framework.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]:</span> <span class="o">...</span>
+</code></pre></div>
+<p><strong>Expander</strong> turns one ref into an <code>Expansion</code> — the current node's record
+plus child refs to process next (e.g. a catalogue record plus item URLs).
+A multi-level crawl has one Expander per tree level above the leaves.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Expander</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expansion</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">Expansion</span><span class="p">:</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">record</span><span class="p">:</span> <span class="nb">object</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">child_refs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>Sink</strong> consumes each leaf ref and returns its final record. This is the
+deepest parse — a product page, an article, a data record.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Sink</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span> <span class="o">...</span>
+</code></pre></div>
+<h3 id="why-a-pipeline-and-not-a-recursive-visitor">Why a pipeline and not a recursive visitor?</h3>
+<p>A recursive visitor mixes traversal, parsing, and persistence in a single
+function. It is difficult to test any phase in isolation, impossible to apply
+a leaf limit cleanly, and hard to add cross-cutting concerns (logging, rate
+limiting, error counting). The pipeline separates concerns: the runner owns
+traversal and error accounting; adapters own domain logic; the caller owns
+persistence.</p>
+<h3 id="why-a-list-of-expanders-and-not-a-single-recursive-expander">Why a list of Expanders and not a single recursive Expander?</h3>
+<p>A recursive Expander would require plugins to implement their own traversal
+loop — reintroducing the problem the framework exists to solve. An ordered
+list of Expanders means each plugin declares its tree depth declaratively: one
+Expander per level. The runner handles multi-level traversal generically. A
+plugin with a flat structure uses a single Expander with empty <code>child_refs</code>.</p>
+<h2 id="structural-subtyping-via-protocol">Structural Subtyping via <code>Protocol</code></h2>
+<p>All three roles and <code>CrawlPlugin</code> are Python <code>typing.Protocol</code> classes
+decorated with <code>@runtime_checkable</code>. Plugins do <strong>not</strong> inherit from Ladon
+base classes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nd">@runtime_checkable</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]:</span> <span class="o">...</span>
+</code></pre></div>
+<p><strong>Rationale:</strong> inheritance couples the plugin to Ladon's internal class
+hierarchy. If Ladon adds a parameter to a base class <code>__init__</code>, every plugin
+breaks. Structural subtyping means a plugin is valid if it has the right
+methods — the framework never appears in the plugin's import tree beyond the
+types the plugin explicitly uses. This is the same model as Go interfaces and
+is the idiomatic Python approach for plugin systems.</p>
+<p><code>@runtime_checkable</code> enables <code>isinstance(plugin, CrawlPlugin)</code> checks in the
+runner and tests without importing the concrete plugin class. The limitation
+(structural attribute check only) is accepted; the test suite exercises the
+real contracts.</p>
+<h2 id="the-result-type-railway-oriented-programming">The <code>Result</code> Type — Railway-Oriented Programming</h2>
+<p>The HTTP client does not raise exceptions on network failures. It returns a
+<code>Result[T, HttpClientError]</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Result</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="p">]):</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">value</span><span class="p">:</span> <span class="n">T</span> <span class="o">|</span> <span class="kc">None</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">error</span><span class="p">:</span> <span class="n">E</span> <span class="o">|</span> <span class="kc">None</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Meta</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="nd">@property</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ok</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="kc">None</span>
+</code></pre></div>
+<p>This pattern (sometimes called <strong>Railway-Oriented Programming</strong>, from Scott
+Wlaschin) represents the two tracks a computation can take — success and
+failure — as equal first-class values rather than control-flow exceptions.</p>
+<p><code>Result</code> in Ladon is a <strong>discriminated union</strong> with imperative unwrapping.
+Callers check <code>.ok</code> and access <code>.value</code> or <code>.error</code> directly. There is no
+<code>bind</code> combinator: Python's control flow is imperative, and a <code>bind</code>-chain API
+would be unidiomatic for a library that targets general Python developers.</p>
+<p>The <code>meta</code> field is not part of any standard monad but is critical for
+observability: every <code>Result</code> carries guaranteed keys (<code>method</code>, <code>url</code>,
+<code>status_code</code>, <code>attempts</code>, <code>timeout_s</code>, <code>elapsed_s</code>) regardless of success or
+failure. This makes structured logging and metrics extraction uniform — the
+observability contract is embedded in the type.</p>
+<p><strong>Why not raise exceptions?</strong> HTTP failures during a long-running crawler are
+expected: rate limits, transient 503s, parse errors. Modelling them as
+exceptions means every caller needs a <code>try/except</code>, and diagnostic information
+(status code, elapsed time, retry count) must be reconstructed from the
+exception message. <code>Result</code> keeps all of that in one place and makes both
+paths equally first-class at the type level.</p>
+<h2 id="immutable-value-objects">Immutable Value Objects</h2>
+<p>All data flowing through the pipeline is frozen:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Ref</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">Expansion</span><span class="p">:</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">record</span><span class="p">:</span> <span class="nb">object</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">child_refs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">RunResult</span><span class="p">:</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">record</span><span class="p">:</span> <span class="nb">object</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="n">leaves_fetched</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="n">leaves_persisted</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">leaves_failed</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="n">errors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+</code></pre></div>
+<p>Frozen dataclasses enforce immutability at the Python level: any attempt to
+mutate a field raises <code>FrozenInstanceError</code>. This prevents an Expander from
+accidentally modifying a ref the runner still holds, and prevents a Sink from
+corrupting context passed to <code>on_leaf</code>.</p>
+<p><code>RunResult.errors</code> uses <code>tuple</code> rather than <code>list</code> for the same reason: the
+result returned to the caller is sealed.</p>
+<h2 id="context-propagation-via-refraw">Context Propagation via <code>ref.raw</code></h2>
+<p><code>Sink.consume(ref, client)</code> receives no <code>parent_record</code> parameter. Context
+from the Expander (e.g. metadata pre-fetched from a parent page) is pre-baked
+into <code>ref.raw</code> by the Expander before the ref is handed to the runner:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Expander: build child Ref(url=item_url, raw={&quot;category&quot;: &quot;A&quot;, &quot;currency&quot;: &quot;USD&quot;})
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>                                                   ↑
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Sink:     consume(ref, client) → reads ref.raw[&quot;category&quot;]
+</code></pre></div>
+<p><strong>Rationale:</strong> adding <code>parent_record</code> to <code>Sink.consume</code> would require the
+runner to thread parent context through Phase 3, coupling the runner to a
+concept it does not own. It would also break Sink implementations that need
+no parent context. <code>ref.raw</code> is the Expander's opportunity to attach exactly
+the context the Sink needs — no more.</p>
+<p>The trade-off is that the Expander→Sink contract is implicit: the Sink must
+know which keys to expect in <code>raw</code>. This is accepted for now. If external
+plugins proliferate, typed Refs (<code>Ref[T]</code>) would make this contract explicit
+— deferred to when plugin count justifies the complexity.</p>
+<h2 id="error-taxonomy-and-isolation-semantics">Error Taxonomy and Isolation Semantics</h2>
+<p>Each exception maps to a specific runner behaviour — an <strong>error algebra</strong>
+where exceptions carry semantic meaning that drives control flow:</p>
+<table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Raised by</th>
+<th>Runner behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExpansionNotReadyError</code></td>
+<td>Any Expander</td>
+<td>Re-raise — run is globally premature; caller retries on next schedule</td>
+</tr>
+<tr>
+<td><code>PartialExpansionError</code></td>
+<td>Expander</td>
+<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code></td>
+</tr>
+<tr>
+<td><code>ChildListUnavailableError</code></td>
+<td>Expander</td>
+<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code></td>
+</tr>
+<tr>
+<td><code>LeafUnavailableError</code></td>
+<td>Sink</td>
+<td>Skip leaf; increment <code>leaves_failed</code>; run continues</td>
+</tr>
+<tr>
+<td><code>AssetDownloadError</code></td>
+<td>Sink or Expander</td>
+<td>Fatal — propagates to caller; run aborts. Plugins needing non-fatal asset handling must catch it internally before returning.</td>
+</tr>
+</tbody>
+</table>
+<p>The first-expander vs non-first-expander distinction reflects the <strong>Bulkhead
+pattern</strong>: a failure in one branch of the tree does not abort sibling
+branches. A failure in the first Expander (which produces the entire tree's
+root) has no sibling to isolate — it is globally terminal.</p>
+<p><code>PartialExpansionError</code> carries a stronger semantic: the data exists but is
+incomplete. Callers must not persist a partial result to the database — they
+may download assets (to avoid re-downloading on re-run) but must not commit
+the record until a full run succeeds.</p>
+<h2 id="dependency-injection-via-on_leaf">Dependency Injection via <code>on_leaf</code></h2>
+<p>The runner has <strong>no database dependency</strong>. Persistence is injected as a
+callback:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_crawl</span><span class="p">(</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">top_ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
+</code></pre></div>
+<p>The two arguments to <code>on_leaf</code> are <code>(leaf_record, parent_record)</code>:
+<code>leaf_record</code> is the value returned by <code>Sink.consume</code>; <code>parent_record</code> is the
+record from the innermost <code>Expander</code> that produced the leaf ref (i.e. the
+direct parent node in the tree, not the top-level record stored in
+<code>RunResult.record</code>).</p>
+<p>This is the <strong>Inversion of Control</strong> pattern: the runner calls the caller's
+code at the right moment, rather than the caller controlling the loop. The
+runner guarantees <code>on_leaf</code> is called only after <code>Sink.consume</code> succeeds —
+never on a failed leaf.</p>
+<p>The choice of a simple <code>Callable</code> over a typed <code>Repository</code> protocol (see
+ADR-006) is deliberate for Phase 1–3: it keeps the runner persistence-agnostic
+and testable without a database. ADR-006 defines the path to a typed
+repository in Phase 5.</p>
+<h2 id="future-intra-run-parallelism-farm-model">Future: Intra-run Parallelism (FARM model)</h2>
+<p>The SES pipeline maps onto the <strong>FARM parallel pattern</strong>
+(Farmer / Agent / Receiver / Manager):</p>
+<table>
+<thead>
+<tr>
+<th>FARM role</th>
+<th>SES equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Farmer (emits work units)</td>
+<td><code>Source.discover()</code></td>
+</tr>
+<tr>
+<td>Agent / Worker (processes units)</td>
+<td><code>Expander.expand()</code> — one per ref per level</td>
+</tr>
+<tr>
+<td>Receiver / Collector</td>
+<td><code>Sink.consume()</code></td>
+</tr>
+<tr>
+<td>Manager (coordinates)</td>
+<td><code>run_crawl()</code></td>
+</tr>
+</tbody>
+</table>
+<p>Within each pipeline stage, the N work items are <strong>independent</strong>: Expander
+processing <code>ref_A</code> does not depend on processing <code>ref_B</code>. This is a textbook
+fan-out opportunity — deferred to Phase 6 via an <code>AsyncCrawlPlugin</code> protocol
+variant alongside the existing sync one. The sync runner remains the default.</p>
+<p><code>ThreadPoolExecutor</code> is explicitly rejected as a hidden internal: making the
+runner multi-threaded transparently would violate the documented sync-only
+contract on <code>HttpClient</code>. Thread-based parallelism, if introduced, must be an
+explicit opt-in with documented threading guarantees.</p>
+<h2 id="consequences">Consequences</h2>
+<p><strong>Good:</strong></p>
+<ul>
+<li>Plugins are fully decoupled from Ladon internals — no inheritance, no
+  framework import beyond the types the plugin uses.</li>
+<li>Every phase is independently testable: Source, each Expander, and Sink can
+  be unit-tested with a mock client.</li>
+<li>Error handling is explicit and drives real recovery behaviour, not just
+  logging.</li>
+<li><code>Result.meta</code> makes observability uniform across all HTTP operations.</li>
+<li>Immutability prevents cross-phase data corruption.</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><code>object</code>-typed refs mean type errors between Expander and Sink surface at
+  runtime, not compile time. Generic protocols (<code>Source[R]</code>, <code>Expander[R, S]</code>,
+  <code>Sink[S]</code>) would fix this at the cost of complexity — deferred.</li>
+<li><code>ref.raw</code> creates an implicit Expander→Sink contract that the type system
+  cannot verify.</li>
+<li><code>Result</code> without <code>bind</code> means every caller writes an <code>if result.ok:</code> check
+  rather than chaining. More verbose but more readable in imperative Python.</li>
+<li>The first-expander exception propagation rule is a documented runtime
+  contract, not a type-system guarantee. Plugin authors must know which
+  Expander they are implementing.</li>
+<li><code>Result.meta</code> is <code>dict[str, Any]</code> — the <code>frozen=True</code> constraint prevents
+  reassigning <code>result.meta</code>, but the dict contents are mutable. Accepted:
+  <code>meta</code> is owned by the client and not shared after construction.</li>
+</ul>
+<h2 id="patterns-reference">Patterns Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Where applied</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pipeline / Filter</td>
+<td>SES three-stage traversal</td>
+</tr>
+<tr>
+<td>Structural Subtyping</td>
+<td><code>Protocol</code> + <code>@runtime_checkable</code></td>
+</tr>
+<tr>
+<td>Discriminated Union / Railway-Oriented</td>
+<td><code>Result[T, E]</code>, <code>Ok</code>, <code>Err</code></td>
+</tr>
+<tr>
+<td>Immutable Value Object</td>
+<td><code>Ref</code>, <code>Expansion</code>, <code>RunResult</code> (frozen dataclass)</td>
+</tr>
+<tr>
+<td>Error Algebra</td>
+<td><code>PluginError</code> hierarchy with documented runner semantics</td>
+</tr>
+<tr>
+<td>Bulkhead</td>
+<td>Non-first Expander branch isolation</td>
+</tr>
+<tr>
+<td>Inversion of Control</td>
+<td><code>on_leaf</code> callback for persistence</td>
+</tr>
+<tr>
+<td>Context Object</td>
+<td><code>ref.raw</code> for Expander→Sink context propagation</td>
+</tr>
+<tr>
+<td>FARM Parallel</td>
+<td>Source=Farmer, Expanders=Agents, Sink=Receiver (future async)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="related-adrs">Related ADRs</h2>
+<ul>
+<li><a href="../adr-001-ladon-architecture/">ADR-001</a> — Core networking layer (<code>HttpClient</code>)</li>
+<li><a href="../adr-002-http-status-result-contract/">ADR-002</a> — HTTP <code>Result</code> contract</li>
+<li><a href="../adr-003-plugin-adapter-interface/">ADR-003</a> — Plugin / adapter interface</li>
+<li>ADR-005 — Asset storage (<code>ladon.storage</code>) — Proposed, Phase 3</li>
+<li>ADR-006 — Persistence layer (<code>ladon.persistence</code>) — Proposed, Phase 3</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
