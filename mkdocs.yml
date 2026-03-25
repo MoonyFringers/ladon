@@ -56,6 +56,7 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Guides:
+    - How Ladon Works: guides/how-ladon-works.md
     - Authoring Plugins: guides/authoring-plugins.md
   - API Reference:
     - Networking: api/networking.md
@@ -66,5 +67,6 @@ nav:
     - ADR-001 Architecture: decisions/adr-001-ladon-architecture.md
     - ADR-002 HTTP Result Contract: decisions/adr-002-http-status-result-contract.md
     - ADR-003 Plugin Interface: decisions/adr-003-plugin-adapter-interface.md
+    - ADR-004 SES Protocol Design: decisions/adr-004-ses-protocol-design.md
     - ADR-007 Circuit Breaker: decisions/adr-007-circuit-breaker.md
     - ADR-008 robots.txt: decisions/adr-008-robots-txt.md
