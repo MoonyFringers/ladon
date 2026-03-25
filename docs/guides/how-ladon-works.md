@@ -65,16 +65,16 @@ You write three focused classes, each doing one thing.
 ## Flat crawls (no tree)
 
 Not every site has multiple levels. A flat crawl — a paginated list of items
-where each item is the leaf — uses a **single Expander** with empty
-`child_refs`, followed by a Sink:
+where each item is the leaf — uses a **single Expander** that returns the item
+URLs as `child_refs`, followed by a Sink that processes each one:
 
 ```
 Source  →  [Expander (page → item refs)]  →  Sink (item record)
 ```
 
-Or even simpler: a Source that returns item refs directly, a single Expander
-that fetches each item, and no Sink (just the Expander as the terminal stage).
 The number of Expanders is yours to choose; the framework handles any depth.
+A Sink is always required — the runner always calls `Sink.consume()` on each
+leaf ref.
 
 ## Refs carry context
 
@@ -101,8 +101,8 @@ specific meaning that tells the runner exactly what to do:
 | Exception | Meaning | Runner behaviour |
 |---|---|---|
 | `ExpansionNotReadyError` | Resource not ready yet | Abort the run; retry next schedule |
-| `PartialExpansionError` | Child list incomplete | Log and skip the branch |
-| `ChildListUnavailableError` | Child list unreachable | Log and skip the branch |
+| `PartialExpansionError` | Child list incomplete | **First expander:** abort the run (re-raised to caller). **Non-first expander:** log and skip the branch. |
+| `ChildListUnavailableError` | Child list unreachable | **First expander:** abort the run (re-raised to caller). **Non-first expander:** log and skip the branch. |
 | `LeafUnavailableError` | Leaf fetch failed | Log, skip this leaf, continue |
 
 Your plugin raises the right exception; the runner decides what to do with it.
@@ -113,8 +113,8 @@ No catch-all `except Exception` that masks real bugs.
 The runner has no database dependency. You inject persistence as a callback:
 
 ```python
-def my_persist(record: object, ref: object) -> None:
-    db.insert(record)
+def my_persist(leaf_record: object, parent_record: object) -> None:
+    db.insert(leaf_record)
 
 result = run_crawl(
     top_ref=my_ref,
@@ -138,7 +138,7 @@ gets these automatically:
 - **Retries with backoff** — configurable, per-domain
 - **Circuit breaking** — stops hammering a failing host (ADR-007)
 - **robots.txt enforcement** — opt-in, RFC 9309 compliant (ADR-008)
-- **Structured logging** — every request logged with `run_id`, host, latency
+- **Structured logging** — runner and leaf events logged with plugin name, ref, counts
 - **Leaf limit** — `RunConfig.leaf_limit` caps any crawl for safe testing
 
 ## Next steps

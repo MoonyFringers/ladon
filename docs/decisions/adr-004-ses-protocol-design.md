@@ -65,10 +65,14 @@ Source  →  [Expander, …]  →  Sink
 
 ```python
 class CrawlPlugin(Protocol):
-    name: str
-    source: Source
-    expanders: Sequence[Expander]   # ordered; len >= 1
-    sink: Sink
+    @property
+    def name(self) -> str: ...
+    @property
+    def source(self) -> Source: ...
+    @property
+    def expanders(self) -> Sequence[Expander]: ...   # ordered; len >= 1
+    @property
+    def sink(self) -> Sink: ...
 ```
 
 The runner drives the pipeline for a single `top_ref`:
@@ -209,6 +213,7 @@ class Expansion:
 
 @dataclass(frozen=True)
 class RunResult:
+    record: object
     leaves_fetched: int
     leaves_persisted: int
     leaves_failed: int
@@ -257,7 +262,7 @@ where exceptions carry semantic meaning that drives control flow:
 | `PartialExpansionError` | Expander | First expander: re-raise. Non-first: isolate branch, record in `errors` |
 | `ChildListUnavailableError` | Expander | First expander: re-raise. Non-first: isolate branch, record in `errors` |
 | `LeafUnavailableError` | Sink | Skip leaf; increment `leaves_failed`; run continues |
-| `AssetDownloadError` | Sink (asset path) | Non-fatal below threshold; run continues |
+| `AssetDownloadError` | Sink or Expander | Fatal — propagates to caller; run aborts. Plugins needing non-fatal asset handling must catch it internally before returning. |
 
 The first-expander vs non-first-expander distinction reflects the **Bulkhead
 pattern**: a failure in one branch of the tree does not abort sibling
@@ -284,14 +289,20 @@ def run_crawl(
 ) -> RunResult:
 ```
 
+The two arguments to `on_leaf` are `(leaf_record, parent_record)`:
+`leaf_record` is the value returned by `Sink.consume`; `parent_record` is the
+record from the innermost `Expander` that produced the leaf ref (i.e. the
+direct parent node in the tree, not the top-level record stored in
+`RunResult.record`).
+
 This is the **Inversion of Control** pattern: the runner calls the caller's
 code at the right moment, rather than the caller controlling the loop. The
 runner guarantees `on_leaf` is called only after `Sink.consume` succeeds —
 never on a failed leaf.
 
 The choice of a simple `Callable` over a typed `Repository` protocol (see
-ADR-005) is deliberate for Phase 1–3: it keeps the runner persistence-agnostic
-and testable without a database. ADR-005 defines the path to a typed
+ADR-006) is deliberate for Phase 1–3: it keeps the runner persistence-agnostic
+and testable without a database. ADR-006 defines the path to a typed
 repository in Phase 5.
 
 ## Future: Intra-run Parallelism (FARM model)
@@ -341,6 +352,9 @@ explicit opt-in with documented threading guarantees.
 - The first-expander exception propagation rule is a documented runtime
   contract, not a type-system guarantee. Plugin authors must know which
   Expander they are implementing.
+- `Result.meta` is `dict[str, Any]` — the `frozen=True` constraint prevents
+  reassigning `result.meta`, but the dict contents are mutable. Accepted:
+  `meta` is owned by the client and not shared after construction.
 
 ## Patterns Reference
 
@@ -361,5 +375,5 @@ explicit opt-in with documented threading guarantees.
 - [ADR-001](adr-001-ladon-architecture.md) — Core networking layer (`HttpClient`)
 - [ADR-002](adr-002-http-status-result-contract.md) — HTTP `Result` contract
 - [ADR-003](adr-003-plugin-adapter-interface.md) — Plugin / adapter interface
-- [ADR-005](adr-005-asset-storage.md) — Asset storage (`ladon.storage`)
-- [ADR-006](adr-006-persistence-layer.md) — Persistence layer (`ladon.persistence`)
+- ADR-005 — Asset storage (`ladon.storage`) — Proposed, Phase 3
+- ADR-006 — Persistence layer (`ladon.persistence`) — Proposed, Phase 3
