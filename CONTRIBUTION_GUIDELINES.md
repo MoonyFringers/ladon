@@ -155,6 +155,23 @@ below.
 2. **Respond to feedback**: Address comments and suggestions
    from reviewers promptly.
 
+## Contributor License Agreement (CLA)
+
+Before your first pull request can be merged, you must sign the
+[Contributor License Agreement](CLA.md).
+
+**Why?** Ladon is AGPL-licensed with a commercial dual-licensing path. The CLA grants
+the maintainer the right to sublicense your contribution under commercial terms while
+you retain full copyright over your work.
+
+**How?** When you open your first PR, the **cla-assistant** bot will post a comment
+with a one-click signing link. Authenticate with your GitHub account — the whole
+process takes about 30 seconds. Once signed, the CLA covers all your future
+contributions automatically.
+
+Read the full [CLA text](CLA.md) before signing if you want to understand exactly
+what you are agreeing to.
+
 ## Code of Conduct
 
 Please adhere to the [Code of Conduct](CODE_OF_CONDUCT.md) to
@@ -171,9 +188,9 @@ ensure a welcoming environment for all contributors.
 
 ## Licensing
 
-By contributing to this project, you agree that your
-contributions will be licensed under the project's
-[LICENSE](LICENSE).
+Ladon is licensed under [AGPL-3.0-or-later](LICENSE). By signing the
+[CLA](CLA.md), you retain copyright over your contributions and grant the
+maintainer the additional rights described therein.
 
 Thank you for contributing! Together, we can make this project
 even better. If you have any questions, feel free to reach out.

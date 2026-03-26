@@ -70,3 +70,4 @@ nav:
     - ADR-004 SES Protocol Design: decisions/adr-004-ses-protocol-design.md
     - ADR-007 Circuit Breaker: decisions/adr-007-circuit-breaker.md
     - ADR-008 robots.txt: decisions/adr-008-robots-txt.md
+    - ADR-010 Contributor License Agreement: decisions/adr-010-contributor-license-agreement.md

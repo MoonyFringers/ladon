@@ -16,6 +16,7 @@ chosen over the alternatives.
 | [ADR-007](adr-007-circuit-breaker.md) | Per-Host Circuit Breaker | Accepted |
 | [ADR-008](adr-008-robots-txt.md) | robots.txt Enforcement | Accepted |
 | ADR-009 | Observability (metrics, structured logs) | Proposed — Phase 3 |
+| [ADR-010](adr-010-contributor-license-agreement.md) | Contributor License Agreement | Accepted |
 
 ## Format
 
