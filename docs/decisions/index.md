@@ -11,8 +11,8 @@ chosen over the alternatives.
 | [ADR-002](adr-002-http-status-result-contract.md) | HTTP Result Contract | Accepted |
 | [ADR-003](adr-003-plugin-adapter-interface.md) | Plugin Adapter Interface | Accepted |
 | [ADR-004](adr-004-ses-protocol-design.md) | Source / Expander / Sink Protocol Design | Accepted |
-| ADR-005 | Asset Storage (`ladon.storage`) | Proposed — Phase 3 |
-| ADR-006 | Persistence Layer (`ladon.persistence`) | Proposed — Phase 3 |
+| ADR-005 | Asset Storage (`ladon.storage`) | Accepted — Phase 3 |
+| [ADR-006](adr-006-persistence-layer.md) | Persistence Layer (`ladon.persistence`) | Accepted — Phase 3 |
 | [ADR-007](adr-007-circuit-breaker.md) | Per-Host Circuit Breaker | Accepted |
 | [ADR-008](adr-008-robots-txt.md) | robots.txt Enforcement | Accepted |
 | ADR-009 | Observability (metrics, structured logs) | Proposed — Phase 3 |

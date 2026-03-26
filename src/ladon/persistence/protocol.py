@@ -9,8 +9,9 @@ Two protocols form the persistence surface of the framework:
   history queries are needed.
 
 Both protocols use structural subtyping — adapter repos implement them
-without importing Ladon base classes. Only ``RunRecord`` needs to be
-imported to satisfy ``RunAudit``.
+without inheriting from any Ladon class. ``RunRecord`` must be imported
+by adapters implementing ``RunAudit`` (type-checker requirement; the
+runtime ``isinstance`` check only verifies method presence).
 
 The runner remains persistence-agnostic. Orchestration lives outside
 ``run_crawl()``; see ADR-006 for the full design rationale.
