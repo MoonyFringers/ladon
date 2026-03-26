@@ -41,6 +41,10 @@
          <lastmod>2026-03-26</lastmod>
     </url>
     <url>
+         <loc>https://moonyfringers.github.io/ladon/decisions/adr-006-persistence-layer/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
          <loc>https://moonyfringers.github.io/ladon/decisions/adr-007-circuit-breaker/</loc>
          <lastmod>2026-03-26</lastmod>
     </url>
