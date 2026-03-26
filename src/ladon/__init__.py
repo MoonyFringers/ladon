@@ -3,6 +3,7 @@
 from .networking.client import HttpClient
 from .networking.config import HttpClientConfig
 from .networking.types import Result
+from .persistence import NullRepository, Repository, RunAudit, RunRecord
 from .storage import (
     LocalFileStorage,
     Storage,
@@ -16,6 +17,10 @@ __all__ = [
     "HttpClient",
     "HttpClientConfig",
     "Result",
+    "Repository",
+    "RunAudit",
+    "RunRecord",
+    "NullRepository",
     "Storage",
     "LocalFileStorage",
     "StorageError",
