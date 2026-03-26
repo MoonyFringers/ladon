@@ -180,11 +180,13 @@ The runner receives no repository. The orchestration layer wraps it:
 
 ```python
 import uuid
+from datetime import datetime, timezone
 from ladon.persistence import RunAudit, RunRecord
 
 run_id = str(uuid.uuid4())
 run = RunRecord(run_id=run_id, plugin_name=plugin.name,
-                top_ref=str(top_ref), started_at=datetime.now(tz=utc),
+                top_ref=str(top_ref),
+                started_at=datetime.now(tz=timezone.utc),
                 status="running")
 
 if isinstance(repository, RunAudit):
@@ -196,7 +198,7 @@ result = run_crawl(
 )
 
 run.status = "done"   # or "failed", "partial", "not_ready"
-run.finished_at = datetime.now(tz=utc)
+run.finished_at = datetime.now(tz=timezone.utc)
 run.leaves_fetched = result.leaves_fetched
 run.leaves_persisted = result.leaves_persisted
 run.leaves_failed = result.leaves_failed
@@ -249,7 +251,7 @@ class MyMinimalRepository:
         ...  # satisfies Repository; RunAudit not required
 ```
 
-## Status decisions — `get_last_run` and status filter
+## Design decision: `get_last_run` default status filter
 
 `get_last_run` defaults to `status="done"`. Callers using this for
 incremental crawling almost always want the last *successful* run, not the
@@ -281,8 +283,9 @@ when `finished_at` is `None`).
   on plugin-specific documentation to know the concrete type. Generic
   protocols deferred.
 - The two-call `record_run` contract is a documented runtime requirement,
-  not a type-system guarantee. Adapters implementing a plain `INSERT` will
-  fail silently until the second call triggers a primary key violation.
+  not a type-system guarantee. An adapter using a plain `INSERT` will fail
+  on the second call with a primary key violation — the framework cannot
+  detect this misconfiguration at construction time.
 - Keeping `on_leaf` alongside the Repository pattern means two persistence
   idioms coexist. `on_leaf` is still the right default for simple use cases.
 
