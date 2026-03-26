@@ -36,4 +36,4 @@ class RunRecord:
     leaves_persisted: int = 0
     leaves_failed: int = 0
     branch_errors: int = 0
-    errors: tuple[str, ...] = field(default_factory=tuple)
+    errors: tuple[str, ...] = field(default_factory=tuple)  # tuple() → ()

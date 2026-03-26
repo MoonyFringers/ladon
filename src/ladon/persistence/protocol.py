@@ -48,9 +48,9 @@ class Repository(Protocol):
     def write_leaf(self, record: object, run_id: str) -> None:
         """Persist one leaf record produced by the Sink.
 
-        Called once per successful ``Sink.consume()`` invocation.
-        Must be idempotent — the same leaf may be submitted more than
-        once if the orchestration layer retries after a transient failure.
+        Called once per successful ``Sink.consume()`` invocation within
+        a single run. Must be idempotent across runs — the same leaf may
+        be submitted again if a subsequent run re-crawls the same ref.
         """
         ...
 
@@ -64,8 +64,9 @@ class RunAudit(Protocol):
     and operator-visible audit trails.
 
     Not required for adapters that have no use for run history queries.
-    When ``RunAudit`` is not implemented, the runner still emits
-    ``RunRecord`` fields to structured logs — run visibility is never lost.
+    When ``RunAudit`` is not implemented, the runner still logs basic run
+    metrics (plugin name, ref, leaf counts) at INFO level — some visibility
+    is retained, but ``run_id`` and ``branch_errors`` are not captured.
     """
 
     def record_run(self, run: RunRecord) -> None:
