@@ -28,8 +28,8 @@ class LocalFileStorage:
               guarantee durability. Set False in tests for speed.
     """
 
-    def __init__(self, root: Path, *, sync: bool = True) -> None:
-        self._root = root
+    def __init__(self, root: Path | str, *, sync: bool = True) -> None:
+        self._root = Path(root)
         self._sync = sync
 
     def _resolve(self, key: str) -> Path:

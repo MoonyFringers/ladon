@@ -40,7 +40,11 @@ class Storage(Protocol):
         ...
 
     def exists(self, key: str) -> bool:
-        """Return True if key is present in the store, False otherwise."""
+        """Return True if key is present in the store, False otherwise.
+
+        Raises:
+            ValueError: key is absolute or contains ``..`` components.
+        """
         ...
 
     def delete(self, key: str) -> None:
@@ -49,6 +53,7 @@ class Storage(Protocol):
         Parent directories are not removed.
 
         Raises:
+            ValueError: key is absolute or contains ``..`` components.
             StorageWriteError: deletion failed for any reason other than
                 the key being absent.
         """

@@ -99,6 +99,26 @@ def test_read_rejects_dotdot_key(store):
         store.read("../escape.bin")
 
 
+def test_exists_rejects_absolute_key(store):
+    with pytest.raises(ValueError):
+        store.exists("/etc/passwd")
+
+
+def test_exists_rejects_dotdot_key(store):
+    with pytest.raises(ValueError):
+        store.exists("../escape.bin")
+
+
+def test_delete_rejects_absolute_key(store):
+    with pytest.raises(ValueError):
+        store.delete("/etc/passwd")
+
+
+def test_delete_rejects_dotdot_key(store):
+    with pytest.raises(ValueError):
+        store.delete("../escape.bin")
+
+
 # --- idempotency pattern ---
 
 
