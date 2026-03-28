@@ -939,10 +939,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ladon.networking.errors.RetryableHttpError" class="md-nav__link">
+  <a href="#ladon.networking.errors.TransientNetworkError" class="md-nav__link">
     <span class="md-ellipsis">
       
-        RetryableHttpError
+        TransientNetworkError
       
     </span>
   </a>
@@ -1648,10 +1648,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ladon.networking.errors.RetryableHttpError" class="md-nav__link">
+  <a href="#ladon.networking.errors.TransientNetworkError" class="md-nav__link">
     <span class="md-ellipsis">
       
-        RetryableHttpError
+        TransientNetworkError
       
     </span>
   </a>
@@ -2691,7 +2691,7 @@ across threads without external locking.</p>
 <a id="__codelineno-0-247" name="__codelineno-0-247"></a>            <span class="k">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">RequestTimeoutError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)),</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
 <a id="__codelineno-0-248" name="__codelineno-0-248"></a>
 <a id="__codelineno-0-249" name="__codelineno-0-249"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">):</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>            <span class="k">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">RetryableHttpError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)),</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>            <span class="k">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">TransientNetworkError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)),</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
 <a id="__codelineno-0-251" name="__codelineno-0-251"></a>
 <a id="__codelineno-0-252" name="__codelineno-0-252"></a>        <span class="c1"># Generic fallback for other request exceptions</span>
 <a id="__codelineno-0-253" name="__codelineno-0-253"></a>        <span class="k">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)),</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
@@ -4551,8 +4551,8 @@ The disallowed URL is included in <code>error.args[0]</code>.</p>
 
 
 
-<h2 id="ladon.networking.errors.RetryableHttpError" class="doc doc-heading">
-            <code>RetryableHttpError</code>
+<h2 id="ladon.networking.errors.TransientNetworkError" class="doc doc-heading">
+            <code>TransientNetworkError</code>
 
 
 </h2>
@@ -4564,7 +4564,11 @@ The disallowed URL is included in <code>error.args[0]</code>.</p>
 
 
 
-        <p>Raised for errors that are eligible for retry.</p>
+        <p>Raised for connection-level transport failures (e.g. ConnectionError,
+DNS resolution failure).</p>
+<p>Ladon retries these internally; by the time this error reaches the caller
+all configured retries are exhausted.  Do not retry externally on this
+error — the internal retry budget has already been spent.</p>
 
 
 
@@ -4576,8 +4580,20 @@ The disallowed URL is included in <code>error.args[0]</code>.</p>
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/networking/errors.py</code></summary>
                 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="k">class</span><span class="w"> </span><span class="nc">RetryableHttpError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised for errors that are eligible for retry.&quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#__codelineno-0-35">35</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="k">class</span><span class="w"> </span><span class="nc">TransientNetworkError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised for connection-level transport failures (e.g. ConnectionError,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    DNS resolution failure).</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    Ladon retries these internally; by the time this error reaches the caller</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    all configured retries are exhausted.  Do not retry externally on this</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    error — the internal retry budget has already been spent.</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
