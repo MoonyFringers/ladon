@@ -25,5 +25,15 @@ class RequestTimeoutError(HttpClientError):
     """Raised when a request exceeds a configured timeout."""
 
 
-class RetryableHttpError(HttpClientError):
-    """Raised for errors that are eligible for retry."""
+class TransientNetworkError(HttpClientError):
+    """Raised for connection-level transport failures (e.g. ConnectionError,
+    DNS resolution failure).
+
+    Ladon retries these internally; by the time this error reaches the caller
+    all configured retries are exhausted.  Do not retry externally on this
+    error — the internal retry budget has already been spent.
+    """
+
+
+# Backward-compatible alias — will be removed in v0.1.0.
+RetryableHttpError = TransientNetworkError

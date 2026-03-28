@@ -19,8 +19,8 @@ from .errors import (
     CircuitOpenError,
     HttpClientError,
     RequestTimeoutError,
-    RetryableHttpError,
     RobotsBlockedError,
+    TransientNetworkError,
 )
 from .robots import RobotsCache
 from .types import Err, Ok, Result
@@ -247,7 +247,7 @@ class HttpClient:
             return Err(RequestTimeoutError(str(e)), meta=meta)
 
         if isinstance(e, requests.exceptions.ConnectionError):
-            return Err(RetryableHttpError(str(e)), meta=meta)
+            return Err(TransientNetworkError(str(e)), meta=meta)
 
         # Generic fallback for other request exceptions
         return Err(HttpClientError(str(e)), meta=meta)

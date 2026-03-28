@@ -35,8 +35,8 @@ many "heads" (adapters) while guarding the integrity of the system.
   holds for a configurable recovery window, then probes with a single
   half-open request before returning to closed state
 - **robots.txt enforcement** — honours `Disallow` rules and `Crawl-delay`
-  directives; respects `verify_tls` when fetching robots.txt itself; LRU cache
-  avoids redundant fetches across the lifetime of a crawl
+  directives; respects `verify_tls` when fetching robots.txt itself; per-session
+  cache (one fetch per origin per run) avoids redundant fetches
 
 ### Plugin protocol (Expander / Sink — with Source reserved)
 
@@ -83,7 +83,7 @@ optional; strongly recommended for public-web crawls.
 
 ### Quality
 
-- **203 tests**, pre-commit hooks (black, ruff, isort, pyright strict)
+- Full test suite, pre-commit hooks (black, ruff, isort, pyright strict)
 - **[Documentation site](https://moonyfringers.github.io/ladon/)** — getting
   started guide, plugin authoring guide, ADR decision log, full API reference
 
@@ -91,18 +91,14 @@ optional; strongly recommended for public-web crawls.
 
 ## 📦 Installation
 
-Ladon is not yet published on PyPI — a release will follow once example
-adapters are available. Install from source in the meantime:
+Ladon is not yet published on PyPI. Install from source until v0.0.1 is tagged:
 
 ```bash
-git clone https://github.com/moonyfringers/ladon.git
-cd ladon
-pip install -e .                  # core package
-pip install -e ".[docs]"          # also installs MkDocs for building the docs site
+pip install git+https://github.com/moonyfringers/ladon.git
 ```
 
-> **Note:** Ladon uses a `src/` layout. `pip install -e .` is required before
-> importing the package from a source checkout.
+> **Note:** The PyPI distribution name is `ladon-crawl`; the import name is `ladon`.
+> Once published: `pip install ladon-crawl`.
 
 ---
 
@@ -177,5 +173,5 @@ community. See the LICENSE for the full copyleft terms.
 5. ✅ **robots.txt enforcement** — Disallow + Crawl-delay, TLS-aware cache
 6. ✅ **CLI tool** — `ladon run` with dynamic plugin loading
 7. ✅ **Documentation site** — MkDocs Material, API reference, ADR log
-8. 🔲 **Example adapters** — `ladon-reddit` and a financial data adapter, to
-   demonstrate the plugin system across different domains before public release
+8. ✅ **Example adapter** — [`ladon-hackernews`](https://github.com/MoonyFringers/ladon-hackernews):
+   HN → DuckDB → Parquet; canonical reference for building your own adapter
