@@ -10,8 +10,8 @@ the current node plus the child refs to be expanded or consumed next.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Mapping, Sequence
 
 
 def _empty_raw() -> dict[str, object]:

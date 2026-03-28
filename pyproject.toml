@@ -1,10 +1,24 @@
 [project]
-name = "ladon"
+name = "ladon-crawl"
 version = "0.0.1"
-description = "A resilient, extensible web crawling framework."
+description = "A structured, resumable web crawling framework for AI-ready datasets."
 readme = "README.md"
 requires-python = ">=3.12"
-license = {text = "AGPL-3.0-or-later"}  # Upgraded to Affero GPL v3 or later
+license = {text = "AGPL-3.0-or-later"}
+keywords = ["web-crawler", "scraper", "python", "llm", "data-pipeline", "structured-data"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
 dependencies = [
     "requests",
@@ -20,6 +34,7 @@ docs = [
 ]
 
 [project.urls]
+Documentation = "https://moonyfringers.github.io/ladon"
 Repository = "https://github.com/moonyfringers/ladon"
 Issues = "https://github.com/moonyfringers/ladon/issues"
 
