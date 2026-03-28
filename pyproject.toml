@@ -12,6 +12,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
@@ -33,7 +34,6 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/moonyfringers/ladon"
 Documentation = "https://moonyfringers.github.io/ladon"
 Repository = "https://github.com/moonyfringers/ladon"
 Issues = "https://github.com/moonyfringers/ladon/issues"

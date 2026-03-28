@@ -179,7 +179,7 @@ def test_get_timeout_retries_and_tracks_attempts(mock_get):
 
 
 @patch("requests.Session.get")
-def test_connection_error_is_retryable(mock_get):
+def test_connection_error_retried_internally(mock_get):
     config = HttpClientConfig(timeout_seconds=5.0, retries=1)
     client = HttpClient(config)
     mock_get.side_effect = requests.exceptions.ConnectionError("refused")
