@@ -119,6 +119,10 @@ domain-specific fields.
 ### The `RunRecord` dataclass
 
 ```python
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Literal
+
 @dataclass
 class RunRecord:
     run_id: str
@@ -212,7 +216,10 @@ if isinstance(repository, RunAudit):
 
 The `isinstance(repository, RunAudit)` check uses Python structural subtyping
 at runtime — adapters implementing both protocols need not declare it
-explicitly.
+explicitly. Note: Python's runtime checkable protocol check verifies only
+that the required method *names* are present, not their signatures. A class
+with a mismatched `record_run` signature would pass `isinstance` at runtime
+but fail under a static type-checker (pyright, mypy).
 
 ### Why no `DatabaseBackend` abstraction
 
