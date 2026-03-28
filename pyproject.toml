@@ -33,7 +33,7 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://moonyfringers.github.io/ladon"
+Homepage = "https://github.com/moonyfringers/ladon"
 Documentation = "https://moonyfringers.github.io/ladon"
 Repository = "https://github.com/moonyfringers/ladon"
 Issues = "https://github.com/moonyfringers/ladon/issues"
