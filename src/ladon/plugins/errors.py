@@ -44,11 +44,20 @@ class LeafUnavailableError(PluginError):
     """
 
 
+# ---------------------------------------------------------------------------
+# Plugin-use errors NOT caught by the runner
+# ---------------------------------------------------------------------------
+# Unlike the errors above, AssetDownloadError is not handled by run_crawl().
+# If raised from a Sink or Expander it propagates as a fatal error and aborts
+# the entire run.  Plugins that need non-fatal asset download handling must
+# catch it internally before returning.
+# ---------------------------------------------------------------------------
+
+
 class AssetDownloadError(PluginError):
     """An asset download failed.
 
-    Reserved for plugin use. The runner does not currently catch this
-    exception — if raised it propagates as a fatal error and aborts the
-    run. Plugins that need non-fatal asset download handling must catch
-    it internally before returning from the Sink or Expander.
+    **Not caught by the runner** — propagates as a fatal error that aborts
+    the run.  Plugins requiring non-fatal handling must catch this exception
+    internally before returning from the Sink or Expander.
     """

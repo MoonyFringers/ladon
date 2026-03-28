@@ -148,4 +148,4 @@ All errors are in `ladon.plugins.errors` and `ladon.networking.errors`.
 | `CircuitOpenError` | Networking | Host circuit breaker is open |
 | `RobotsBlockedError` | Networking | robots.txt disallows the URL |
 | `RequestTimeoutError` | Networking | Request exceeded timeout |
-| `RetryableHttpError` | Networking | Transient connection error (retried) |
+| `TransientNetworkError` | Networking | Connection-level transport failure; all internal retries exhausted |

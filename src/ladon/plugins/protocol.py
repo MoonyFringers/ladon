@@ -18,10 +18,10 @@ ref and returns a final record. ``CrawlPlugin`` bundles all three.
 
 from __future__ import annotations
 
-from typing import Protocol, Sequence, runtime_checkable
+from collections.abc import Sequence
+from typing import Protocol, runtime_checkable
 
-from ladon.networking.client import HttpClient
-
+from ..networking.client import HttpClient
 from .models import Expansion
 
 
@@ -74,6 +74,14 @@ class CrawlPlugin(Protocol):
     top-level refs. ``expanders`` is an ordered list of expansion steps
     (one per tree level above the leaves). ``sink`` consumes the leaf
     refs produced by the last expander.
+
+    CLI convention
+    --------------
+    When loaded via ``ladon run --plugin module:Class``, the CLI
+    instantiates the plugin as ``plugin_cls(client=client)``.  Adapters
+    intended for CLI use **must** accept ``client`` as a keyword argument
+    in ``__init__``.  This constraint is not enforced by the Protocol
+    check — it is a CLI convention only and not part of this protocol.
     """
 
     @property

@@ -11,7 +11,7 @@ from ladon.networking.config import HttpClientConfig
 from ladon.networking.errors import (
     HttpClientError,
     RequestTimeoutError,
-    RetryableHttpError,
+    TransientNetworkError,
 )
 
 
@@ -179,7 +179,7 @@ def test_get_timeout_retries_and_tracks_attempts(mock_get):
 
 
 @patch("requests.Session.get")
-def test_connection_error_is_retryable(mock_get):
+def test_connection_error_retried_internally(mock_get):
     config = HttpClientConfig(timeout_seconds=5.0, retries=1)
     client = HttpClient(config)
     mock_get.side_effect = requests.exceptions.ConnectionError("refused")
@@ -187,7 +187,7 @@ def test_connection_error_is_retryable(mock_get):
     result = client.get("http://example.com")
 
     assert not result.ok
-    assert isinstance(result.error, RetryableHttpError)
+    assert isinstance(result.error, TransientNetworkError)
     assert result.meta["attempts"] == 2
     assert result.meta["final_error"] == "ConnectionError"
 

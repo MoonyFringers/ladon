@@ -46,7 +46,7 @@ def _ladon_version() -> str:
     (e.g. running from a source checkout without ``pip install -e .``).
     """
     try:
-        return pkg_version("ladon")
+        return pkg_version("ladon-crawl")
     except PackageNotFoundError:
         from ladon import __version__
 
