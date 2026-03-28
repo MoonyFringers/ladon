@@ -38,6 +38,9 @@ Documentation = "https://moonyfringers.github.io/ladon"
 Repository = "https://github.com/moonyfringers/ladon"
 Issues = "https://github.com/moonyfringers/ladon/issues"
 
+[tool.setuptools.package-data]
+ladon = ["py.typed"]
+
 [build-system]
 requires = ["setuptools>=65", "wheel"]
 build-backend = "setuptools.build_meta"
