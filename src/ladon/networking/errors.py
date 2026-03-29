@@ -8,9 +8,13 @@ class HttpClientError(Exception):
 class CircuitOpenError(HttpClientError):
     """Raised when the circuit breaker blocks a request.
 
-    Inspect ``error.args[0]`` for the host that triggered the open state.
-    The circuit will probe again after ``circuit_breaker_recovery_seconds``.
+    Attributes:
+        host: The host (``netloc``) whose circuit is open.
     """
+
+    def __init__(self, host: str) -> None:
+        super().__init__(f"circuit open for {host}")
+        self.host = host
 
 
 class RobotsBlockedError(HttpClientError):
@@ -35,5 +39,19 @@ class TransientNetworkError(HttpClientError):
     """
 
 
-# Backward-compatible alias — will be removed in v0.1.0.
-RetryableHttpError = TransientNetworkError
+class RetryableHttpError(TransientNetworkError):
+    """Deprecated alias for ``TransientNetworkError``. Removed in v0.1.0.
+
+    Use ``TransientNetworkError`` instead.
+    """
+
+    def __init__(self, *args: object) -> None:
+        import warnings
+
+        warnings.warn(
+            "RetryableHttpError is deprecated and will be removed in v0.1.0. "
+            "Use TransientNetworkError instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args)

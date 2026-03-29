@@ -50,9 +50,25 @@ class RunConfig:
 class RunResult:
     """Outcome of a single run_crawl() call.
 
-    ``leaves_fetched`` counts leaves for which ``sink.consume()`` succeeded.
-    ``leaves_persisted`` counts leaves for which the ``on_leaf`` callback
-    completed without raising (always 0 when no callback is supplied).
+    ``leaves_fetched`` counts leaves for which ``sink.consume()`` succeeded,
+    regardless of whether the ``on_leaf`` callback also succeeded.
+
+    ``leaves_persisted`` counts leaves for which both ``sink.consume()`` *and*
+    the ``on_leaf`` callback completed without raising (always 0 when no
+    callback is supplied).
+
+    ``leaves_failed`` counts any leaf-level failure: a failed
+    ``sink.consume()`` *or* a failed ``on_leaf`` callback.  When a callback
+    raises after a successful consume, that leaf is counted in **both**
+    ``leaves_fetched`` and ``leaves_failed`` — the two counters are not
+    mutually exclusive.  Do not sum them to derive a total leaf count; use
+    ``leaves_fetched + (leaves_failed - (leaves_fetched - leaves_persisted))``
+    or simply inspect ``len(errors)`` for a precise tally.
+
+    .. note::
+        The double-counting behaviour is intentional for v0.0.1 but is
+        scheduled for a cleaner redesign in v0.1.0 (see issue #62).
+
     ``errors`` accumulates both expander branch failures (Phase 1, format
     ``"expander branch '...': ..."`` ) and leaf-level failures (Phase 3,
     format ``"ref[N]: ..."`` ).  A result with ``leaves_failed == 0`` may

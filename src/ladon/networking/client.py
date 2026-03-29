@@ -308,7 +308,7 @@ class HttpClient:
                 final_error="CircuitOpenError",
             )
             return Err(
-                CircuitOpenError(f"circuit open for {urlparse(url).netloc}"),
+                CircuitOpenError(urlparse(url).netloc),
                 meta=meta,
             )
 
