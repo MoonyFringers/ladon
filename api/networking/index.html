@@ -949,6 +949,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ladon.networking.errors.RetryableHttpError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RetryableHttpError
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1652,6 +1663,17 @@
     <span class="md-ellipsis">
       
         TransientNetworkError
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ladon.networking.errors.RetryableHttpError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RetryableHttpError
       
     </span>
   </a>
@@ -2752,7 +2774,7 @@ across threads without external locking.</p>
 <a id="__codelineno-0-308" name="__codelineno-0-308"></a>                <span class="n">final_error</span><span class="o">=</span><span class="s2">&quot;CircuitOpenError&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-309" name="__codelineno-0-309"></a>            <span class="p">)</span>
 <a id="__codelineno-0-310" name="__codelineno-0-310"></a>            <span class="k">return</span> <span class="n">Err</span><span class="p">(</span>
-<a id="__codelineno-0-311" name="__codelineno-0-311"></a>                <span class="n">CircuitOpenError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;circuit open for </span><span class="si">{</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>                <span class="n">CircuitOpenError</span><span class="p">(</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span><span class="p">),</span>
 <a id="__codelineno-0-312" name="__codelineno-0-312"></a>                <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
 <a id="__codelineno-0-313" name="__codelineno-0-313"></a>            <span class="p">)</span>
 <a id="__codelineno-0-314" name="__codelineno-0-314"></a>
@@ -4431,8 +4453,30 @@ captures request context (latency, retries, status, etc.).</p>
 
 
         <p>Raised when the circuit breaker blocks a request.</p>
-<p>Inspect <code>error.args[0]</code> for the host that triggered the open state.
-The circuit will probe again after <code>circuit_breaker_recovery_seconds</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="ladon.networking.errors.CircuitOpenError.host">host</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The host (<code>netloc</code>) whose circuit is open.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
 
@@ -4448,14 +4492,39 @@ The circuit will probe again after <code>circuit_breaker_recovery_seconds</code>
 <span class="normal"><a href="#__codelineno-0-10">10</a></span>
 <span class="normal"><a href="#__codelineno-0-11">11</a></span>
 <span class="normal"><a href="#__codelineno-0-12">12</a></span>
-<span class="normal"><a href="#__codelineno-0-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">CircuitOpenError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">CircuitOpenError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the circuit breaker blocks a request.</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="sd">    Inspect ``error.args[0]`` for the host that triggered the open state.</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="sd">    The circuit will probe again after ``circuit_breaker_recovery_seconds``.</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="sd">    Attributes:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="sd">        host: The host (``netloc``) whose circuit is open.</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;circuit open for </span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
 </code></pre></div></td></tr></table></div>
               </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
 
     </div>
 
@@ -4491,17 +4560,17 @@ The disallowed URL is included in <code>error.args[0]</code>.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/networking/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-16">16</a></span>
-<span class="normal"><a href="#__codelineno-0-17">17</a></span>
-<span class="normal"><a href="#__codelineno-0-18">18</a></span>
-<span class="normal"><a href="#__codelineno-0-19">19</a></span>
-<span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span><span class="w"> </span><span class="nc">RobotsBlockedError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when ``robots.txt`` disallows a request.</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    Only raised when ``HttpClientConfig.respect_robots_txt`` is ``True``.</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="sd">    The disallowed URL is included in ``error.args[0]``.</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="sd">    &quot;&quot;&quot;</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">RobotsBlockedError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when ``robots.txt`` disallows a request.</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    Only raised when ``HttpClientConfig.respect_robots_txt`` is ``True``.</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">    The disallowed URL is included in ``error.args[0]``.</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -4537,9 +4606,9 @@ The disallowed URL is included in <code>error.args[0]</code>.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/networking/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">class</span><span class="w"> </span><span class="nc">RequestTimeoutError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a request exceeds a configured timeout.&quot;&quot;&quot;</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="k">class</span><span class="w"> </span><span class="nc">RequestTimeoutError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a request exceeds a configured timeout.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -4579,23 +4648,107 @@ error — the internal retry budget has already been spent.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/networking/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-32">32</a></span>
 <span class="normal"><a href="#__codelineno-0-33">33</a></span>
 <span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="k">class</span><span class="w"> </span><span class="nc">TransientNetworkError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised for connection-level transport failures (e.g. ConnectionError,</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    DNS resolution failure).</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    Ladon retries these internally; by the time this error reaches the caller</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    all configured retries are exhausted.  Do not retry externally on this</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    error — the internal retry budget has already been spent.</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    &quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#__codelineno-0-39">39</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="k">class</span><span class="w"> </span><span class="nc">TransientNetworkError</span><span class="p">(</span><span class="n">HttpClientError</span><span class="p">):</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised for connection-level transport failures (e.g. ConnectionError,</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    DNS resolution failure).</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a>
+<a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    Ladon retries these internally; by the time this error reaches the caller</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    all configured retries are exhausted.  Do not retry externally on this</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    error — the internal retry budget has already been spent.</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="ladon.networking.errors.RetryableHttpError" class="doc doc-heading">
+            <code>RetryableHttpError</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="TransientNetworkError (ladon.networking.errors.TransientNetworkError)" href="#ladon.networking.errors.TransientNetworkError">TransientNetworkError</a></code></p>
+
+
+
+        <p>Deprecated alias for <code>TransientNetworkError</code>. Removed in v0.1.0.</p>
+<p>Use <code>TransientNetworkError</code> instead.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/ladon/networking/errors.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#__codelineno-0-44">44</a></span>
+<span class="normal"><a href="#__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#__codelineno-0-54">54</a></span>
+<span class="normal"><a href="#__codelineno-0-55">55</a></span>
+<span class="normal"><a href="#__codelineno-0-56">56</a></span>
+<span class="normal"><a href="#__codelineno-0-57">57</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="k">class</span><span class="w"> </span><span class="nc">RetryableHttpError</span><span class="p">(</span><span class="n">TransientNetworkError</span><span class="p">):</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated alias for ``TransientNetworkError``. Removed in v0.1.0.</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44"></a>
+<a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">    Use ``TransientNetworkError`` instead.</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47"></a>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49"></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50"></a>
+<a id="__codelineno-0-51" name="__codelineno-0-51"></a>        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="s2">&quot;RetryableHttpError is deprecated and will be removed in v0.1.0. &quot;</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a>            <span class="s2">&quot;Use TransientNetworkError instead.&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54"></a>            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56"></a>        <span class="p">)</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
 
     </div>
 
