@@ -8,6 +8,7 @@ from .networking.errors import (
     CircuitOpenError,
     HttpClientError,
     RequestTimeoutError,
+    RetryableHttpError,
     RobotsBlockedError,
     TransientNetworkError,
 )
@@ -42,8 +43,6 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.1"  # editable install without metadata
 
-# Backward-compatible alias; removed in v0.1.0.
-RetryableHttpError = TransientNetworkError
 
 __all__ = [
     # Runner
