@@ -2532,10 +2532,15 @@ on the next scheduled run.</p>
 
 
 
-        <p>The expansion returned an incomplete child list.</p>
-<p>The runner should download data to disk but must NOT persist to DB.
-On the next run the ref will be re-evaluated; once the full child
-list is live, not-seen-before logic will allow a full parse.</p>
+        <p>The child list was fetched but is incomplete (e.g. a paginated
+response returned fewer items than the declared total).</p>
+<p>Runner behaviour: non-fatal for non-first expanders — the affected
+branch is isolated and recorded in <code>RunResult.errors</code>. Propagates
+unchanged from the first expander.</p>
+<p>Raise this instead of <code>ChildListUnavailableError</code> when the HTTP
+response was valid but the payload signals an incomplete result.
+Raise <code>ChildListUnavailableError</code> when the response could not be
+parsed or the request itself failed.</p>
 
 
 
@@ -2552,13 +2557,25 @@ list is live, not-seen-before logic will allow a full parse.</p>
 <span class="normal"><a href="#__codelineno-0-25">25</a></span>
 <span class="normal"><a href="#__codelineno-0-26">26</a></span>
 <span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="k">class</span><span class="w"> </span><span class="nc">PartialExpansionError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The expansion returned an incomplete child list.</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">    The runner should download data to disk but must NOT persist to DB.</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    On the next run the ref will be re-evaluated; once the full child</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    list is live, not-seen-before logic will allow a full parse.</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    &quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#__codelineno-0-34">34</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="k">class</span><span class="w"> </span><span class="nc">PartialExpansionError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The child list was fetched but is incomplete (e.g. a paginated</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">    response returned fewer items than the declared total).</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    Runner behaviour: non-fatal for non-first expanders — the affected</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    branch is isolated and recorded in ``RunResult.errors``. Propagates</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    unchanged from the first expander.</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    Raise this instead of ``ChildListUnavailableError`` when the HTTP</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">    response was valid but the payload signals an incomplete result.</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    Raise ``ChildListUnavailableError`` when the response could not be</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    parsed or the request itself failed.</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2596,17 +2613,17 @@ but the response cannot be parsed into a usable child list.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/plugins/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="k">class</span><span class="w"> </span><span class="nc">ChildListUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The child list could not be retrieved.</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    Fatal for this ref&#39;s run. Raised when the network request succeeded</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    but the response cannot be parsed into a usable child list.</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    &quot;&quot;&quot;</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#__codelineno-0-42">42</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="k">class</span><span class="w"> </span><span class="nc">ChildListUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The child list could not be retrieved.</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">    Fatal for this ref&#39;s run. Raised when the network request succeeded</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    but the response cannot be parsed into a usable child list.</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2644,17 +2661,17 @@ and continues to the next leaf.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/plugins/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span>
-<span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="k">class</span><span class="w"> </span><span class="nc">LeafUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A single leaf ref could not be fetched or parsed.</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    Non-fatal. The runner logs the failure, increments leaves_failed,</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    and continues to the next leaf.</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    &quot;&quot;&quot;</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#__codelineno-0-50">50</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="k">class</span><span class="w"> </span><span class="nc">LeafUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A single leaf ref could not be fetched or parsed.</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47"></a>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">    Non-fatal. The runner logs the failure, increments leaves_failed,</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    and continues to the next leaf.</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2693,19 +2710,19 @@ internally before returning from the Sink or Expander.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/ladon/plugins/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="k">class</span><span class="w"> </span><span class="nc">AssetDownloadError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;An asset download failed.</span>
-<a id="__codelineno-0-59" name="__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    **Not caught by the runner** — propagates as a fatal error that aborts</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    the run.  Plugins requiring non-fatal handling must catch this exception</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    internally before returning from the Sink or Expander.</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    &quot;&quot;&quot;</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="k">class</span><span class="w"> </span><span class="nc">AssetDownloadError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;An asset download failed.</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">    **Not caught by the runner** — propagates as a fatal error that aborts</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">    the run.  Plugins requiring non-fatal handling must catch this exception</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    internally before returning from the Sink or Expander.</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">    &quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
