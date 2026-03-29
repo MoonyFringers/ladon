@@ -21,13 +21,22 @@ classifiers = [
 ]
 
 dependencies = [
-    "requests",
+    "requests>=2.28",
 ]
 
 [project.scripts]
 ladon = "ladon.cli:main"
 
 [project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov",
+    "pre-commit",
+    "pyright>=1.1",
+    "black",
+    "ruff",
+    "isort",
+]
 docs = [
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.25",
