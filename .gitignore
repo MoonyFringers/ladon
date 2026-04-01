@@ -17,3 +17,4 @@ site/
 .envrc
 .pre-commit-cache/
 .virtualenv-appdata/
+dist/
