@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "A Python framework for building structured, resumable web crawlers that produce typed domain records."
 readme = "README.md"
 requires-python = ">=3.12"
-license = {text = "AGPL-3.0-only"}
+license = "AGPL-3.0-only"
 authors = [
     {name = "Alessio Pascucci", email = "feeder81@gmail.com"},
 ]
@@ -22,7 +22,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
