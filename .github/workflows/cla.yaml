@@ -1,0 +1,60 @@
+name: CLA Assistant
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  pull-requests: write
+  statuses: write
+  contents: write
+
+jobs:
+  cla-check:
+    runs-on: ubuntu-latest
+
+    # Run on PR events or on comments posted to PRs (not plain issues).
+    if: >
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null)
+
+    steps:
+      - name: CLA Assistant
+        uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08  # v2.6.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # A PAT with repo scope is required to write cla_signatures.json
+          # and post status checks on PRs from forks.
+          # Configure this secret in: Settings → Secrets → Actions.
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          path-to-signatures: ".github/cla_signatures.json"
+          path-to-document: "https://github.com/MoonyFringers/ladon/blob/main/CLA.md"
+          branch: "main"
+          # Bots that should be exempted from the CLA requirement.
+          allowlist: >
+            dependabot[bot],
+            github-actions[bot],
+            renovate[bot]
+          lock-pullrequest-aftermerge: false
+          custom-notsigned-prcomment: >
+            Thank you for your contribution!
+
+            Before this pull request can be reviewed and merged, you must sign
+            the **Ladon Contributor License Agreement**.
+
+            Please read
+            [CLA.md](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
+            and then reply to this comment with the exact phrase:
+
+            `I have read the CLA Document and I hereby sign the CLA`
+          custom-pr-sign-comment: "I have read the CLA Document and I hereby sign the CLA"
+          custom-allsigned-prcomment: >
+            All contributors have signed the CLA. Thank you!

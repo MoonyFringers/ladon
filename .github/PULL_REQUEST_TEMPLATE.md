@@ -31,3 +31,9 @@ to help! -->
 - [ ] My code follows the code style of this project.
 - [ ] My change requires a change to the documentation.
 - [ ] I have updated the documentation accordingly.
+
+## Contributor License Agreement
+<!--- All contributors must sign the CLA before this PR can be merged. -->
+<!--- The CLA Assistant bot will post instructions if you have not yet signed. -->
+- [ ] I have signed the [Contributor License Agreement](../CLA.md)
+      (or I will follow the CLA Assistant bot instructions posted in this PR).
