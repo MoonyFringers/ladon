@@ -169,11 +169,35 @@ ensure a welcoming environment for all contributors.
 3. **Test your code**: Ensure that your changes do not break
    existing functionality by running tests locally.
 
-## Licensing
+## Licensing and Contributor License Agreement
 
-By contributing to this project, you agree that your
-contributions will be licensed under the project's
-[LICENSE](LICENSE).
+Ladon is dual-licensed under the
+[GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-only, open source)
+and a [proprietary commercial license](LICENSE-COMMERCIAL) offered by Moony
+Fringers.
+
+To enable this dual-licensing model, **all contributors must sign the
+Ladon [Contributor License Agreement](CLA.md) (CLA)** before their
+contributions can be accepted. The CLA grants Moony Fringers a perpetual,
+worldwide, sublicensable copyright and patent license over your contributions.
+**You retain full copyright ownership.**
+
+### How to sign
+
+The CLA is enforced automatically on every pull request via the CLA Assistant
+bot. When you open a PR, the bot will post a comment if you have not yet signed.
+To sign, read [CLA.md](CLA.md) and reply to the bot comment with:
+
+> I have read the CLA Document and I hereby sign the CLA
+
+Your GitHub username is then recorded in `.github/cla_signatures.json`.
+
+**Employed contributors:** If you are contributing as part of your employment
+and your employer may have rights to your work, please review Section 5(a) of
+the CLA before signing and ensure you have the appropriate authorization.
+
+See [ADR-010](docs/decisions/adr-010-dual-license-model.md) for the rationale
+behind this licensing model.
 
 Thank you for contributing! Together, we can make this project
 even better. If you have any questions, feel free to reach out.
