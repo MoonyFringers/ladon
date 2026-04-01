@@ -196,7 +196,7 @@ Your GitHub username is then recorded in `.github/cla_signatures.json`.
 and your employer may have rights to your work, please review Section 5(a) of
 the CLA before signing and ensure you have the appropriate authorization.
 
-See [ADR-004](docs/decisions/adr-004-dual-license-model.md) for the rationale
+See [ADR-010](docs/decisions/adr-010-dual-license-model.md) for the rationale
 behind this licensing model.
 
 Thank you for contributing! Together, we can make this project

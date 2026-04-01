@@ -13,8 +13,16 @@ from urllib.parse import urlparse
 
 import requests
 
+from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
-from .errors import HttpClientError, RequestTimeoutError, RetryableHttpError
+from .errors import (
+    CircuitOpenError,
+    HttpClientError,
+    RequestTimeoutError,
+    RobotsBlockedError,
+    TransientNetworkError,
+)
+from .robots import RobotsCache
 from .types import Err, Ok, Result
 
 ResponseValue = TypeVar("ResponseValue")
@@ -26,6 +34,12 @@ class HttpClient:
     All outbound HTTP in Ladon must go through this client to ensure consistent
     politeness, resilience, and observability. Methods return a Result that
     contains either a value or an error plus request metadata.
+
+    Thread safety
+    -------------
+    ``HttpClient`` is **not** thread-safe.  It is designed for the
+    single-threaded, single-run crawler model.  Do not share an instance
+    across threads without external locking.
     """
 
     def __init__(self, config: HttpClientConfig) -> None:
@@ -37,9 +51,23 @@ class HttpClient:
         self._config = config
         self._session = requests.Session()
         self._last_request_time: dict[str, float] = {}
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
         if self._config.user_agent:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
+        self._robots_cache: RobotsCache | None = (
+            RobotsCache(
+                self._session,
+                self._config.user_agent or "*",
+                fetch_timeout=self._config.timeout_seconds,
+                verify_tls=self._config.verify_tls,
+            )
+            if self._config.respect_robots_txt
+            else None
+        )
+        # Per-host Crawl-delay overrides populated by _enforce_robots.
+        # These take precedence over min_request_interval_seconds when larger.
+        self._crawl_delay_overrides: dict[str, float] = {}
 
     def close(self) -> None:
         """Close the underlying session and release pooled connections."""
@@ -53,7 +81,7 @@ class HttpClient:
 
     def _get_timeout(
         self, override: float | None
-    ) -> float | tuple[float, float] | None:
+    ) -> float | tuple[float, float]:
         """Resolve timeout preference."""
         if override is not None:
             if override <= 0:
@@ -91,6 +119,47 @@ class HttpClient:
             return
         sleep(backoff_base * (2 ** max(0, attempt - 1)))
 
+    def _enforce_robots(self, url: str) -> None:
+        """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
+
+        No-op when ``respect_robots_txt`` is False (the default) or when the
+        robots.txt fetch fails (fail-open behaviour).
+
+        Called before ``_enforce_rate_limit`` so that blocked requests are
+        rejected before the rate-limit slot is consumed — honouring the spirit
+        of the robots.txt contract: don't even waste a rate-limit slot on a
+        host that has explicitly opted out of being crawled.
+
+        Known limitation — robots.txt fetch bypasses rate-limiter
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ``RobotsCache`` fetches ``/robots.txt`` via a raw ``session.get``
+        call that is invisible to ``_enforce_rate_limit``.  On the first
+        request to any origin this produces two outbound HTTP requests to
+        that host in rapid succession (robots.txt fetch + the actual request),
+        regardless of ``min_request_interval_seconds``.  The cache guarantees
+        at most one robots.txt fetch per origin per session, so subsequent
+        requests to the same host are unaffected.  This trade-off is
+        documented in ADR-008.
+        """
+        if self._robots_cache is None:
+            return
+        if not self._robots_cache.is_allowed(url):
+            raise RobotsBlockedError(f"robots.txt disallows: {url}")
+        # Propagate Crawl-delay into the rate limiter for this host.
+        # HttpClientConfig is frozen so we maintain a side-table of per-host
+        # delay overrides rather than mutating config.
+        # Note: Crawl-delay is only registered here, on the *allowed* path.
+        # A domain that disallows all URLs but advertises Crawl-delay will
+        # have the delay present in RobotsCache._crawl_delays (populated at
+        # fetch time) but absent from _crawl_delay_overrides (since no request
+        # is ever made to that host, there is nothing to throttle).
+        delay = self._robots_cache.crawl_delay(url)
+        if delay is not None:
+            host = urlparse(url).netloc
+            current = self._config.min_request_interval_seconds
+            if delay > current:
+                self._crawl_delay_overrides[host] = delay
+
     def _enforce_rate_limit(self, url: str) -> None:
         """Enforce per-host politeness delay before issuing a request.
 
@@ -100,12 +169,15 @@ class HttpClient:
 
         No-op when ``min_request_interval_seconds`` is zero (the default).
         """
-        interval = self._config.min_request_interval_seconds
-        if interval <= 0:
-            return
         host = urlparse(url).netloc
         if not host:
             return  # malformed URL — skip rather than poisoning the empty-key slot
+        interval = max(
+            self._config.min_request_interval_seconds,
+            self._crawl_delay_overrides.get(host, 0.0),
+        )
+        if interval <= 0:
+            return
         last = self._last_request_time.get(host)
         if last is not None:
             elapsed = monotonic() - last
@@ -175,10 +247,43 @@ class HttpClient:
             return Err(RequestTimeoutError(str(e)), meta=meta)
 
         if isinstance(e, requests.exceptions.ConnectionError):
-            return Err(RetryableHttpError(str(e)), meta=meta)
+            return Err(TransientNetworkError(str(e)), meta=meta)
 
         # Generic fallback for other request exceptions
         return Err(HttpClientError(str(e)), meta=meta)
+
+    def _get_circuit_breaker(self, url: str) -> CircuitBreaker | None:
+        """Return the CircuitBreaker for the host of *url*, or None if disabled."""
+        threshold = self._config.circuit_breaker_failure_threshold
+        if threshold is None:
+            return None
+        host = urlparse(url).netloc
+        if not host:
+            return None
+        if host not in self._circuit_breakers:
+            self._circuit_breakers[host] = CircuitBreaker(
+                threshold=threshold,
+                recovery_seconds=self._config.circuit_breaker_recovery_seconds,
+            )
+        return self._circuit_breakers[host]
+
+    def circuit_state(self, url: str) -> CircuitState | None:
+        """Return the current circuit-breaker state for *url*'s host.
+
+        Returns ``None`` when the circuit breaker is disabled
+        (``circuit_breaker_failure_threshold`` is ``None``) or when no
+        request has been made to the host yet.
+
+        Intended for logging, metrics, and operational dashboards — lets
+        callers surface open circuits without touching private state.
+
+        Args:
+            url: Any URL on the host to query (only the ``netloc`` is used).
+        """
+        cb = self._circuit_breakers.get(urlparse(url).netloc)
+        if cb is None:
+            return None
+        return cb.state
 
     def _request(
         self,
@@ -191,6 +296,36 @@ class HttpClient:
         value_builder: Callable[[requests.Response], ResponseValue],
     ) -> Result[ResponseValue, Exception]:
         """Execute request with retries and normalized metadata."""
+        cb = self._get_circuit_breaker(url)
+        if cb is not None and not cb.allow_request():
+            meta = self._build_meta(
+                method=method,
+                request_url=url,
+                response=None,
+                context=context,
+                attempts=0,
+                timeout=timeout,
+                final_error="CircuitOpenError",
+            )
+            return Err(
+                CircuitOpenError(urlparse(url).netloc),
+                meta=meta,
+            )
+
+        try:
+            self._enforce_robots(url)
+        except RobotsBlockedError as exc:
+            meta = self._build_meta(
+                method=method,
+                request_url=url,
+                response=None,
+                context=context,
+                attempts=0,
+                timeout=timeout,
+                final_error="RobotsBlockedError",
+            )
+            return Err(exc, meta=meta)
+
         self._enforce_rate_limit(url)
         attempts = 0
         last_error: requests.exceptions.RequestException | None = None
@@ -198,6 +333,8 @@ class HttpClient:
             attempts += 1
             try:
                 response = request_fn()
+                if cb is not None:
+                    cb.record_success()
                 return Ok(
                     value_builder(response),
                     meta=self._build_meta(
@@ -218,6 +355,8 @@ class HttpClient:
                     break
                 self._sleep_between_attempts(attempts)
             except Exception as exc:  # pragma: no cover - defensive fallback
+                if cb is not None:
+                    cb.record_failure()
                 return Err(
                     HttpClientError(str(exc)),
                     meta=self._build_meta(
@@ -232,6 +371,8 @@ class HttpClient:
                 )
 
         assert last_error is not None
+        if cb is not None:
+            cb.record_failure()
         return self._handle_request_exception(
             method=method,
             request_url=url,

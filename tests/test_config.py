@@ -14,7 +14,7 @@ def test_config_defaults_are_stable():
     assert config.connect_timeout_seconds is None
     assert config.read_timeout_seconds is None
     assert config.backoff_base_seconds == 0.0
-    assert config.timeout_seconds is None
+    assert config.timeout_seconds == 30.0
 
 
 def test_config_default_headers_are_independent():

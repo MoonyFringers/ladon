@@ -1,4 +1,4 @@
-# ADR-004 — Dual-License Model (AGPL-3.0-only + Commercial)
+# ADR-010 — Dual-License Model (AGPL-3.0-only + Commercial)
 
 **Date:** 2026-04-01
 **Status:** Accepted

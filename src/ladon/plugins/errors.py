@@ -20,11 +20,17 @@ class ExpansionNotReadyError(PluginError):
 
 
 class PartialExpansionError(PluginError):
-    """The expansion returned an incomplete child list.
+    """The child list was fetched but is incomplete (e.g. a paginated
+    response returned fewer items than the declared total).
 
-    The runner should download data to disk but must NOT persist to DB.
-    On the next run the ref will be re-evaluated; once the full child
-    list is live, not-seen-before logic will allow a full parse.
+    Runner behaviour: non-fatal for non-first expanders — the affected
+    branch is isolated and recorded in ``RunResult.errors``. Propagates
+    unchanged from the first expander.
+
+    Raise this instead of ``ChildListUnavailableError`` when the HTTP
+    response was valid but the payload signals an incomplete result.
+    Raise ``ChildListUnavailableError`` when the response could not be
+    parsed or the request itself failed.
     """
 
 
@@ -44,9 +50,20 @@ class LeafUnavailableError(PluginError):
     """
 
 
+# ---------------------------------------------------------------------------
+# Plugin-use errors NOT caught by the runner
+# ---------------------------------------------------------------------------
+# Unlike the errors above, AssetDownloadError is not handled by run_crawl().
+# If raised from a Sink or Expander it propagates as a fatal error and aborts
+# the entire run.  Plugins that need non-fatal asset download handling must
+# catch it internally before returning.
+# ---------------------------------------------------------------------------
+
+
 class AssetDownloadError(PluginError):
     """An asset download failed.
 
-    Non-fatal below the runner's asset failure threshold. The runner
-    records the failure and continues.
+    **Not caught by the runner** — propagates as a fatal error that aborts
+    the run.  Plugins requiring non-fatal handling must catch this exception
+    internally before returning from the Sink or Expander.
     """
