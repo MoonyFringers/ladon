@@ -1,0 +1,86 @@
+Ladon — Commercial License
+
+Copyright (c) 2026 Moony Fringers. All rights reserved.
+
+================================================================================
+
+1. Open-Source License
+----------------------
+
+Ladon is available as free, open-source software under the
+GNU Affero General Public License v3.0 (AGPL-3.0-only). The full text of
+this license is provided in the LICENSE file at the root of this repository.
+
+Under the AGPL, you may use, modify, and distribute Ladon freely, provided
+that:
+
+  - All modifications and derivative works are distributed under the same AGPL
+    license.
+  - If you run a modified version of Ladon to provide a network-accessible
+    service, you must make the complete corresponding source code available to
+    users of that service.
+
+2. Commercial License
+---------------------
+
+Moony Fringers offers a separate commercial license for individuals and
+organizations that cannot or do not wish to comply with the obligations of
+the AGPL-3.0, including but not limited to the following use cases:
+
+  - Incorporating Ladon into proprietary, closed-source products or services.
+  - Distributing Ladon as part of a product without fulfilling the AGPL
+    requirement to disclose corresponding source code modifications.
+  - Offering Ladon-based functionality as a hosted service (SaaS) without
+    complying with the AGPL network-use source disclosure obligation.
+  - Redistributing Ladon in compiled or binary form without meeting AGPL
+    source availability requirements.
+  - OEM, embedded, or white-label use of Ladon in commercial products.
+
+The commercial license grants you the right to use, modify, and distribute
+Ladon for these purposes under terms agreed upon with Moony Fringers,
+without the obligations of the AGPL.
+
+3. How to Obtain a Commercial License
+--------------------------------------
+
+To inquire about a commercial license, contact Moony Fringers at:
+
+  licensing@moonyfringers.net
+
+Please include in your message:
+
+  - A description of your intended use case.
+  - Your organization name and size.
+  - Your preferred contact information.
+
+We will respond with applicable license terms and pricing.
+
+4. Contributor License Agreement
+---------------------------------
+
+All contributions to Ladon require signing the Contributor License Agreement
+(CLA.md) located in this repository. The CLA grants Moony Fringers the
+sublicensable rights necessary to offer this dual-licensing model. Contributors
+retain full copyright ownership of their contributions.
+
+5. Third-Party Components
+--------------------------
+
+This commercial license applies only to Ladon source code owned by
+Moony Fringers. Third-party components embedded in this repository remain
+subject to their original open-source licenses. A list of third-party
+dependencies and their licenses is available via the project's
+`pyproject.toml`.
+
+6. No Warranty
+--------------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY APPLICABLE LAW, MOONY FRINGERS SHALL NOT BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+================================================================================
+
+Moony Fringers — https://github.com/MoonyFringers
