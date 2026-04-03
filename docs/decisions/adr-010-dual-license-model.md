@@ -64,8 +64,8 @@ and community users are protected by the open-source AGPL core regardless.
 - **Before merging this PR:** configure the `PERSONAL_ACCESS_TOKEN` secret
   (repo scope) in repository Settings → Secrets → Actions. Without it, the
   CLA bot cannot update `cla_signatures.json` on PRs from forks.
-- **Before publishing:** replace the `licensing@moonyfringers.io` placeholder
-  in `LICENSE-COMMERCIAL` with a real contact address.
+- **Before publishing:** confirm `licensing@moonyfringers.net` in
+  `LICENSE-COMMERCIAL` is live and receiving mail.
 - **Retroactive CLA:** existing contributors (currently only the sole
   maintainer) should sign before the first external PR is accepted.
 - All future pull request authors will be prompted by the bot to sign before
