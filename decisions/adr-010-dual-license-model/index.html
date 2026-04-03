@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-010-dual-license-model/">
       
       
-        <link rel="prev" href="../api/plugins/">
-      
-      
-        <link rel="next" href="adr-001-ladon-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Overview - Ladon</title>
+        <title>ADR-010 — Dual-License Model (AGPL-3.0-only + Commercial) - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-decision-records" class="md-skip">
+        <a href="#adr-010-dual-license-model-agpl-30-only-commercial" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              ADR-010 — Dual-License Model (AGPL-3.0-only + Commercial)
             
           </span>
         </div>
@@ -225,7 +221,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -244,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
+      <a href="../../getting-started/" class="md-tabs__link">
         
   
   
@@ -265,7 +261,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -285,7 +281,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/networking/" class="md-tabs__link">
+        <a href="../../api/networking/" class="md-tabs__link">
           
   
   
@@ -301,13 +297,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -341,7 +335,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -371,7 +365,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -398,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -477,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -505,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -592,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/networking/" class="md-nav__link">
+      <a href="../../api/networking/" class="md-nav__link">
         
   
   
@@ -620,7 +614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/runner/" class="md-nav__link">
+      <a href="../../api/runner/" class="md-nav__link">
         
   
   
@@ -648,7 +642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plugins/" class="md-nav__link">
+      <a href="../../api/plugins/" class="md-nav__link">
         
   
   
@@ -680,31 +674,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -722,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -737,37 +726,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -783,37 +745,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -826,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -861,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -896,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -931,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -966,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1001,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-007-circuit-breaker/" class="md-nav__link">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1029,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-008-robots-txt/" class="md-nav__link">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1084,10 +1015,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
+  <a href="#context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agpl-30-only-vs-agpl-30-or-later" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AGPL-3.0-only vs AGPL-3.0-or-later
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
       
     </span>
   </a>
@@ -1114,76 +1078,67 @@
   
 
 
-<h1 id="architecture-decision-records">Architecture Decision Records</h1>
-<p>This directory contains the Architecture Decision Records (ADRs) for Ladon.
-Each ADR documents a significant technical decision: the context, the options
-considered, the chosen option, and — crucially — <strong>why</strong> that option was
-chosen over the alternatives.</p>
-<table>
-<thead>
-<tr>
-<th>ADR</th>
-<th>Title</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="adr-001-ladon-architecture/">ADR-001</a></td>
-<td>Ladon Architecture</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-002-http-status-result-contract/">ADR-002</a></td>
-<td>HTTP Result Contract</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-003-plugin-adapter-interface/">ADR-003</a></td>
-<td>Plugin Adapter Interface</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-004-ses-protocol-design/">ADR-004</a></td>
-<td>Source / Expander / Sink Protocol Design</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-005</td>
-<td>Asset Storage (<code>ladon.storage</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-006-persistence-layer/">ADR-006</a></td>
-<td>Persistence Layer (<code>ladon.persistence</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-007-circuit-breaker/">ADR-007</a></td>
-<td>Per-Host Circuit Breaker</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-008-robots-txt/">ADR-008</a></td>
-<td>robots.txt Enforcement</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-009</td>
-<td>Observability (metrics, structured logs)</td>
-<td>Proposed — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-010-dual-license-model/">ADR-010</a></td>
-<td>Dual-License Model (AGPL-3.0-only + Commercial)</td>
-<td>Accepted</td>
-</tr>
-</tbody>
-</table>
-<h2 id="format">Format</h2>
-<p>ADRs follow the <a href="https://adr.github.io/madr/">MADR</a> template.
-To propose a new decision, copy <code>docs/decisions/adr-template.md</code>,
-fill in the sections, and open a PR.</p>
+<h1 id="adr-010-dual-license-model-agpl-30-only-commercial">ADR-010 — Dual-License Model (AGPL-3.0-only + Commercial)</h1>
+<p><strong>Date:</strong> 2026-04-01
+<strong>Status:</strong> Accepted</p>
+<hr />
+<h2 id="context">Context</h2>
+<p>Ladon is an open-source Python framework targeting both community adoption and
+a commercial revenue model (see <code>ladon_commercial_roadmap.md</code>). The framework
+needs a license strategy that:</p>
+<ol>
+<li>Keeps the core permanently open-source and community-first.</li>
+<li>Enables a commercial licensing tier for organisations that cannot comply
+   with AGPL's copyleft obligations.</li>
+<li>Is legally sound for accepting external contributions without requiring
+   copyright assignment.</li>
+</ol>
+<hr />
+<h2 id="decision">Decision</h2>
+<p>Ladon uses a <strong>dual-license model</strong>:</p>
+<ul>
+<li><strong>Open source:</strong> <code>AGPL-3.0-only</code> (see <code>LICENSE</code>)</li>
+<li><strong>Commercial:</strong> contact-for-terms (see <code>LICENSE-COMMERCIAL</code>)</li>
+</ul>
+<p>All external contributors must sign the <strong>Contributor License Agreement</strong>
+(<code>CLA.md</code>) before their contributions can be accepted. The CLA grants Moony
+Fringers a perpetual, sublicensable copyright and patent license over
+contributions while contributors retain full copyright ownership. The
+sublicensable grant is what makes the dual-licensing model legally possible.</p>
+<p>The CLA is enforced automatically via the CLA Assistant GitHub Action on every
+pull request (<code>.github/workflows/cla.yaml</code>). Signatures are stored in
+<code>.github/cla_signatures.json</code>.</p>
+<hr />
+<h2 id="agpl-30-only-vs-agpl-30-or-later">AGPL-3.0-only vs AGPL-3.0-or-later</h2>
+<p><code>AGPL-3.0-only</code> was chosen over <code>AGPL-3.0-or-later</code> deliberately:</p>
+<ul>
+<li><strong>Legal certainty for commercial licensees.</strong> Evaluators doing due diligence
+  need to know exactly which license version they are assessing. <code>-or-later</code>
+  introduces uncertainty about future FSF versions whose terms are unknown.</li>
+<li><strong>Control over the project's legal future.</strong> A hypothetical AGPL v4 could
+  contain provisions incompatible with the commercial licensing terms. <code>-only</code>
+  ensures the project's license does not change without an explicit decision.</li>
+<li><strong>Consistency with Shepherd.</strong> The sibling project in the same org uses
+  <code>AGPL-3.0-only</code>. Diverging without reason creates an impression of
+  inconsistent governance.</li>
+</ul>
+<p>The freedom argument for <code>-or-later</code> (users can benefit from future FSF
+improvements) is largely moot for a dual-licensed project: the CLA already
+grants Moony Fringers the sublicensable rights needed for the commercial tier,
+and community users are protected by the open-source AGPL core regardless.</p>
+<hr />
+<h2 id="consequences">Consequences</h2>
+<ul>
+<li><strong>Before merging this PR:</strong> configure the <code>PERSONAL_ACCESS_TOKEN</code> secret
+  (repo scope) in repository Settings → Secrets → Actions. Without it, the
+  CLA bot cannot update <code>cla_signatures.json</code> on PRs from forks.</li>
+<li><strong>Before publishing:</strong> confirm <code>licensing@moonyfringers.net</code> in
+  <code>LICENSE-COMMERCIAL</code> is live and receiving mail.</li>
+<li><strong>Retroactive CLA:</strong> existing contributors (currently only the sole
+  maintainer) should sign before the first external PR is accepted.</li>
+<li>All future pull request authors will be prompted by the bot to sign before
+  their PR can be reviewed.</li>
+</ul>
 
 
 
@@ -1239,10 +1194,10 @@ fill in the sections, and open a PR.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
