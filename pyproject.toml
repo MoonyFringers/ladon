@@ -4,13 +4,15 @@ version = "0.0.1"
 description = "A structured, resumable web crawling framework for AI-ready datasets."
 readme = "README.md"
 requires-python = ">=3.12"
-license = {text = "AGPL-3.0-or-later"}
+license = "AGPL-3.0-only"
+authors = [
+    {name = "Alessio Pascucci", email = "feeder81@gmail.com"},
+]
 keywords = ["web-crawler", "scraper", "python", "llm", "data-pipeline", "structured-data"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
@@ -18,6 +20,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -43,9 +46,10 @@ docs = [
 ]
 
 [project.urls]
+Homepage = "https://github.com/MoonyFringers/ladon"
 Documentation = "https://moonyfringers.github.io/ladon"
-Repository = "https://github.com/moonyfringers/ladon"
-Issues = "https://github.com/moonyfringers/ladon/issues"
+Repository = "https://github.com/MoonyFringers/ladon"
+Issues = "https://github.com/MoonyFringers/ladon/issues"
 
 [tool.setuptools.package-data]
 ladon = ["py.typed"]
