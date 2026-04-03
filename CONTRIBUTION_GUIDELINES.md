@@ -132,6 +132,49 @@ below.
    git push origin feature/your-feature-name
    ```
 
+## Git Hygiene
+
+### Signed commits (required)
+
+All commits must be GPG or SSH signed. Branch protection enforces this — unsigned
+commits will be rejected. To configure signing locally:
+
+```bash
+# GPG (if you have a GPG key set up)
+git config --global commit.gpgsign true
+git config --global user.signingkey <YOUR_KEY_ID>
+
+# SSH (simpler alternative)
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true
+```
+
+Add your public key to GitHub under **Settings → SSH and GPG keys** (as a Signing
+Key, separate from your authentication key).
+
+### Immutable history policy
+
+**Never rewrite history on any branch that has been shared or pushed to the
+remote.**
+
+- Do not `git rebase`, `git commit --amend`, or force-push a branch once it has
+  an open PR or has been reviewed.
+- If a commit needs correcting after it has been pushed, add a follow-up fix
+  commit — do not amend or rebase.
+- The main branch history is permanent. There are no exceptions.
+
+This policy exists because rewriting shared history breaks the signature chain,
+invalidates other contributors' local clones, and destroys the audit trail.
+
+### Merge strategy
+
+Ladon uses **squash merge** for all PRs. Each PR lands as a single atomic commit
+on main, signed by GitHub. Keep your PR branch history as clean as you like — only
+the squashed result reaches main.
+
+---
+
 ## Submitting Your Contribution
 
 1. **Create a pull request (PR)**: Go to the original
