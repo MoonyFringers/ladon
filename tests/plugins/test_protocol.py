@@ -183,9 +183,10 @@ class TestRunnerHappyPath:
         http_client: HttpClient,
         config: RunConfig,
     ) -> None:
+        # No callback supplied — leaves_persisted equals leaves_consumed.
         result = run_crawl(top_ref, plugin, http_client, config)
         assert result.leaves_consumed == 3
-        assert result.leaves_persisted == 0
+        assert result.leaves_persisted == 3
         assert result.leaves_failed == 0
         assert result.errors == ()
 
@@ -348,11 +349,13 @@ class TestRunnerErrors:
         p = _MockPlugin(refs)
         p.sink = _FailingSink()
         result = run_crawl(top_ref, p, http_client, config)
+        # No callback — leaves_persisted equals leaves_consumed (1 succeeded).
         assert result.leaves_consumed == 1
-        assert result.leaves_persisted == 0
+        assert result.leaves_persisted == 1
         assert result.leaves_failed == 1
         assert len(result.errors) == 1
         assert "ref[0]" in result.errors[0]
+        assert "consume failed" in result.errors[0]
 
     def test_all_leaves_fail_returns_result_not_exception(
         self,
@@ -427,7 +430,7 @@ class TestRunnerErrors:
         assert result.leaves_persisted == 0
         assert result.leaves_failed == 0
         assert len(result.errors) == 3
-        assert all("on_leaf callback failed" in e for e in result.errors)
+        assert all("callback failed" in e for e in result.errors)
 
     def test_on_leaf_exception_every_other_leaf(
         self,
@@ -456,7 +459,47 @@ class TestRunnerErrors:
         assert result.leaves_persisted == 2
         assert result.leaves_failed == 0
         assert len(result.errors) == 1
-        assert "on_leaf callback failed" in result.errors[0]
+        assert "callback failed" in result.errors[0]
+
+    def test_runresult_invariant_holds_across_scenarios(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        child_refs: list[Ref],
+    ) -> None:
+        """leaves_consumed + leaves_failed == total leaves in Phase 3, always."""
+
+        # Scenario A: all succeed, no callback
+        p = _MockPlugin(child_refs)
+        r = run_crawl(top_ref, p, http_client, config)
+        assert r.leaves_consumed + r.leaves_failed == len(child_refs)
+
+        # Scenario B: all consume() fail
+        class _AlwaysFailSink:
+            def consume(
+                self, ref: object, client: HttpClient
+            ) -> _DemoLeafRecord:
+                raise LeafUnavailableError("always fails")
+
+        p2 = _MockPlugin(child_refs)
+        p2.sink = _AlwaysFailSink()
+        r2 = run_crawl(top_ref, p2, http_client, config)
+        assert r2.leaves_consumed + r2.leaves_failed == len(child_refs)
+
+        # Scenario C: all consume() succeed, all callbacks fail
+        def _failing_cb(leaf: object, parent: object) -> None:
+            raise RuntimeError("db down")
+
+        p3 = _MockPlugin(child_refs)
+        r3 = run_crawl(top_ref, p3, http_client, config, on_leaf=_failing_cb)
+        assert r3.leaves_consumed + r3.leaves_failed == len(child_refs)
+
+        # Scenario D: leaf_limit applied — invariant is over Phase 3 leaves only
+        cfg_limited = RunConfig(leaf_limit=1)
+        p4 = _MockPlugin(child_refs)
+        r4 = run_crawl(top_ref, p4, http_client, cfg_limited)
+        assert r4.leaves_consumed + r4.leaves_failed == 1
 
 
 # ---------------------------------------------------------------------------
@@ -514,7 +557,7 @@ class TestRunnerLogging:
 
         finish = next(r for r in caplog.records if "finished" in r.message)
         assert finish.leaves_consumed == 3  # type: ignore[attr-defined]
-        assert finish.leaves_persisted == 0  # type: ignore[attr-defined]
+        assert finish.leaves_persisted == 3  # type: ignore[attr-defined]
         assert finish.leaves_failed == 0  # type: ignore[attr-defined]
 
     def test_leaf_unavailable_emits_warning(

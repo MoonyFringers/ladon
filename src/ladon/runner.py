@@ -53,9 +53,10 @@ class RunResult:
     ``leaves_consumed`` counts leaves for which ``sink.consume()`` succeeded,
     regardless of whether the ``on_leaf`` callback also succeeded.
 
-    ``leaves_persisted`` counts leaves for which both ``sink.consume()`` *and*
-    the ``on_leaf`` callback completed without raising (always 0 when no
-    callback is supplied).
+    ``leaves_persisted`` counts leaves for which the full pipeline succeeded:
+    ``sink.consume()`` completed *and* the ``on_leaf`` callback completed
+    without raising.  When no callback is supplied, ``leaves_persisted``
+    equals ``leaves_consumed`` (the pipeline trivially succeeds after consume).
 
     ``leaves_failed`` counts leaves for which ``sink.consume()`` failed.
     Callback failures are NOT included here — derive them from
@@ -63,7 +64,8 @@ class RunResult:
 
     The following invariant always holds::
 
-        leaves_consumed + leaves_failed == total leaves attempted
+        leaves_consumed + leaves_failed == total leaves passed to Phase 3
+                                          (after leaf_limit is applied)
 
     ``errors`` accumulates both expander branch failures (Phase 1, format
     ``"expander branch '...': ..."`` ) and leaf-level failures (Phase 3,
@@ -183,7 +185,7 @@ def run_crawl(
             leaf_record = plugin.sink.consume(leaf_ref, client)
         except LeafUnavailableError as exc:
             leaves_failed += 1
-            errors.append(f"ref[{i}]: {exc}")
+            errors.append(f"ref[{i}] consume failed: {exc}")
             logger.warning(
                 "leaf unavailable",
                 extra={
@@ -201,7 +203,7 @@ def run_crawl(
                 on_leaf(leaf_record, parent_record)
                 leaves_persisted += 1
             except Exception as exc:
-                errors.append(f"ref[{i}] on_leaf callback failed: {exc}")
+                errors.append(f"ref[{i}] callback failed: {exc}")
                 logger.warning(
                     "on_leaf callback failed",
                     extra={
@@ -210,6 +212,8 @@ def run_crawl(
                         "error": str(exc),
                     },
                 )
+        else:
+            leaves_persisted += 1
 
     logger.info(
         "run_crawl finished",
