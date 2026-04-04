@@ -1423,7 +1423,9 @@ expander chain and passes each leaf to the sink.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/ladon/runner.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
 <span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
 <span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
 <span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
@@ -1571,157 +1573,157 @@ expander chain and passes each leaf to the sink.</p>
 <span class="normal"><a href="#__codelineno-0-231">231</a></span>
 <span class="normal"><a href="#__codelineno-0-232">232</a></span>
 <span class="normal"><a href="#__codelineno-0-233">233</a></span>
-<span class="normal"><a href="#__codelineno-0-234">234</a></span>
-<span class="normal"><a href="#__codelineno-0-235">235</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_crawl</span><span class="p">(</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">top_ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
-<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
-<a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
-<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a single top-level ref through the plugin adapter stack.</span>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a>
-<a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        top_ref:  Reference to the resource to expand.</span>
-<a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        plugin:   Crawl plugin providing source, expanders, and sink.</span>
-<a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">        client:   Configured HttpClient instance.</span>
-<a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">        config:   Run-level configuration (limits, flags).</span>
-<a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">        on_leaf:  Optional callback invoked after each successful leaf</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">                  consume. Use this hook for DB writes, serialization,</span>
-<a id="__codelineno-0-102" name="__codelineno-0-102"></a><span class="sd">                  etc. Receives (leaf_record, parent_record).</span>
-<a id="__codelineno-0-103" name="__codelineno-0-103"></a>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-105" name="__codelineno-0-105"></a><span class="sd">        RunResult with counts and any per-leaf error messages.</span>
-<a id="__codelineno-0-106" name="__codelineno-0-106"></a>
-<a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">    Raises:</span>
-<a id="__codelineno-0-108" name="__codelineno-0-108"></a><span class="sd">        ExpansionNotReadyError:     Raised from any expander. The ref (or</span>
-<a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">                                    an intermediate ref) is not yet ready.</span>
-<a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">                                    Caller should record the event and</span>
-<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">                                    move on; retry on the next scheduled run.</span>
-<a id="__codelineno-0-112" name="__codelineno-0-112"></a><span class="sd">        PartialExpansionError:      Raised only from the first expander.</span>
-<a id="__codelineno-0-113" name="__codelineno-0-113"></a><span class="sd">                                    From non-first expanders the failing</span>
-<a id="__codelineno-0-114" name="__codelineno-0-114"></a><span class="sd">                                    branch is isolated and recorded in</span>
-<a id="__codelineno-0-115" name="__codelineno-0-115"></a><span class="sd">                                    RunResult.errors instead.</span>
-<a id="__codelineno-0-116" name="__codelineno-0-116"></a><span class="sd">        ChildListUnavailableError:  Raised only from the first expander.</span>
-<a id="__codelineno-0-117" name="__codelineno-0-117"></a><span class="sd">                                    Same isolation rule applies to non-first</span>
-<a id="__codelineno-0-118" name="__codelineno-0-118"></a><span class="sd">                                    expanders as for PartialExpansionError.</span>
-<a id="__codelineno-0-119" name="__codelineno-0-119"></a><span class="sd">        ValueError:                 Plugin has no expanders configured.</span>
-<a id="__codelineno-0-120" name="__codelineno-0-120"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-121" name="__codelineno-0-121"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">:</span>
-<a id="__codelineno-0-122" name="__codelineno-0-122"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-123" name="__codelineno-0-123"></a>            <span class="sa">f</span><span class="s2">&quot;CrawlPlugin &#39;</span><span class="si">{</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; has no expanders configured&quot;</span>
-<a id="__codelineno-0-124" name="__codelineno-0-124"></a>        <span class="p">)</span>
-<a id="__codelineno-0-125" name="__codelineno-0-125"></a>
-<a id="__codelineno-0-126" name="__codelineno-0-126"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-<a id="__codelineno-0-127" name="__codelineno-0-127"></a>        <span class="s2">&quot;run_crawl started&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-128" name="__codelineno-0-128"></a>        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">top_ref</span><span class="p">)},</span>
-<a id="__codelineno-0-129" name="__codelineno-0-129"></a>    <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-234">234</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_crawl</span><span class="p">(</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="n">top_ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a single top-level ref through the plugin adapter stack.</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="sd">        top_ref:  Reference to the resource to expand.</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="sd">        plugin:   Crawl plugin providing source, expanders, and sink.</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        client:   Configured HttpClient instance.</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        config:   Run-level configuration (limits, flags).</span>
+<a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">        on_leaf:  Optional callback invoked after each successful leaf</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">                  consume. Use this hook for DB writes, serialization,</span>
+<a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">                  etc. Receives (leaf_record, parent_record).</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a>
+<a id="__codelineno-0-102" name="__codelineno-0-102"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103"></a><span class="sd">        RunResult with counts and any per-leaf error messages.</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a>
+<a id="__codelineno-0-105" name="__codelineno-0-105"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">        ExpansionNotReadyError:     Raised from any expander. The ref (or</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">                                    an intermediate ref) is not yet ready.</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108"></a><span class="sd">                                    Caller should record the event and</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">                                    move on; retry on the next scheduled run.</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">        PartialExpansionError:      Raised only from the first expander.</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">                                    From non-first expanders the failing</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112"></a><span class="sd">                                    branch is isolated and recorded in</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a><span class="sd">                                    RunResult.errors instead.</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114"></a><span class="sd">        ChildListUnavailableError:  Raised only from the first expander.</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115"></a><span class="sd">                                    Same isolation rule applies to non-first</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a><span class="sd">                                    expanders as for PartialExpansionError.</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117"></a><span class="sd">        ValueError:                 Plugin has no expanders configured.</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">:</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>            <span class="sa">f</span><span class="s2">&quot;CrawlPlugin &#39;</span><span class="si">{</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; has no expanders configured&quot;</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>        <span class="p">)</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a>
+<a id="__codelineno-0-124" name="__codelineno-0-124"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+<a id="__codelineno-0-125" name="__codelineno-0-125"></a>        <span class="s2">&quot;run_crawl started&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-126" name="__codelineno-0-126"></a>        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">top_ref</span><span class="p">)},</span>
+<a id="__codelineno-0-127" name="__codelineno-0-127"></a>    <span class="p">)</span>
+<a id="__codelineno-0-128" name="__codelineno-0-128"></a>
+<a id="__codelineno-0-129" name="__codelineno-0-129"></a>    <span class="n">errors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 <a id="__codelineno-0-130" name="__codelineno-0-130"></a>
-<a id="__codelineno-0-131" name="__codelineno-0-131"></a>    <span class="n">errors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-132" name="__codelineno-0-132"></a>
-<a id="__codelineno-0-133" name="__codelineno-0-133"></a>    <span class="c1"># Phase 1 — traverse all expanders in order.</span>
-<a id="__codelineno-0-134" name="__codelineno-0-134"></a>    <span class="c1">#</span>
-<a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="c1"># The first expander handles top_ref and yields the top-level record</span>
-<a id="__codelineno-0-136" name="__codelineno-0-136"></a>    <span class="c1"># (e.g. AuctionRecord) stored in RunResult.record. Remaining expanders</span>
-<a id="__codelineno-0-137" name="__codelineno-0-137"></a>    <span class="c1"># chain through the refs produced by the previous level, carrying</span>
-<a id="__codelineno-0-138" name="__codelineno-0-138"></a>    <span class="c1"># (child_ref, parent_record) pairs so each leaf knows its direct parent.</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131"></a>    <span class="c1"># Phase 1 — traverse all expanders in order.</span>
+<a id="__codelineno-0-132" name="__codelineno-0-132"></a>    <span class="c1">#</span>
+<a id="__codelineno-0-133" name="__codelineno-0-133"></a>    <span class="c1"># The first expander handles top_ref and yields the top-level record</span>
+<a id="__codelineno-0-134" name="__codelineno-0-134"></a>    <span class="c1"># (e.g. AuctionRecord) stored in RunResult.record. Remaining expanders</span>
+<a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="c1"># chain through the refs produced by the previous level, carrying</span>
+<a id="__codelineno-0-136" name="__codelineno-0-136"></a>    <span class="c1"># (child_ref, parent_record) pairs so each leaf knows its direct parent.</span>
+<a id="__codelineno-0-137" name="__codelineno-0-137"></a>    <span class="c1">#</span>
+<a id="__codelineno-0-138" name="__codelineno-0-138"></a>    <span class="c1"># Single-expander behaviour is identical to the previous implementation.</span>
 <a id="__codelineno-0-139" name="__codelineno-0-139"></a>    <span class="c1">#</span>
-<a id="__codelineno-0-140" name="__codelineno-0-140"></a>    <span class="c1"># Single-expander behaviour is identical to the previous implementation.</span>
-<a id="__codelineno-0-141" name="__codelineno-0-141"></a>    <span class="c1">#</span>
-<a id="__codelineno-0-142" name="__codelineno-0-142"></a>    <span class="c1"># For non-first expanders, exceptions are isolated per branch:</span>
-<a id="__codelineno-0-143" name="__codelineno-0-143"></a>    <span class="c1">#   - ExpansionNotReadyError  → re-raised (run is globally premature)</span>
-<a id="__codelineno-0-144" name="__codelineno-0-144"></a>    <span class="c1">#   - PartialExpansionError   → branch skipped, error accumulated</span>
-<a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="c1">#   - ChildListUnavailableError → branch skipped, error accumulated</span>
-<a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">first_expansion</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">top_ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
-<a id="__codelineno-0-147" name="__codelineno-0-147"></a>    <span class="n">top_record</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">record</span>
-<a id="__codelineno-0-148" name="__codelineno-0-148"></a>    <span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-149" name="__codelineno-0-149"></a>        <span class="p">(</span><span class="n">child_ref</span><span class="p">,</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>
-<a id="__codelineno-0-150" name="__codelineno-0-150"></a>        <span class="k">for</span> <span class="n">child_ref</span> <span class="ow">in</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">child_refs</span>
-<a id="__codelineno-0-151" name="__codelineno-0-151"></a>    <span class="p">]</span>
-<a id="__codelineno-0-152" name="__codelineno-0-152"></a>
-<a id="__codelineno-0-153" name="__codelineno-0-153"></a>    <span class="k">for</span> <span class="n">expander</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-<a id="__codelineno-0-154" name="__codelineno-0-154"></a>        <span class="n">next_pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-155" name="__codelineno-0-155"></a>        <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
-<a id="__codelineno-0-156" name="__codelineno-0-156"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-157" name="__codelineno-0-157"></a>                <span class="n">expansion</span> <span class="o">=</span> <span class="n">expander</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
-<a id="__codelineno-0-158" name="__codelineno-0-158"></a>            <span class="k">except</span> <span class="n">ExpansionNotReadyError</span><span class="p">:</span>
-<a id="__codelineno-0-159" name="__codelineno-0-159"></a>                <span class="k">raise</span>  <span class="c1"># run is globally premature — abort</span>
-<a id="__codelineno-0-160" name="__codelineno-0-160"></a>            <span class="k">except</span> <span class="p">(</span><span class="n">PartialExpansionError</span><span class="p">,</span> <span class="n">ChildListUnavailableError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161"></a>                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;expander branch &#39;</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-162" name="__codelineno-0-162"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-<a id="__codelineno-0-163" name="__codelineno-0-163"></a>                    <span class="s2">&quot;expander branch failed&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a>                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a>                        <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-<a id="__codelineno-0-166" name="__codelineno-0-166"></a>                        <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span>
-<a id="__codelineno-0-167" name="__codelineno-0-167"></a>                        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
-<a id="__codelineno-0-168" name="__codelineno-0-168"></a>                        <span class="s2">&quot;error_type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169"></a>                    <span class="p">},</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170"></a>                <span class="p">)</span>
-<a id="__codelineno-0-171" name="__codelineno-0-171"></a>                <span class="k">continue</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172"></a>            <span class="k">for</span> <span class="n">child_ref</span> <span class="ow">in</span> <span class="n">expansion</span><span class="o">.</span><span class="n">child_refs</span><span class="p">:</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a>                <span class="n">next_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">child_ref</span><span class="p">,</span> <span class="n">expansion</span><span class="o">.</span><span class="n">record</span><span class="p">))</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a>        <span class="n">pairs</span> <span class="o">=</span> <span class="n">next_pairs</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a>    <span class="c1"># Phase 2 — apply leaf limit at the leaf level.</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a>    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">leaf_limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-178" name="__codelineno-0-178"></a>        <span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span><span class="p">[:</span> <span class="n">config</span><span class="o">.</span><span class="n">leaf_limit</span><span class="p">]</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a>    <span class="c1"># Phase 3 — sink consumes each leaf ref.</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a>    <span class="n">leaves_fetched</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a>    <span class="n">leaves_persisted</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="n">leaves_failed</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a>    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">leaf_ref</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>            <span class="n">leaf_record</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">leaf_ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>        <span class="k">except</span> <span class="n">LeafUnavailableError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>            <span class="n">leaves_failed</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ref[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>                <span class="s2">&quot;leaf unavailable&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                    <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>                    <span class="s2">&quot;ref_index&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>                    <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>                <span class="p">},</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a>            <span class="p">)</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="k">continue</span>
+<a id="__codelineno-0-140" name="__codelineno-0-140"></a>    <span class="c1"># For non-first expanders, exceptions are isolated per branch:</span>
+<a id="__codelineno-0-141" name="__codelineno-0-141"></a>    <span class="c1">#   - ExpansionNotReadyError  → re-raised (run is globally premature)</span>
+<a id="__codelineno-0-142" name="__codelineno-0-142"></a>    <span class="c1">#   - PartialExpansionError   → branch skipped, error accumulated</span>
+<a id="__codelineno-0-143" name="__codelineno-0-143"></a>    <span class="c1">#   - ChildListUnavailableError → branch skipped, error accumulated</span>
+<a id="__codelineno-0-144" name="__codelineno-0-144"></a>    <span class="n">first_expansion</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">top_ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
+<a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="n">top_record</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">record</span>
+<a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-147" name="__codelineno-0-147"></a>        <span class="p">(</span><span class="n">child_ref</span><span class="p">,</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>
+<a id="__codelineno-0-148" name="__codelineno-0-148"></a>        <span class="k">for</span> <span class="n">child_ref</span> <span class="ow">in</span> <span class="n">first_expansion</span><span class="o">.</span><span class="n">child_refs</span>
+<a id="__codelineno-0-149" name="__codelineno-0-149"></a>    <span class="p">]</span>
+<a id="__codelineno-0-150" name="__codelineno-0-150"></a>
+<a id="__codelineno-0-151" name="__codelineno-0-151"></a>    <span class="k">for</span> <span class="n">expander</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">expanders</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+<a id="__codelineno-0-152" name="__codelineno-0-152"></a>        <span class="n">next_pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-153" name="__codelineno-0-153"></a>        <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
+<a id="__codelineno-0-154" name="__codelineno-0-154"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-155" name="__codelineno-0-155"></a>                <span class="n">expansion</span> <span class="o">=</span> <span class="n">expander</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
+<a id="__codelineno-0-156" name="__codelineno-0-156"></a>            <span class="k">except</span> <span class="n">ExpansionNotReadyError</span><span class="p">:</span>
+<a id="__codelineno-0-157" name="__codelineno-0-157"></a>                <span class="k">raise</span>  <span class="c1"># run is globally premature — abort</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158"></a>            <span class="k">except</span> <span class="p">(</span><span class="n">PartialExpansionError</span><span class="p">,</span> <span class="n">ChildListUnavailableError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159"></a>                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;expander branch &#39;</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a>                    <span class="s2">&quot;expander branch failed&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a>                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163"></a>                        <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a>                        <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a>                        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a>                        <span class="s2">&quot;error_type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+<a id="__codelineno-0-167" name="__codelineno-0-167"></a>                    <span class="p">},</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a>                <span class="p">)</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a>                <span class="k">continue</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a>            <span class="k">for</span> <span class="n">child_ref</span> <span class="ow">in</span> <span class="n">expansion</span><span class="o">.</span><span class="n">child_refs</span><span class="p">:</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a>                <span class="n">next_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">child_ref</span><span class="p">,</span> <span class="n">expansion</span><span class="o">.</span><span class="n">record</span><span class="p">))</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a>        <span class="n">pairs</span> <span class="o">=</span> <span class="n">next_pairs</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a>    <span class="c1"># Phase 2 — apply leaf limit at the leaf level.</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a>    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">leaf_limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a>        <span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span><span class="p">[:</span> <span class="n">config</span><span class="o">.</span><span class="n">leaf_limit</span><span class="p">]</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a>    <span class="c1"># Phase 3 — sink consumes each leaf ref.</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a>    <span class="n">leaves_consumed</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a>    <span class="n">leaves_persisted</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a>    <span class="n">leaves_failed</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">leaf_ref</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>            <span class="n">leaf_record</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">leaf_ref</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>        <span class="k">except</span> <span class="n">LeafUnavailableError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a>            <span class="n">leaves_failed</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ref[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">] consume failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>                <span class="s2">&quot;leaf unavailable&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>                <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>                    <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                    <span class="s2">&quot;ref_index&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                    <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>                <span class="p">},</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>            <span class="p">)</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>            <span class="k">continue</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>        <span class="n">leaves_consumed</span> <span class="o">+=</span> <span class="mi">1</span>
 <a id="__codelineno-0-200" name="__codelineno-0-200"></a>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="n">leaves_fetched</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>        <span class="k">if</span> <span class="n">on_leaf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>                <span class="n">on_leaf</span><span class="p">(</span><span class="n">leaf_record</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">)</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>                <span class="n">leaves_persisted</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>                <span class="n">leaves_failed</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ref[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">] on_leaf callback failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>                    <span class="s2">&quot;on_leaf callback failed&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>                        <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                        <span class="s2">&quot;ref_index&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>                        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>                    <span class="p">},</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>                <span class="p">)</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>        <span class="s2">&quot;run_crawl finished&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>        <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>            <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>            <span class="s2">&quot;leaves_fetched&quot;</span><span class="p">:</span> <span class="n">leaves_fetched</span><span class="p">,</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="s2">&quot;leaves_persisted&quot;</span><span class="p">:</span> <span class="n">leaves_persisted</span><span class="p">,</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="s2">&quot;leaves_failed&quot;</span><span class="p">:</span> <span class="n">leaves_failed</span><span class="p">,</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>        <span class="p">},</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="p">)</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>    <span class="k">return</span> <span class="n">RunResult</span><span class="p">(</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="n">record</span><span class="o">=</span><span class="n">top_record</span><span class="p">,</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="n">leaves_fetched</span><span class="o">=</span><span class="n">leaves_fetched</span><span class="p">,</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="n">leaves_persisted</span><span class="o">=</span><span class="n">leaves_persisted</span><span class="p">,</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>        <span class="n">leaves_failed</span><span class="o">=</span><span class="n">leaves_failed</span><span class="p">,</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>        <span class="n">errors</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">errors</span><span class="p">),</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>    <span class="p">)</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="k">if</span> <span class="n">on_leaf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>                <span class="n">on_leaf</span><span class="p">(</span><span class="n">leaf_record</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">)</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>                <span class="n">leaves_persisted</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ref[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">] callback failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>                    <span class="s2">&quot;on_leaf callback failed&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>                        <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>                        <span class="s2">&quot;ref_index&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>                    <span class="p">},</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                <span class="p">)</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="n">leaves_persisted</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>        <span class="s2">&quot;run_crawl finished&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>        <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>            <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>            <span class="s2">&quot;leaves_consumed&quot;</span><span class="p">:</span> <span class="n">leaves_consumed</span><span class="p">,</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>            <span class="s2">&quot;leaves_persisted&quot;</span><span class="p">:</span> <span class="n">leaves_persisted</span><span class="p">,</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="s2">&quot;leaves_failed&quot;</span><span class="p">:</span> <span class="n">leaves_failed</span><span class="p">,</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>        <span class="p">},</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>    <span class="p">)</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="k">return</span> <span class="n">RunResult</span><span class="p">(</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>        <span class="n">record</span><span class="o">=</span><span class="n">top_record</span><span class="p">,</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="n">leaves_consumed</span><span class="o">=</span><span class="n">leaves_consumed</span><span class="p">,</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="n">leaves_persisted</span><span class="o">=</span><span class="n">leaves_persisted</span><span class="p">,</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="n">leaves_failed</span><span class="o">=</span><span class="n">leaves_failed</span><span class="p">,</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>        <span class="n">errors</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">errors</span><span class="p">),</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1800,21 +1802,19 @@ expander chain and passes each leaf to the sink.</p>
 
 
         <p>Outcome of a single run_crawl() call.</p>
-<p><code>leaves_fetched</code> counts leaves for which <code>sink.consume()</code> succeeded,
+<p><code>leaves_consumed</code> counts leaves for which <code>sink.consume()</code> succeeded,
 regardless of whether the <code>on_leaf</code> callback also succeeded.</p>
-<p><code>leaves_persisted</code> counts leaves for which both <code>sink.consume()</code> <em>and</em>
-the <code>on_leaf</code> callback completed without raising (always 0 when no
-callback is supplied).</p>
-<p><code>leaves_failed</code> counts any leaf-level failure: a failed
-<code>sink.consume()</code> <em>or</em> a failed <code>on_leaf</code> callback.  When a callback
-raises after a successful consume, that leaf is counted in <strong>both</strong>
-<code>leaves_fetched</code> and <code>leaves_failed</code> — the two counters are not
-mutually exclusive.  Do not sum them to derive a total leaf count; use
-<code>leaves_fetched + (leaves_failed - (leaves_fetched - leaves_persisted))</code>
-or simply inspect <code>len(errors)</code> for a precise tally.</p>
-<p>.. note::
-    The double-counting behaviour is intentional for v0.0.1 but is
-    scheduled for a cleaner redesign in v0.1.0 (see issue #62).</p>
+<p><code>leaves_persisted</code> counts leaves for which the full pipeline succeeded:
+<code>sink.consume()</code> completed <em>and</em> the <code>on_leaf</code> callback completed
+without raising.  When no callback is supplied, <code>leaves_persisted</code>
+equals <code>leaves_consumed</code> (the pipeline trivially succeeds after consume).</p>
+<p><code>leaves_failed</code> counts leaves for which <code>sink.consume()</code> failed.
+Callback failures are NOT included here — derive them from
+<code>leaves_consumed - leaves_persisted</code>.</p>
+<p>The following invariant always holds::</p>
+<div class="highlight"><pre><span></span><code>leaves_consumed + leaves_failed == total leaves passed to Phase 3
+                                  (after leaf_limit is applied)
+</code></pre></div>
 <p><code>errors</code> accumulates both expander branch failures (Phase 1, format
 <code>"expander branch '...': ..."</code> ) and leaf-level failures (Phase 3,
 format <code>"ref[N]: ..."</code> ).  A result with <code>leaves_failed == 0</code> may
@@ -1862,43 +1862,39 @@ picture of what went wrong.</p>
 <span class="normal"><a href="#__codelineno-0-78">78</a></span>
 <span class="normal"><a href="#__codelineno-0-79">79</a></span>
 <span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span>
-<span class="normal"><a href="#__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#__codelineno-0-83">83</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-81">81</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="k">class</span><span class="w"> </span><span class="nc">RunResult</span><span class="p">:</span>
 <a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Outcome of a single run_crawl() call.</span>
 <a id="__codelineno-0-52" name="__codelineno-0-52"></a>
-<a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">    ``leaves_fetched`` counts leaves for which ``sink.consume()`` succeeded,</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">    ``leaves_consumed`` counts leaves for which ``sink.consume()`` succeeded,</span>
 <a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="sd">    regardless of whether the ``on_leaf`` callback also succeeded.</span>
 <a id="__codelineno-0-55" name="__codelineno-0-55"></a>
-<a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="sd">    ``leaves_persisted`` counts leaves for which both ``sink.consume()`` *and*</span>
-<a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">    the ``on_leaf`` callback completed without raising (always 0 when no</span>
-<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    callback is supplied).</span>
-<a id="__codelineno-0-59" name="__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    ``leaves_failed`` counts any leaf-level failure: a failed</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    ``sink.consume()`` *or* a failed ``on_leaf`` callback.  When a callback</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    raises after a successful consume, that leaf is counted in **both**</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    ``leaves_fetched`` and ``leaves_failed`` — the two counters are not</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">    mutually exclusive.  Do not sum them to derive a total leaf count; use</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    ``leaves_fetched + (leaves_failed - (leaves_fetched - leaves_persisted))``</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">    or simply inspect ``len(errors)`` for a precise tally.</span>
-<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    .. note::</span>
-<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">        The double-counting behaviour is intentional for v0.0.1 but is</span>
-<a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">        scheduled for a cleaner redesign in v0.1.0 (see issue #62).</span>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">    ``errors`` accumulates both expander branch failures (Phase 1, format</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">    ``&quot;expander branch &#39;...&#39;: ...&quot;`` ) and leaf-level failures (Phase 3,</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="sd">    format ``&quot;ref[N]: ...&quot;`` ).  A result with ``leaves_failed == 0`` may</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">    still contain branch errors — always inspect ``errors`` for a complete</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="sd">    picture of what went wrong.</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="n">record</span><span class="p">:</span> <span class="nb">object</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">leaves_fetched</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="n">leaves_persisted</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="n">leaves_failed</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="n">errors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="sd">    ``leaves_persisted`` counts leaves for which the full pipeline succeeded:</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">    ``sink.consume()`` completed *and* the ``on_leaf`` callback completed</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    without raising.  When no callback is supplied, ``leaves_persisted``</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="sd">    equals ``leaves_consumed`` (the pipeline trivially succeeds after consume).</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    ``leaves_failed`` counts leaves for which ``sink.consume()`` failed.</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    Callback failures are NOT included here — derive them from</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    ``leaves_consumed - leaves_persisted``.</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    The following invariant always holds::</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">        leaves_consumed + leaves_failed == total leaves passed to Phase 3</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">                                          (after leaf_limit is applied)</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">    ``errors`` accumulates both expander branch failures (Phase 1, format</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    ``&quot;expander branch &#39;...&#39;: ...&quot;`` ) and leaf-level failures (Phase 3,</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">    format ``&quot;ref[N]: ...&quot;`` ).  A result with ``leaves_failed == 0`` may</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">    still contain branch errors — always inspect ``errors`` for a complete</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="sd">    picture of what went wrong.</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">record</span><span class="p">:</span> <span class="nb">object</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="n">leaves_consumed</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="n">leaves_persisted</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">leaves_failed</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="n">errors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
