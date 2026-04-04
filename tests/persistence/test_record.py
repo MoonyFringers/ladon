@@ -20,7 +20,7 @@ def test_run_record_start_state() -> None:
         status="running",
     )
     assert run.finished_at is None
-    assert run.leaves_fetched == 0
+    assert run.leaves_consumed == 0
     assert run.leaves_persisted == 0
     assert run.leaves_failed == 0
     assert run.branch_errors == 0
@@ -37,7 +37,7 @@ def test_run_record_finish_state() -> None:
         started_at=started,
         status="done",
         finished_at=finished,
-        leaves_fetched=10,
+        leaves_consumed=10,
         leaves_persisted=10,
         leaves_failed=0,
         branch_errors=0,
@@ -45,7 +45,7 @@ def test_run_record_finish_state() -> None:
     )
     assert run.status == "done"
     assert run.finished_at == finished
-    assert run.leaves_fetched == 10
+    assert run.leaves_consumed == 10
 
 
 def test_run_record_partial_status() -> None:
@@ -56,7 +56,7 @@ def test_run_record_partial_status() -> None:
         started_at=_now(),
         status="partial",
         finished_at=_now(),
-        leaves_fetched=5,
+        leaves_consumed=5,
         leaves_persisted=4,
         leaves_failed=1,
         branch_errors=2,
@@ -77,6 +77,6 @@ def test_run_record_is_mutable() -> None:
     )
     run.status = "done"
     run.finished_at = _now()
-    run.leaves_fetched = 7
+    run.leaves_consumed = 7
     assert run.status == "done"
-    assert run.leaves_fetched == 7
+    assert run.leaves_consumed == 7

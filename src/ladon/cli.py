@@ -167,7 +167,7 @@ def _cmd_run(args: argparse.Namespace) -> None:
         except Exception as exc:
             _die(f"Run failed: {exc}")
 
-        print(f"leaves_fetched    {result.leaves_fetched}")
+        print(f"leaves_consumed   {result.leaves_consumed}")
         print(f"leaves_persisted  {result.leaves_persisted}")
         print(f"leaves_failed     {result.leaves_failed}")
         print(f"errors            {len(result.errors)}")

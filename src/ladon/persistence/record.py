@@ -32,7 +32,7 @@ class RunRecord:
     started_at: datetime
     status: Literal["running", "done", "failed", "not_ready", "partial"]
     finished_at: datetime | None = None
-    leaves_fetched: int = 0
+    leaves_consumed: int = 0
     leaves_persisted: int = 0
     leaves_failed: int = 0
     branch_errors: int = 0

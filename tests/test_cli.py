@@ -141,7 +141,7 @@ class TestMainDispatch:
 
         mock_result = RunResult(
             record=None,
-            leaves_fetched=3,
+            leaves_consumed=3,
             leaves_persisted=3,
             leaves_failed=0,
             errors=(),
@@ -168,7 +168,7 @@ class TestMainDispatch:
             main()
 
         out = capsys.readouterr().out
-        assert "leaves_fetched" in out
+        assert "leaves_consumed" in out
         assert "3" in out
 
     @pytest.mark.parametrize(
@@ -279,7 +279,7 @@ class TestMainDispatch:
 
         mock_result = RunResult(
             record=None,
-            leaves_fetched=0,
+            leaves_consumed=0,
             leaves_persisted=0,
             leaves_failed=1,
             errors=("ref[0]: something broke",),

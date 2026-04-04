@@ -50,24 +50,20 @@ class RunConfig:
 class RunResult:
     """Outcome of a single run_crawl() call.
 
-    ``leaves_fetched`` counts leaves for which ``sink.consume()`` succeeded,
+    ``leaves_consumed`` counts leaves for which ``sink.consume()`` succeeded,
     regardless of whether the ``on_leaf`` callback also succeeded.
 
     ``leaves_persisted`` counts leaves for which both ``sink.consume()`` *and*
     the ``on_leaf`` callback completed without raising (always 0 when no
     callback is supplied).
 
-    ``leaves_failed`` counts any leaf-level failure: a failed
-    ``sink.consume()`` *or* a failed ``on_leaf`` callback.  When a callback
-    raises after a successful consume, that leaf is counted in **both**
-    ``leaves_fetched`` and ``leaves_failed`` — the two counters are not
-    mutually exclusive.  Do not sum them to derive a total leaf count; use
-    ``leaves_fetched + (leaves_failed - (leaves_fetched - leaves_persisted))``
-    or simply inspect ``len(errors)`` for a precise tally.
+    ``leaves_failed`` counts leaves for which ``sink.consume()`` failed.
+    Callback failures are NOT included here — derive them from
+    ``leaves_consumed - leaves_persisted``.
 
-    .. note::
-        The double-counting behaviour is intentional for v0.0.1 but is
-        scheduled for a cleaner redesign in v0.1.0 (see issue #62).
+    The following invariant always holds::
+
+        leaves_consumed + leaves_failed == total leaves attempted
 
     ``errors`` accumulates both expander branch failures (Phase 1, format
     ``"expander branch '...': ..."`` ) and leaf-level failures (Phase 3,
@@ -77,7 +73,7 @@ class RunResult:
     """
 
     record: object
-    leaves_fetched: int
+    leaves_consumed: int
     leaves_persisted: int
     leaves_failed: int
     errors: tuple[str, ...]
@@ -178,7 +174,7 @@ def run_crawl(
         pairs = pairs[: config.leaf_limit]
 
     # Phase 3 — sink consumes each leaf ref.
-    leaves_fetched = 0
+    leaves_consumed = 0
     leaves_persisted = 0
     leaves_failed = 0
 
@@ -198,14 +194,13 @@ def run_crawl(
             )
             continue
 
-        leaves_fetched += 1
+        leaves_consumed += 1
 
         if on_leaf is not None:
             try:
                 on_leaf(leaf_record, parent_record)
                 leaves_persisted += 1
             except Exception as exc:
-                leaves_failed += 1
                 errors.append(f"ref[{i}] on_leaf callback failed: {exc}")
                 logger.warning(
                     "on_leaf callback failed",
@@ -220,7 +215,7 @@ def run_crawl(
         "run_crawl finished",
         extra={
             "plugin": plugin.name,
-            "leaves_fetched": leaves_fetched,
+            "leaves_consumed": leaves_consumed,
             "leaves_persisted": leaves_persisted,
             "leaves_failed": leaves_failed,
         },
@@ -228,7 +223,7 @@ def run_crawl(
 
     return RunResult(
         record=top_record,
-        leaves_fetched=leaves_fetched,
+        leaves_consumed=leaves_consumed,
         leaves_persisted=leaves_persisted,
         leaves_failed=leaves_failed,
         errors=tuple(errors),
