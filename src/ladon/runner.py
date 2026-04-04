@@ -181,13 +181,22 @@ def run_crawl(
     leaves_failed = 0
 
     for i, (leaf_ref, parent_record) in enumerate(pairs):
+        # Bounded repr: large records (e.g. stories with many comment IDs)
+        # can produce kilobyte-long repr strings; truncate for log readability.
+        _parent_repr = repr(parent_record)
+        if len(_parent_repr) > 120:
+            _parent_repr = _parent_repr[:117] + "..."
+
         try:
             leaf_record = plugin.sink.consume(leaf_ref, client)
         except LeafUnavailableError as exc:
             leaves_failed += 1
             errors.append(f"ref[{i}] consume failed: {exc}")
             logger.warning(
-                "leaf unavailable",
+                "leaf unavailable — ref[%d] parent=%s error=%s",
+                i,
+                _parent_repr,
+                exc,
                 extra={
                     "plugin": plugin.name,
                     "ref_index": i,
@@ -205,7 +214,10 @@ def run_crawl(
             except Exception as exc:
                 errors.append(f"ref[{i}] callback failed: {exc}")
                 logger.warning(
-                    "on_leaf callback failed",
+                    "on_leaf callback failed — ref[%d] parent=%s error=%s",
+                    i,
+                    _parent_repr,
+                    exc,
                     extra={
                         "plugin": plugin.name,
                         "ref_index": i,

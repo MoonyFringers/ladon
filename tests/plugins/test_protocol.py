@@ -587,6 +587,49 @@ class TestRunnerLogging:
         assert warn.levelno == logging.WARNING
         assert warn.plugin == "mock_plugin"  # type: ignore[attr-defined]
         assert warn.ref_index == 0  # type: ignore[attr-defined]
+        assert warn.error == "gone"  # type: ignore[attr-defined]
+        assert warn.message.startswith("leaf unavailable — ref[0]")
+        assert "parent=" in warn.message
+        assert "gone" in warn.message
+
+    def test_leaf_unavailable_truncates_long_parent_repr(
+        self,
+        top_ref: Ref,
+        http_client: HttpClient,
+        config: RunConfig,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        import logging
+
+        class _LargeRecord:
+            """Record whose repr exceeds the 120-char truncation boundary."""
+
+            def __repr__(self) -> str:
+                return "X" * 200
+
+        class _LargeParentExpander:
+            def expand(self, ref: object, client: HttpClient) -> Expansion:
+                leaf = Ref(url="https://demo.example.com/leaf/1")
+                return Expansion(record=_LargeRecord(), child_refs=[leaf])
+
+        class _FailSink:
+            def consume(self, ref: object, client: HttpClient) -> object:
+                raise LeafUnavailableError("gone")
+
+        p = _MockPlugin([])
+        p.expanders = [_LargeParentExpander()]
+        p.sink = _FailSink()
+
+        with caplog.at_level(logging.WARNING, logger="ladon.runner"):
+            run_crawl(top_ref, p, http_client, config)
+
+        warn = next(
+            r for r in caplog.records if "leaf unavailable" in r.message
+        )
+        assert "parent=" in warn.message
+        # repr was 200 chars; must be truncated to 117 + "..." = 120 chars.
+        assert "X" * 117 + "..." in warn.message
+        assert "X" * 118 not in warn.message
 
     def test_expander_branch_failure_emits_warning(
         self,
@@ -643,6 +686,12 @@ class TestRunnerLogging:
         ]
         assert len(warnings) == 3
         assert all(w.plugin == "mock_plugin" for w in warnings)  # type: ignore[attr-defined]
+        assert all(w.error == "db down" for w in warnings)  # type: ignore[attr-defined]
+        assert all(
+            w.message.startswith("on_leaf callback failed — ref[")
+            for w in warnings
+        )
+        assert all("parent=" in w.message for w in warnings)
 
 
 # ---------------------------------------------------------------------------
