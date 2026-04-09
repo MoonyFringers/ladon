@@ -1,177 +1,145 @@
-# 🐉 Ladon
+# Ladon
 
-*A resilient, extensible web crawling framework inspired by mythology.*
+[![CI](https://github.com/MoonyFringers/ladon/actions/workflows/unittests.yaml/badge.svg)](https://github.com/MoonyFringers/ladon/actions/workflows/unittests.yaml)
+[![Lint](https://github.com/MoonyFringers/ladon/actions/workflows/lint.yaml/badge.svg)](https://github.com/MoonyFringers/ladon/actions/workflows/lint.yaml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSE)
 
-[![Unit Tests](https://github.com/moonyfringers/ladon/actions/workflows/unittests.yaml/badge.svg)](https://github.com/moonyfringers/ladon/actions/workflows/unittests.yaml)
-[![Lint](https://github.com/moonyfringers/ladon/actions/workflows/lint.yaml/badge.svg)](https://github.com/moonyfringers/ladon/actions/workflows/lint.yaml)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
-[![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue)](LICENSE)
+A Python framework for building structured, resumable web crawlers — designed
+for domains where data quality matters.
 
-Ladon is an open-source **web crawling and scraping framework** designed for
-extensibility, reliability, and long-term maintainability. Its architecture
-centers around a **CrawlPlugin / Expander / Sink** plugin protocol and a
-**hardened HTTP networking layer**, allowing developers to implement
-site-specific adapters cleanly and consistently.
+## What is Ladon?
 
-The name *Ladon* comes from the multi-headed guardian serpent of Greek
-mythology — a symbolic representation of a framework capable of coordinating
-many "heads" (adapters) while guarding the integrity of the system.
+Ladon enforces typed domain objects at every stage of the crawl pipeline
+through the SES protocol (Source / Expander / Sink). The difference from
+Scrapy — a proven, mature tool — is structural: instead of weakly typed
+`scrapy.Item` fields, you define typed dataclasses at the protocol level
+(e.g. a `CommentRecord` with enforced field types). The output is structured
+and typed without a post-processing step. This matters when the destination
+is an LLM training pipeline or any domain where schema correctness is not optional.
 
----
+The built-in HTTP layer handles retries, exponential back-off, per-domain rate
+limiting, circuit breaking, and robots.txt enforcement — so adapter authors
+focus on domain logic, not infrastructure.
 
-## ✨ Features
+## Quick start
 
-### Networking layer
+The canonical example is
+[`ladon-hackernews`](https://github.com/MoonyFringers/ladon-hackernews) —
+an adapter that crawls the HN top-stories list and writes comments to DuckDB:
 
-- **Retries with exponential back-off** — configurable attempt count and base
-  delay; automatic wait between attempts
-- **Per-domain rate limiting** — `min_request_interval_seconds` prevents
-  hammering a single host
-- **Connect / read timeout control** — independent `connect_timeout_seconds`
-  and `read_timeout_seconds`, or a single `timeout_seconds` fallback
-- **TLS verification** — enabled by default; can be disabled for internal
-  infrastructure crawls
-- **Per-host circuit breaker** — opens after N consecutive failure sequences,
-  holds for a configurable recovery window, then probes with a single
-  half-open request before returning to closed state
-- **robots.txt enforcement** — honours `Disallow` rules and `Crawl-delay`
-  directives; respects `verify_tls` when fetching robots.txt itself; per-session
-  cache (one fetch per origin per run) avoids redundant fetches
+```bash
+# Install Ladon core (until ladon-crawl lands on PyPI, install from source)
+pip install git+https://github.com/MoonyFringers/ladon.git
+pip install git+https://github.com/MoonyFringers/ladon-hackernews.git
+ladon-hackernews --top 30 --out hn.db
+```
 
-### Plugin protocol (Expander / Sink — with Source reserved)
+> **Once on PyPI (v0.0.1):** `pip install ladon-crawl` (or `pip install ladon-crawl ladon-hackernews` for the HN example)
 
-- **`CrawlPlugin`** — the top-level adapter contract; bundles a `Source`, one
-  or more `Expander`s, and a `Sink`
-- **`Source`** — declares where root references come from; the protocol
-  requires a `.source` property, but `run_crawl()` currently receives
-  `top_ref` directly from the caller (or the CLI `--ref` flag) rather than
-  invoking `source.discover()` automatically
-- **`Expander`** — maps a parent reference to an `Expansion(record,
-  child_refs)`; supports tree-structured catalogues of arbitrary depth
-- **`Sink`** — receives each leaf record for persistence or downstream
-  processing
+No authentication. No external server. 30 stories and their comments in
+under a minute.
 
-### Runner
+## The LLM training pipeline
 
-- **`run_crawl()`** — orchestrates multi-level tree traversal, isolates leaf
-  failures, and returns a `RunResult` with `leaves_fetched`,
-  `leaves_persisted`, `leaves_failed`, and an `errors` list
-- **Error taxonomy** — `ExpansionNotReadyError`, `PartialExpansionError`,
-  `ChildListUnavailableError`, `LeafUnavailableError` (caught and isolated by
-  the runner); `AssetDownloadError` (defined for plugin use — not currently
-  caught by the runner; propagates as a fatal error if raised)
-- **Optional leaf limit** — `RunConfig(leaf_limit=N)` caps the run for testing
-  or sampling
+```
+ladon-hackernews --top 500 --out hn.db
+    → export_parquet("hn.db", "hn.parquet")
+        → training pipeline
+```
 
-### Command-line interface
+HN comments are structured, human-authored, and high signal-to-noise. The
+full pipeline from install to Parquet takes under five minutes. Each run
+writes a `ladon_runs` audit table to the DuckDB file — re-running skips
+stories already marked `done`, giving you resumable crawls for free.
+
+```python
+from ladon_hackernews import export_parquet
+export_parquet("hn.db", "hn.parquet")
+```
+
+## Writing your own adapter
+
+`ladon-hackernews` is the canonical reference for building an adapter.
+Adapters implement the SES protocol **structurally** — no inheritance from
+any Ladon base class is required. The three components to implement are:
+
+- **Source** — discovers the list of root references to crawl
+- **Expander** — maps a reference to a domain record and child references
+- **Sink** — receives each leaf record for persistence or downstream use
+
+See the [adapter authoring guide](https://moonyfringers.github.io/ladon/) and
+[ADR-003](https://github.com/MoonyFringers/ladon/blob/main/docs/decisions/adr-003-plugin-adapter-interface.md)
+for the full protocol specification. The
+[`ladon-hackernews` source](https://github.com/MoonyFringers/ladon-hackernews)
+is the worked example.
+
+## CLI reference
 
 ```
 ladon info
-ladon run --plugin mypackage.adapters:MyPlugin --ref https://example.com
-ladon run --plugin mypackage.adapters:MyPlugin --ref https://example.com --respect-robots-txt
+ladon run --plugin MODULE:CLASS --ref URL [--respect-robots-txt]
+ladon --version
 ```
 
-`--ref` must be an absolute `http` or `https` URL. `--respect-robots-txt` is
-optional; strongly recommended for public-web crawls.
+| command | description |
+|---|---|
+| `ladon info` | Print Ladon version, Python version, and platform |
+| `ladon run` | Run a crawl using a dynamically loaded plugin class |
+| `ladon --version` | Print the installed version |
 
-- **Dynamic plugin loading** via dotted `module.path:ClassName` — no
-  Ladon-side registration required
-- **Machine-readable output** — prints `leaves_fetched`, `leaves_persisted`,
-  `leaves_failed`, and any errors; pipeable in CI
-- **Exit codes** — `0` success, `1` fatal error, `2` partial failures, `3`
-  data not yet ready (`ExpansionNotReadyError`)
+`ladon run` flags:
 
-### Quality
+| flag | required | description |
+|---|---|---|
+| `--plugin MODULE:CLASS` | yes | Dotted import path to the `CrawlPlugin` class |
+| `--ref URL` | yes | Top-level reference URL passed to the plugin |
+| `--respect-robots-txt` | no | Honour `Disallow` rules and `Crawl-delay` directives |
 
-- Full test suite, pre-commit hooks (black, ruff, isort, pyright strict)
-- **[Documentation site](https://moonyfringers.github.io/ladon/)** — getting
-  started guide, plugin authoring guide, ADR decision log, full API reference
+Exit codes: `0` success · `1` fatal error · `2` partial failures · `3` data not ready (retry later)
 
----
+`ladon run` uses default `HttpClientConfig` settings. For retries, rate
+limiting, circuit breaking, or a persistence layer, call `run_crawl()`
+directly from Python — see
+[`ladon-hackernews` — Use as a library](https://github.com/MoonyFringers/ladon-hackernews#use-as-a-library)
+for a full example.
 
-## 📦 Installation
+## Status
 
-Ladon is not yet published on PyPI. Install from source until v0.0.1 is tagged:
+`v0.0.1` — alpha. The SES protocol and HTTP layer are stable. One reference
+adapter (`ladon-hackernews`) is available as open source and tested against
+the real HN API.
 
-```bash
-pip install git+https://github.com/moonyfringers/ladon.git
-```
+What is in v0.0.1:
+- SES protocol (Source / Expander / Sink) with structural typing
+- `run_crawl()` runner with leaf isolation and `RunResult` summary
+- `HttpClient` with retries, back-off, rate limiting, circuit breaker, robots.txt
+- `Storage` protocol with `LocalFileStorage`
+- `Repository` and `RunAudit` persistence protocols with `NullRepository`
+- `ladon run` / `ladon info` CLI
 
-> **Note:** The PyPI distribution name is `ladon-crawl`; the import name is `ladon`.
-> Once published: `pip install ladon-crawl`.
+What is coming in v0.1.0:
+- RunResult counter semantics redesign (issue [#62](https://github.com/MoonyFringers/ladon/issues/62))
+- Structured logging baseline (ADR-009)
 
----
+## Contributing
 
-## 🚀 Quick start
+The plugin protocol is settled — contributions are welcome. Please read the
+[documentation](https://moonyfringers.github.io/ladon/) for design context
+(ADRs, plugin authoring guide) before sending a pull request.
 
-```python
-from ladon.networking.client import HttpClient
-from ladon.networking.config import HttpClientConfig
-from ladon.runner import RunConfig, run_crawl
+A CLA signature is required for external contributors. The
+[`cla-assistant`](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
+bot will prompt you on your first PR.
 
-# Build your plugin (see docs/guides/authoring-plugins.md)
-from mypackage.adapters import MyPlugin
+## License
 
-config = HttpClientConfig(
-    retries=2,
-    backoff_base_seconds=1.0,
-    circuit_breaker_failure_threshold=5,
-    respect_robots_txt=True,   # strongly recommended for public-web crawls
-)
-
-with HttpClient(config) as client:
-    # The CLI constructs plugins as plugin_cls(client=client).
-    # For custom constructor signatures, call run_crawl() directly like this.
-    plugin = MyPlugin(client=client)
-    result = run_crawl(
-        top_ref="https://example.com/catalogue",  # caller supplies top_ref directly
-        plugin=plugin,
-        client=client,
-        config=RunConfig(),    # pass leaf_limit=N to cap the run for sampling
-    )
-
-# leaves_persisted is 0 unless an on_leaf callback is wired in
-print(result.leaves_fetched, result.leaves_persisted, result.leaves_failed)
-```
-
----
-
-## 🤝 Contributing
-
-The plugin protocol is settled — contributions are welcome. You can help with:
-
-- **Issue reports** — bugs, edge cases, documentation gaps
-- **Feature proposals** — open an issue before sending a PR for larger changes
-- **Adapter implementations** — site-specific plugins belong in separate
-  repositories (e.g. `ladon-reddit`, `ladon-ycharts`); open an issue to
-  discuss before starting
-- **Testing and CI improvements**
-- **Documentation contributions**
-
-Please read the [documentation](https://moonyfringers.github.io/ladon/) for
-design context (ADRs, plugin authoring guide) before sending a pull request.
-
----
-
-## 📜 License
-
-Ladon is released under the **GNU Affero General Public License v3.0 or later
-(AGPL-3.0-or-later)**. See [`LICENSE`](LICENSE) for the full text.
+Ladon is released under the **GNU Affero General Public License v3.0 only
+(AGPL-3.0-only)**. See [`LICENSE`](LICENSE) for the full text.
 
 AGPL was chosen to ensure that improvements to the core framework — including
 when deployed as a networked service — remain open and available to the
-community. See the LICENSE for the full copyleft terms.
+community. A commercial licence is available for organisations that cannot
+accept the AGPL terms — see [`LICENSE-COMMERCIAL`](LICENSE-COMMERCIAL).
 
----
-
-## 🔮 Roadmap
-
-1. ✅ **Core networking layer** — HttpClient, retries, backoff, rate limiting
-2. ✅ **Plugin architecture** — CrawlPlugin / Expander / Sink protocol (Source reserved)
-3. ✅ **Runner** — multi-level traversal, leaf isolation, persistence hook
-4. ✅ **Circuit breaker** — per-host, configurable threshold and recovery window
-5. ✅ **robots.txt enforcement** — Disallow + Crawl-delay, TLS-aware cache
-6. ✅ **CLI tool** — `ladon run` with dynamic plugin loading
-7. ✅ **Documentation site** — MkDocs Material, API reference, ADR log
-8. ✅ **Example adapter** — [`ladon-hackernews`](https://github.com/MoonyFringers/ladon-hackernews):
-   HN → DuckDB → Parquet; canonical reference for building your own adapter
+`ladon-hackernews` is separately licensed under Apache-2.0.

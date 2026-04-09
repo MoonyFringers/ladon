@@ -9,11 +9,7 @@ for speed — durability guarantees are not testable in a unit test context.
 
 import pytest
 
-from ladon.storage import (
-    LocalFileStorage,
-    Storage,
-    StorageKeyNotFoundError,
-)
+from ladon.storage import LocalFileStorage, Storage, StorageKeyNotFoundError
 
 
 @pytest.fixture()
