@@ -29,13 +29,9 @@ The canonical example is
 an adapter that crawls the HN top-stories list and writes comments to DuckDB:
 
 ```bash
-# Install Ladon core (until ladon-crawl lands on PyPI, install from source)
-pip install git+https://github.com/MoonyFringers/ladon.git
-pip install git+https://github.com/MoonyFringers/ladon-hackernews.git
+pip install ladon-crawl ladon-hackernews
 ladon-hackernews --top 30 --out hn.db
 ```
-
-> **Once on PyPI (v0.0.1):** `pip install ladon-crawl` (or `pip install ladon-crawl ladon-hackernews` for the HN example)
 
 No authentication. No external server. 30 stories and their comments in
 under a minute.
