@@ -124,9 +124,8 @@ The plugin protocol is settled — contributions are welcome. Please read the
 [documentation](https://moonyfringers.github.io/ladon/) for design context
 (ADRs, plugin authoring guide) before sending a pull request.
 
-A CLA signature is required for external contributors. The
-[`cla-assistant`](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
-bot will prompt you on your first PR.
+A [CLA signature](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
+is required for external contributors. The bot will prompt you on your first PR.
 
 ## License
 
