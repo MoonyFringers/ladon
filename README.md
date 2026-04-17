@@ -29,13 +29,9 @@ The canonical example is
 an adapter that crawls the HN top-stories list and writes comments to DuckDB:
 
 ```bash
-# Install Ladon core (until ladon-crawl lands on PyPI, install from source)
-pip install git+https://github.com/MoonyFringers/ladon.git
-pip install git+https://github.com/MoonyFringers/ladon-hackernews.git
+pip install ladon-crawl ladon-hackernews
 ladon-hackernews --top 30 --out hn.db
 ```
-
-> **Once on PyPI (v0.0.1):** `pip install ladon-crawl` (or `pip install ladon-crawl ladon-hackernews` for the HN example)
 
 No authentication. No external server. 30 stories and their comments in
 under a minute.
@@ -128,9 +124,8 @@ The plugin protocol is settled — contributions are welcome. Please read the
 [documentation](https://moonyfringers.github.io/ladon/) for design context
 (ADRs, plugin authoring guide) before sending a pull request.
 
-A CLA signature is required for external contributors. The
-[`cla-assistant`](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
-bot will prompt you on your first PR.
+A [CLA signature](https://github.com/MoonyFringers/ladon/blob/main/CLA.md)
+is required for external contributors. The bot will prompt you on your first PR.
 
 ## License
 
