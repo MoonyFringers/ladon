@@ -37,7 +37,7 @@ jobs:
         with:
           path-to-signatures: ".github/cla_signatures.json"
           path-to-document: "https://github.com/MoonyFringers/ladon/blob/main/CLA.md"
-          branch: "main"
+          branch: "cla-signatures"
           # Bots that should be exempted from the CLA requirement.
           allowlist: >
             dependabot[bot],
