@@ -58,6 +58,10 @@ class HttpClientConfig:
     # Only GET/HEAD are auto-retried; POST/etc. receive the response as-is.
     retry_on_status: frozenset[int] = frozenset({429, 503})
     max_retry_after_seconds: float = 300.0
+    # When True, applies full jitter to exponential backoff: sleep duration is
+    # drawn uniformly from [0, cap] instead of always sleeping cap.  Reduces
+    # thundering-herd when multiple crawlers restart simultaneously.
+    backoff_jitter: bool = False
 
     def __post_init__(self) -> None:
         if self.retries < 0:

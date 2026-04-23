@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from random import uniform
 from time import monotonic, sleep
 from typing import Any, Callable, Mapping, TypeVar
 from urllib.parse import urlparse
@@ -120,7 +121,8 @@ class HttpClient:
         backoff_base = self._config.backoff_base_seconds
         if backoff_base <= 0:
             return
-        sleep(backoff_base * (2 ** max(0, attempt - 1)))
+        cap = backoff_base * (2 ** max(0, attempt - 1))
+        sleep(uniform(0.0, cap) if self._config.backoff_jitter else cap)
 
     @staticmethod
     def _parse_retry_after(response: requests.Response) -> float | None:

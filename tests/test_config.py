@@ -21,6 +21,7 @@ def test_config_defaults_are_stable():
     assert config.respect_robots_txt is False
     assert config.retry_on_status == frozenset({429, 503})
     assert config.max_retry_after_seconds == 300.0
+    assert config.backoff_jitter is False
 
 
 def test_config_default_headers_are_independent():
