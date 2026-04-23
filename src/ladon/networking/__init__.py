@@ -6,6 +6,7 @@ from .config import HttpClientConfig
 from .errors import (
     CircuitOpenError,
     HttpClientError,
+    RateLimitedError,
     RequestTimeoutError,
     RobotsBlockedError,
     TransientNetworkError,
@@ -18,6 +19,7 @@ __all__ = [
     "HttpClient",
     "HttpClientError",
     "HttpClientConfig",
+    "RateLimitedError",
     "RequestTimeoutError",
     "Result",
     "RobotsBlockedError",

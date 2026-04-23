@@ -7,6 +7,7 @@ from .networking.config import HttpClientConfig
 from .networking.errors import (
     CircuitOpenError,
     HttpClientError,
+    RateLimitedError,
     RequestTimeoutError,
     RetryableHttpError,
     RobotsBlockedError,
@@ -69,6 +70,7 @@ __all__ = [
     "HttpClientConfig",
     "Result",
     "HttpClientError",
+    "RateLimitedError",
     "RequestTimeoutError",
     "TransientNetworkError",
     "RetryableHttpError",  # backward-compat alias, removed in v0.1.0
