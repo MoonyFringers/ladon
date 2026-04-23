@@ -15,6 +15,12 @@ def test_config_defaults_are_stable():
     assert config.read_timeout_seconds is None
     assert config.backoff_base_seconds == 0.0
     assert config.timeout_seconds == 30.0
+    assert config.min_request_interval_seconds == 0.0
+    assert config.circuit_breaker_failure_threshold is None
+    assert config.circuit_breaker_recovery_seconds == 60.0
+    assert config.respect_robots_txt is False
+    assert config.retry_on_status == frozenset({429, 503})
+    assert config.max_retry_after_seconds == 300.0
 
 
 def test_config_default_headers_are_independent():
@@ -67,3 +73,37 @@ def test_config_rejects_non_positive_timeouts():
         HttpClientConfig(connect_timeout_seconds=0, read_timeout_seconds=1)
     with pytest.raises(ValueError):
         HttpClientConfig(connect_timeout_seconds=1, read_timeout_seconds=0)
+
+
+def test_config_retry_on_status_default():
+    config = HttpClientConfig()
+    assert config.retry_on_status == frozenset({429, 503})
+
+
+def test_config_max_retry_after_seconds_default():
+    config = HttpClientConfig()
+    assert config.max_retry_after_seconds == 300.0
+
+
+def test_config_rejects_non_positive_max_retry_after():
+    with pytest.raises(ValueError, match="max_retry_after_seconds"):
+        HttpClientConfig(max_retry_after_seconds=0)
+    with pytest.raises(ValueError, match="max_retry_after_seconds"):
+        HttpClientConfig(max_retry_after_seconds=-1.0)
+
+
+def test_config_custom_retry_on_status():
+    config = HttpClientConfig(retry_on_status=frozenset({403, 429}))
+    assert config.retry_on_status == frozenset({403, 429})
+
+
+def test_config_retry_on_status_empty_is_valid():
+    config = HttpClientConfig(retry_on_status=frozenset())
+    assert config.retry_on_status == frozenset()
+
+
+def test_config_rejects_invalid_retry_on_status_values():
+    with pytest.raises(ValueError, match="retry_on_status"):
+        HttpClientConfig(retry_on_status=frozenset({99}))
+    with pytest.raises(ValueError, match="retry_on_status"):
+        HttpClientConfig(retry_on_status=frozenset({600}))

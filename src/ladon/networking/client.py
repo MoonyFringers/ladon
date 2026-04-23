@@ -7,6 +7,8 @@ robots enforcement are applied by the concrete implementation.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from time import monotonic, sleep
 from typing import Any, Callable, Mapping, TypeVar
 from urllib.parse import urlparse
@@ -18,6 +20,7 @@ from .config import HttpClientConfig
 from .errors import (
     CircuitOpenError,
     HttpClientError,
+    RateLimitedError,
     RequestTimeoutError,
     RobotsBlockedError,
     TransientNetworkError,
@@ -118,6 +121,48 @@ class HttpClient:
         if backoff_base <= 0:
             return
         sleep(backoff_base * (2 ** max(0, attempt - 1)))
+
+    @staticmethod
+    def _parse_retry_after(response: requests.Response) -> float | None:
+        """Parse the ``Retry-After`` header from *response* into seconds.
+
+        Handles both delta-seconds (``"60"``) and HTTP-date
+        (``"Wed, 21 Oct 2015 07:28:00 GMT"``) forms per RFC 7231 §7.1.3.
+
+        Returns:
+            Seconds to wait (clamped to 0.0 minimum), or ``None`` if the
+            header is absent or cannot be parsed.
+        """
+        header = response.headers.get("Retry-After")
+        if header is None:
+            return None
+        try:
+            return max(0.0, float(header))
+        except ValueError:
+            pass
+        try:
+            dt = parsedate_to_datetime(header)
+            delta = (dt - datetime.now(tz=timezone.utc)).total_seconds()
+            return max(0.0, delta)
+        except Exception:  # fail-open: treat any unparseable date as absent
+            return None
+
+    def _sleep_for_retry_after(
+        self, retry_after: float | None, attempt: int
+    ) -> None:
+        """Sleep before a retry triggered by a rate-limiting HTTP response.
+
+        When *retry_after* is not ``None``: caps it at
+        ``max_retry_after_seconds``, then takes the longer of the capped value
+        and ``min_request_interval_seconds`` so the client's own politeness
+        policy is never violated.  Falls back to ``_sleep_between_attempts``
+        when *retry_after* is ``None``.
+        """
+        if retry_after is not None:
+            capped = min(retry_after, self._config.max_retry_after_seconds)
+            sleep(max(capped, self._config.min_request_interval_seconds))
+        else:
+            self._sleep_between_attempts(attempt)
 
     def _enforce_robots(self, url: str) -> None:
         """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
@@ -327,12 +372,28 @@ class HttpClient:
             return Err(exc, meta=meta)
 
         self._enforce_rate_limit(url)
+        is_safe_method = method.upper() in {"GET", "HEAD"}
         attempts = 0
         last_error: requests.exceptions.RequestException | None = None
+        last_blocked_response: requests.Response | None = None
+        last_blocked_retry_after: float | None = None
         for _ in range(self._max_attempts()):
             attempts += 1
             try:
                 response = request_fn()
+                if (
+                    response.status_code in self._config.retry_on_status
+                    and is_safe_method
+                ):
+                    last_blocked_retry_after = self._parse_retry_after(response)
+                    last_blocked_response = response
+                    last_error = None
+                    if attempts < self._max_attempts():
+                        self._sleep_for_retry_after(
+                            last_blocked_retry_after, attempts
+                        )
+                        continue
+                    break
                 if cb is not None:
                     cb.record_success()
                 return Ok(
@@ -348,6 +409,8 @@ class HttpClient:
                 )
             except requests.exceptions.RequestException as exc:
                 last_error = exc
+                last_blocked_response = None
+                last_blocked_retry_after = None
                 if (
                     attempts >= self._max_attempts()
                     or not self._is_retryable_exception(method, exc)
@@ -369,6 +432,24 @@ class HttpClient:
                         final_error=type(exc).__name__,
                     ),
                 )
+
+        if last_blocked_response is not None:
+            if cb is not None:
+                cb.record_failure()
+            return Err(
+                RateLimitedError(
+                    last_blocked_response.status_code, last_blocked_retry_after
+                ),
+                meta=self._build_meta(
+                    method=method,
+                    request_url=url,
+                    response=last_blocked_response,
+                    context=context,
+                    attempts=attempts,
+                    timeout=timeout,
+                    final_error="RateLimitedError",
+                ),
+            )
 
         assert last_error is not None
         if cb is not None:

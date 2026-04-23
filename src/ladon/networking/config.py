@@ -54,6 +54,10 @@ class HttpClientConfig:
     circuit_breaker_recovery_seconds: float = 60.0
     # Disabled by default; enable for any public-web crawl — see class docstring.
     respect_robots_txt: bool = False
+    # HTTP status codes that trigger automatic retry with Retry-After respect.
+    # Only GET/HEAD are auto-retried; POST/etc. receive the response as-is.
+    retry_on_status: frozenset[int] = frozenset({429, 503})
+    max_retry_after_seconds: float = 300.0
 
     def __post_init__(self) -> None:
         if self.retries < 0:
@@ -71,6 +75,12 @@ class HttpClientConfig:
             )
         if self.circuit_breaker_recovery_seconds <= 0:
             raise ValueError("circuit_breaker_recovery_seconds must be > 0")
+        if self.max_retry_after_seconds <= 0:
+            raise ValueError("max_retry_after_seconds must be > 0")
+        if not all(100 <= s <= 599 for s in self.retry_on_status):
+            raise ValueError(
+                "retry_on_status must contain only valid HTTP status codes (100-599)"
+            )
 
         has_connect_timeout = self.connect_timeout_seconds is not None
         has_read_timeout = self.read_timeout_seconds is not None
