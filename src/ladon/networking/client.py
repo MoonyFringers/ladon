@@ -61,6 +61,8 @@ class HttpClient:
         self._session.headers.update(self._config.default_headers)
         if self._config.proxies is not None:
             self._session.proxies.update(self._config.proxies)
+        if self._config.auth is not None:
+            self._session.auth = self._config.auth
         self._robots_cache: RobotsCache | None = (
             RobotsCache(
                 self._session,
@@ -173,6 +175,16 @@ class HttpClient:
         self._session.proxies.clear()
         if proxy is not None:
             self._session.proxies.update(proxy)
+
+    def _merge_params(
+        self, params: Mapping[str, str] | None
+    ) -> Mapping[str, str] | None:
+        """Merge *params* with ``default_params``, per-request wins on collision."""
+        dp = self._config.default_params
+        if dp is None:
+            return params
+        merged = {**dp, **(params or {})}
+        return merged if merged else None
 
     def _enforce_robots(self, url: str) -> None:
         """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
@@ -534,7 +546,7 @@ class HttpClient:
             request_fn=lambda: self._session.get(
                 url,
                 headers=headers,
-                params=params,
+                params=self._merge_params(params),
                 timeout=resolved_timeout,
                 allow_redirects=allow_redirects,
                 verify=self._config.verify_tls,
@@ -575,7 +587,7 @@ class HttpClient:
             request_fn=lambda: self._session.head(
                 url,
                 headers=headers,
-                params=params,
+                params=self._merge_params(params),
                 timeout=resolved_timeout,
                 allow_redirects=allow_redirects,
                 verify=self._config.verify_tls,
@@ -588,6 +600,7 @@ class HttpClient:
         url: str,
         *,
         headers: Mapping[str, str] | None = None,
+        params: Mapping[str, str] | None = None,
         data: Any | None = None,
         json: Any | None = None,
         timeout: float | None = None,
@@ -599,6 +612,7 @@ class HttpClient:
         Args:
             url: Absolute URL to request.
             headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
             data: Optional form/body payload.
             json: Optional JSON payload (mutually exclusive with data).
             timeout: Override timeout in seconds for this request.
@@ -617,6 +631,7 @@ class HttpClient:
             request_fn=lambda: self._session.post(
                 url,
                 headers=headers,
+                params=self._merge_params(params),
                 data=data,
                 json=json,
                 timeout=resolved_timeout,
@@ -631,6 +646,7 @@ class HttpClient:
         url: str,
         *,
         headers: Mapping[str, str] | None = None,
+        params: Mapping[str, str] | None = None,
         timeout: float | None = None,
         allow_redirects: bool = True,
         context: Mapping[str, Any] | None = None,
@@ -640,6 +656,7 @@ class HttpClient:
         Args:
             url: Absolute URL to request.
             headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
             timeout: Override timeout in seconds for this request.
             allow_redirects: Whether redirects should be followed.
             context: Optional caller context for logging/tracing.
@@ -657,6 +674,7 @@ class HttpClient:
             request_fn=lambda: self._session.get(
                 url,
                 headers=headers,
+                params=self._merge_params(params),
                 timeout=resolved_timeout,
                 allow_redirects=allow_redirects,
                 stream=True,
