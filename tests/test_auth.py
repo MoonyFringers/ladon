@@ -162,3 +162,44 @@ def test_no_default_params_passes_none():
 
     _, kwargs = mock_get.call_args
     assert kwargs["params"] is None
+
+
+def test_empty_default_params_passes_none():
+    config = HttpClientConfig(default_params={})
+    client = HttpClient(config)
+
+    with patch("requests.Session.get") as mock_get:
+        mock_get.return_value = _make_ok_response()
+        client.get("https://example.com")
+
+    _, kwargs = mock_get.call_args
+    assert kwargs["params"] is None
+
+
+# ============================================================
+# default_params — post() and download() merging
+# ============================================================
+
+
+def test_post_default_params_merged():
+    config = HttpClientConfig(default_params={"api_key": "secret"})
+    client = HttpClient(config)
+
+    with patch("requests.Session.post") as mock_post:
+        mock_post.return_value = _make_ok_response()
+        client.post("https://example.com", params={"page": "2"})
+
+    _, kwargs = mock_post.call_args
+    assert kwargs["params"] == {"api_key": "secret", "page": "2"}
+
+
+def test_download_default_params_merged():
+    config = HttpClientConfig(default_params={"api_key": "secret"})
+    client = HttpClient(config)
+
+    with patch("requests.Session.get") as mock_get:
+        mock_get.return_value = _make_ok_response()
+        client.download("https://example.com", params={"token": "abc"})
+
+    _, kwargs = mock_get.call_args
+    assert kwargs["params"] == {"api_key": "secret", "token": "abc"}
