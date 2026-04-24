@@ -23,6 +23,7 @@ def test_config_defaults_are_stable():
     assert config.max_retry_after_seconds == 300.0
     assert config.backoff_jitter is False
     assert config.proxies is None
+    assert config.proxy_pool is None
 
 
 def test_config_default_headers_are_independent():

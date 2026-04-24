@@ -11,11 +11,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Proxy rotation via `ProxyPool`** — `HttpClientConfig(proxy_pool=RoundRobinProxyPool([...]))`
+  rotates through a list of proxies on every request attempt. Custom rotation strategies
+  are supported through the `ProxyPool` protocol (`next_proxy()` / `mark_failure()`);
+  `mark_failure()` is called on transport errors and rate-limit responses so
+  implementations can apply cooldowns or exclusions. Mutually exclusive with `proxies`.
+  `validate_proxy(mapping)` is exported from `ladon.networking` as a public helper for
+  custom pool implementations.
+
 - **Static proxy support** — `HttpClientConfig(proxies={"https": "http://proxy:8080"})`
   routes all session traffic through a proxy. Follows `requests` conventions;
   SOCKS proxies supported when `requests[socks]` is installed. Proxy URLs are
   validated at config construction time (scheme must be `http`, `https`, `socks4`,
-  `socks5`, or `socks5h`).
+  `socks4h`, `socks5`, or `socks5h`).
 
 - **HTTP 429 / 503 with Retry-After respect** — `HttpClientConfig(retry_on_status=...)`
   automatically retries safe methods on configurable status codes (default `{429, 503}`).

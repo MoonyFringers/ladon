@@ -13,6 +13,7 @@ from .networking.errors import (
     RobotsBlockedError,
     TransientNetworkError,
 )
+from .networking.proxy_pool import ProxyPool, RoundRobinProxyPool
 from .networking.types import Result
 from .persistence import NullRepository, Repository, RunAudit, RunRecord
 from .plugins import (
@@ -76,6 +77,8 @@ __all__ = [
     "RetryableHttpError",  # backward-compat alias, removed in v0.1.0
     "CircuitOpenError",
     "RobotsBlockedError",
+    "ProxyPool",
+    "RoundRobinProxyPool",
     # Persistence
     "Repository",
     "RunAudit",

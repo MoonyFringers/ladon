@@ -11,6 +11,7 @@ from .errors import (
     RobotsBlockedError,
     TransientNetworkError,
 )
+from .proxy_pool import ProxyPool, RoundRobinProxyPool, validate_proxy
 from .types import Result
 
 __all__ = [
@@ -19,6 +20,9 @@ __all__ = [
     "HttpClient",
     "HttpClientError",
     "HttpClientConfig",
+    "ProxyPool",
+    "RoundRobinProxyPool",
+    "validate_proxy",
     "RateLimitedError",
     "RequestTimeoutError",
     "Result",

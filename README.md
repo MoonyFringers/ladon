@@ -20,8 +20,8 @@ is an LLM training pipeline or any domain where schema correctness is not option
 
 The built-in HTTP layer handles retries, exponential back-off with optional
 full-jitter, 429/503 Retry-After respect, per-domain rate limiting, circuit
-breaking, proxy routing, and robots.txt enforcement — so adapter authors focus
-on domain logic, not infrastructure.
+breaking, static and rotating proxy support, and robots.txt enforcement — so
+adapter authors focus on domain logic, not infrastructure.
 
 ## Quick start
 
@@ -116,8 +116,7 @@ What is in v0.0.1:
 - `ladon run` / `ladon info` CLI
 
 What is coming in v0.1.0 (in progress):
-- HTTP 429/503 Retry-After respect, full-jitter backoff, static proxy routing ✓
-- Proxy rotation via `ProxyPool` protocol (issue [#79](https://github.com/MoonyFringers/ladon/issues/79))
+- HTTP 429/503 Retry-After respect, full-jitter backoff, static and rotating proxy support ✓
 - HTTP authentication — Basic, Digest, OAuth client credentials (issue [#86](https://github.com/MoonyFringers/ladon/issues/86))
 - RunResult counter semantics redesign (issue [#62](https://github.com/MoonyFringers/ladon/issues/62))
 - Structured logging baseline (ADR-009)
