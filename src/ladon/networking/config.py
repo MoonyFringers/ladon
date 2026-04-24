@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping
 
-_PROXY_SCHEMES = frozenset(
-    {"http", "https", "socks4", "socks4h", "socks5", "socks5h"}
-)
+from .proxy_pool import PROXY_SCHEMES
+
+if TYPE_CHECKING:
+    from .proxy_pool import ProxyPool
 
 
 def _default_headers() -> Mapping[str, str]:
@@ -71,6 +72,10 @@ class HttpClientConfig:
     # Accepted schemes: http, https, socks4, socks4h, socks5, socks5h.
     # SOCKS proxies require requests[socks].
     proxies: Mapping[str, str] | None = None
+    # Proxy rotation strategy.  Mutually exclusive with proxies.
+    # HttpClient calls next_proxy() before each request attempt and
+    # mark_failure() when a transport error or rate-limit response occurs.
+    proxy_pool: ProxyPool | None = None
 
     def __post_init__(self) -> None:
         if self.retries < 0:
@@ -123,10 +128,14 @@ class HttpClientConfig:
             "default_headers",
             MappingProxyType(dict(self.default_headers)),
         )
+        if self.proxies is not None and self.proxy_pool is not None:
+            raise ValueError(
+                "proxies and proxy_pool are mutually exclusive; set only one"
+            )
         if self.proxies is not None:
             for key, url in self.proxies.items():
                 scheme = url.split("://")[0].lower() if "://" in url else ""
-                if scheme not in _PROXY_SCHEMES:
+                if scheme not in PROXY_SCHEMES:
                     raise ValueError(
                         f"proxies[{key!r}] must use a valid scheme "
                         f"(http, https, socks4, socks4h, socks5, socks5h), got {url!r}"

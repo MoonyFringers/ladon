@@ -168,6 +168,12 @@ class HttpClient:
         else:
             self._sleep_between_attempts(attempt)
 
+    def _apply_proxy(self, proxy: Mapping[str, str] | None) -> None:
+        """Update session proxy to *proxy*, clearing any previous setting."""
+        self._session.proxies.clear()
+        if proxy is not None:
+            self._session.proxies.update(proxy)
+
     def _enforce_robots(self, url: str) -> None:
         """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
 
@@ -377,10 +383,15 @@ class HttpClient:
 
         self._enforce_rate_limit(url)
         is_safe_method = method.upper() in {"GET", "HEAD"}
+        pool = self._config.proxy_pool
         attempts = 0
         last_error: requests.exceptions.RequestException | None = None
         last_blocked_response: requests.Response | None = None
         last_blocked_retry_after: float | None = None
+        current_proxy: Mapping[str, str] | None = None
+        if pool is not None:
+            current_proxy = pool.next_proxy()
+            self._apply_proxy(current_proxy)
         for _ in range(self._max_attempts()):
             attempts += 1
             try:
@@ -393,6 +404,10 @@ class HttpClient:
                     last_blocked_response = response
                     last_error = None
                     if attempts < self._max_attempts():
+                        if pool is not None:
+                            pool.mark_failure(current_proxy)
+                            current_proxy = pool.next_proxy()
+                            self._apply_proxy(current_proxy)
                         self._sleep_for_retry_after(
                             last_blocked_retry_after, attempts
                         )
@@ -420,6 +435,10 @@ class HttpClient:
                     or not self._is_retryable_exception(method, exc)
                 ):
                     break
+                if pool is not None:
+                    pool.mark_failure(current_proxy)
+                    current_proxy = pool.next_proxy()
+                    self._apply_proxy(current_proxy)
                 self._sleep_between_attempts(attempts)
             except Exception as exc:  # pragma: no cover - defensive fallback
                 if cb is not None:
