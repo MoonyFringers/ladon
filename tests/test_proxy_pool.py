@@ -4,7 +4,6 @@
 # pyright: reportUnknownVariableType=false, reportMissingTypeArgument=false
 """Tests for ProxyPool protocol and RoundRobinProxyPool implementation."""
 
-from typing import Mapping
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -93,7 +92,7 @@ def test_round_robin_accepts_socks5():
 
 
 def test_round_robin_copies_proxies_as_tuples():
-    raw: list[Mapping[str, str]] = [_P1.copy(), _P2.copy()]
+    raw = [_P1.copy(), _P2.copy()]
     pool = RoundRobinProxyPool(raw)
     raw.clear()
     assert pool.next_proxy() == _P1
@@ -247,7 +246,7 @@ def test_proxy_pool_rotates_on_timeout():
     pool.mark_failure.assert_called_once_with(_P1)
 
 
-def test_proxy_pool_no_mark_failure_on_last_attempt():
+def test_proxy_pool_mark_failure_called_on_final_transport_error():
     pool = MagicMock(spec=ProxyPool)
     pool.next_proxy.return_value = _P1
     config = HttpClientConfig(proxy_pool=pool, retries=0)
@@ -258,4 +257,26 @@ def test_proxy_pool_no_mark_failure_on_last_attempt():
         client.get("https://example.com")
 
     pool.next_proxy.assert_called_once()
-    pool.mark_failure.assert_not_called()
+    pool.mark_failure.assert_called_once_with(_P1)
+
+
+def test_proxy_pool_mark_failure_called_on_final_rate_limit():
+    pool = MagicMock(spec=ProxyPool)
+    pool.next_proxy.return_value = _P1
+    config = HttpClientConfig(
+        proxy_pool=pool, retries=0, retry_on_status=frozenset({429})
+    )
+
+    blocked = MagicMock()
+    blocked.status_code = 429
+    blocked.headers = {}
+    blocked.url = "https://example.com"
+    blocked.reason = "Too Many Requests"
+    blocked.elapsed.total_seconds.return_value = 0.01
+
+    with patch("requests.Session.get", return_value=blocked):
+        client = HttpClient(config)
+        client.get("https://example.com")
+
+    pool.next_proxy.assert_called_once()
+    pool.mark_failure.assert_called_once_with(_P1)

@@ -459,6 +459,8 @@ class HttpClient:
         if last_blocked_response is not None:
             if cb is not None:
                 cb.record_failure()
+            if pool is not None:
+                pool.mark_failure(current_proxy)
             return Err(
                 RateLimitedError(
                     last_blocked_response.status_code, last_blocked_retry_after
@@ -477,6 +479,8 @@ class HttpClient:
         assert last_error is not None
         if cb is not None:
             cb.record_failure()
+        if pool is not None:
+            pool.mark_failure(current_proxy)
         return self._handle_request_exception(
             method=method,
             request_url=url,

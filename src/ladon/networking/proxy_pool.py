@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Mapping, Protocol, runtime_checkable
 
 # Accepted proxy URL schemes — imported by config.py for field validation.
@@ -38,7 +39,13 @@ class ProxyPool(Protocol):
         ...
 
     def mark_failure(self, proxy: Mapping[str, str] | None) -> None:
-        """Record that *proxy* produced a failure on the last attempt."""
+        """Record that *proxy* produced a failure on the last attempt.
+
+        Called before each retry and once more after the final exhausted
+        attempt, so pool implementations see every failure including the
+        terminal one.  Not called for non-retryable methods (POST, etc.)
+        on transport errors.
+        """
         ...
 
 
@@ -65,7 +72,7 @@ class RoundRobinProxyPool:
         config = HttpClientConfig(proxy_pool=pool)
     """
 
-    def __init__(self, proxies: list[Mapping[str, str]]) -> None:
+    def __init__(self, proxies: Sequence[Mapping[str, str]]) -> None:
         for proxy in proxies:
             validate_proxy(proxy)
         self._proxies: tuple[Mapping[str, str], ...] = tuple(proxies)

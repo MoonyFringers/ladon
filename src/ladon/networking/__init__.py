@@ -21,11 +21,11 @@ __all__ = [
     "HttpClientError",
     "HttpClientConfig",
     "ProxyPool",
-    "RateLimitedError",
+    "RoundRobinProxyPool",
     "validate_proxy",
+    "RateLimitedError",
     "RequestTimeoutError",
     "Result",
     "RobotsBlockedError",
-    "RoundRobinProxyPool",
     "TransientNetworkError",
 ]
