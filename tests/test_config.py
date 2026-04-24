@@ -24,6 +24,8 @@ def test_config_defaults_are_stable():
     assert config.backoff_jitter is False
     assert config.proxies is None
     assert config.proxy_pool is None
+    assert config.auth is None
+    assert config.default_params is None
 
 
 def test_config_default_headers_are_independent():

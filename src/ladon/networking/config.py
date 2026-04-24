@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Mapping
 
+from requests.auth import AuthBase
+
 from .proxy_pool import validate_proxy
 
 if TYPE_CHECKING:
@@ -41,6 +43,22 @@ class HttpClientConfig:
     as a baseline ethical expectation.  EU data-protection authorities have
     indicated that ignoring robots.txt can undermine the *legitimate interest*
     legal basis required for scraping personal data under GDPR.
+
+    Authentication patterns
+    -----------------------
+    +---------------------------------+--------------------------------------------------+
+    | Mechanism                       | Config                                           |
+    +=================================+==================================================+
+    | HTTP Basic Auth                 | ``auth=("user", "pass")``                        |
+    +---------------------------------+--------------------------------------------------+
+    | HTTP Digest Auth                | ``auth=HTTPDigestAuth("user", "pass")``          |
+    +---------------------------------+--------------------------------------------------+
+    | Bearer token / API key (header) | ``default_headers={"Authorization": "Bearer …"}``|
+    +---------------------------------+--------------------------------------------------+
+    | API key in query string         | ``default_params={"api_key": "…"}``              |
+    +---------------------------------+--------------------------------------------------+
+    | HMAC signing / OAuth tokens     | Custom ``requests.auth.AuthBase`` via ``auth``   |
+    +---------------------------------+--------------------------------------------------+
     """
 
     user_agent: str | None = None
@@ -76,6 +94,15 @@ class HttpClientConfig:
     # HttpClient calls next_proxy() before each request attempt and
     # mark_failure() when a transport error or rate-limit response occurs.
     proxy_pool: ProxyPool | None = None
+    # HTTP authentication passed verbatim to requests.Session.auth.
+    # Use a (username, password) tuple for Basic Auth, or an AuthBase subclass
+    # (HTTPDigestAuth, custom HMAC/OAuth token injectors) for other schemes.
+    # Bearer tokens and static API keys belong in default_headers instead.
+    auth: tuple[str, str] | AuthBase | None = None
+    # Default query parameters merged into every request.  Follows the same
+    # override contract as default_headers: per-request params take precedence
+    # on key collision.  Useful for API keys passed as query string parameters.
+    default_params: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
         if self.retries < 0:
@@ -138,4 +165,12 @@ class HttpClientConfig:
                 self,
                 "proxies",
                 MappingProxyType(dict(self.proxies)),
+            )
+        if isinstance(self.auth, tuple) and len(self.auth) != 2:
+            raise ValueError("auth tuple must be (username, password)")
+        if self.default_params is not None:
+            object.__setattr__(
+                self,
+                "default_params",
+                MappingProxyType(dict(self.default_params)),
             )

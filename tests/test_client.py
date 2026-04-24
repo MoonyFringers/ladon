@@ -254,6 +254,7 @@ def test_post_success(mock_post, client):
     mock_post.assert_called_once_with(
         "http://example.com",
         headers=None,
+        params=None,
         data=None,
         json={"foo": "bar"},
         timeout=5.0,
@@ -275,6 +276,7 @@ def test_download_success(mock_get, client):
     mock_get.assert_called_once_with(
         "http://example.com/file",
         headers=None,
+        params=None,
         timeout=5.0,
         allow_redirects=True,
         stream=True,
