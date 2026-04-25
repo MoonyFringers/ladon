@@ -6,6 +6,12 @@ defined as typing.Protocol classes so that third-party implementations
 need not import from this package.
 """
 
+from .async_protocol import (
+    AsyncCrawlPlugin,
+    AsyncExpander,
+    AsyncSink,
+    AsyncSource,
+)
 from .errors import (
     AssetDownloadError,
     ChildListUnavailableError,
@@ -18,11 +24,16 @@ from .models import Expansion, Ref
 from .protocol import CrawlPlugin, Expander, Sink, Source
 
 __all__ = [
-    # Protocols
+    # Sync protocols
     "Source",
     "Expander",
     "Sink",
     "CrawlPlugin",
+    # Async protocols
+    "AsyncSource",
+    "AsyncExpander",
+    "AsyncSink",
+    "AsyncCrawlPlugin",
     # Models
     "Ref",
     "Expansion",
