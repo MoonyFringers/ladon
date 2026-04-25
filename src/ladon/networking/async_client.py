@@ -172,7 +172,6 @@ class AsyncHttpClient:
             for key, value in context_dict.items():
                 meta.setdefault(key, value)
         if response is not None:
-            meta["status"] = response.status_code
             meta["status_code"] = response.status_code
             final_url = str(response.url)  # httpx.URL → str
             meta["final_url"] = final_url
@@ -375,6 +374,7 @@ class AsyncHttpClient:
             return Err(CircuitOpenError(urlparse(url).netloc), meta=meta)
 
         await self._enforce_rate_limit(url)
+        host = urlparse(url).netloc
         is_safe_method = method.upper() in {"GET", "HEAD"}
         pool = self._config.proxy_pool
         attempts = 0
@@ -434,6 +434,10 @@ class AsyncHttpClient:
                     current_proxy = pool.next_proxy()
                 await self._sleep_between_attempts(attempts)
             finally:
+                # Stamp after every attempt so the next _request call sees an
+                # accurate "last request time" even when retries consumed seconds.
+                if host:
+                    self._last_request_time[host] = monotonic()
                 if should_close:
                     await client.aclose()
 

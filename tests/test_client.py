@@ -81,7 +81,6 @@ def test_get_success_returns_normalized_metadata(mock_get, client):
     assert result.meta["method"] == "GET"
     assert result.meta["url"] == "http://example.com"
     assert result.meta["status_code"] == 200
-    assert result.meta["status"] == 200
     assert result.meta["attempts"] == 1
     assert result.meta["timeout_s"] == 5.0
     assert result.meta["elapsed_s"] == 0.1

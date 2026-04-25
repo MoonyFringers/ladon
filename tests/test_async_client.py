@@ -510,14 +510,14 @@ async def test_context_merged_into_metadata(
 # ---------------------------------------------------------------------------
 
 
-def test_set_crawl_delay_stored(config: HttpClientConfig) -> None:
-    c = AsyncHttpClient(config)
-    c.set_crawl_delay("example.com", 2.5)
-    assert c._crawl_delay_overrides["example.com"] == 2.5
+async def test_set_crawl_delay_stored(config: HttpClientConfig) -> None:
+    async with AsyncHttpClient(config) as c:
+        c.set_crawl_delay("example.com", 2.5)
+        assert c._crawl_delay_overrides["example.com"] == 2.5
 
 
-def test_set_crawl_delay_overwrites(config: HttpClientConfig) -> None:
-    c = AsyncHttpClient(config)
-    c.set_crawl_delay("example.com", 1.0)
-    c.set_crawl_delay("example.com", 3.0)
-    assert c._crawl_delay_overrides["example.com"] == 3.0
+async def test_set_crawl_delay_overwrites(config: HttpClientConfig) -> None:
+    async with AsyncHttpClient(config) as c:
+        c.set_crawl_delay("example.com", 1.0)
+        c.set_crawl_delay("example.com", 3.0)
+        assert c._crawl_delay_overrides["example.com"] == 3.0
