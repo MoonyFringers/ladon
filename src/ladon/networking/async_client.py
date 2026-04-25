@@ -174,7 +174,10 @@ class AsyncHttpClient:
         if response is not None:
             meta["status"] = response.status_code
             meta["status_code"] = response.status_code
-            meta["url"] = str(response.url)  # httpx.URL → str
+            final_url = str(response.url)  # httpx.URL → str
+            meta["final_url"] = final_url
+            if final_url != request_url:
+                meta["redirected"] = True
             meta["reason"] = (
                 response.reason_phrase
             )  # httpx renames .reason → .reason_phrase
@@ -286,6 +289,15 @@ class AsyncHttpClient:
         cb = self._circuit_breakers.get(urlparse(url).netloc)
         return cb.state if cb is not None else None
 
+    def set_crawl_delay(self, host: str, delay_seconds: float) -> None:
+        """Override the per-host crawl delay for *host*.
+
+        Takes precedence over ``HttpClientConfig.min_request_interval_seconds``
+        when the override is larger.  Intended for callers that parse a site's
+        ``robots.txt`` and want to honour its ``Crawl-delay`` directive.
+        """
+        self._crawl_delay_overrides[host] = delay_seconds
+
     def _client_for_proxy(
         self, proxy: Mapping[str, str] | None
     ) -> httpx.AsyncClient:
@@ -326,7 +338,15 @@ class AsyncHttpClient:
         )
         if isinstance(e, httpx.TimeoutException):
             return Err(RequestTimeoutError(str(e)), meta=meta)
-        if isinstance(e, (httpx.ConnectError, httpx.NetworkError)):
+        if isinstance(
+            e,
+            (
+                httpx.ConnectError,
+                httpx.NetworkError,
+                httpx.RemoteProtocolError,
+                httpx.LocalProtocolError,
+            ),
+        ):
             return Err(TransientNetworkError(str(e)), meta=meta)
         return Err(HttpClientError(str(e)), meta=meta)
 

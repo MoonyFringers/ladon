@@ -128,8 +128,8 @@ async def test_get_uses_override_timeout(
     config: HttpClientConfig, httpx_mock: HTTPXMock
 ) -> None:
     httpx_mock.add_response(content=b"ok", url="http://example.com")
-    client = AsyncHttpClient(config)
-    result = await client.get("http://example.com", timeout=2.5)
+    async with AsyncHttpClient(config) as client:
+        result = await client.get("http://example.com", timeout=2.5)
 
     assert result.ok
     t = result.meta["timeout_s"]
@@ -241,6 +241,30 @@ async def test_download_success(
     assert isinstance(result.value, httpx.Response)
     assert result.value.content == b"file-bytes"
     assert result.meta["method"] == "GET"
+
+
+async def test_download_returns_raw_response_before_read(
+    client: AsyncHttpClient, httpx_mock: HTTPXMock
+) -> None:
+    """download() must return the httpx.Response object, not pre-read bytes.
+
+    The caller needs the response object to stream content or inspect headers
+    before consuming the body — that is the primary reason to call download()
+    instead of get().
+    """
+    httpx_mock.add_response(
+        content=b"chunk1chunk2", url="http://example.com/file"
+    )
+
+    result = await client.download("http://example.com/file")
+
+    assert result.ok
+    # Value is the response object itself, not bytes
+    assert isinstance(result.value, httpx.Response)
+    # Headers are accessible on the response before any read
+    assert result.value.headers is not None
+    # Content is readable from the response object
+    assert result.value.content == b"chunk1chunk2"
 
 
 # ---------------------------------------------------------------------------
@@ -479,3 +503,21 @@ async def test_context_merged_into_metadata(
     assert result.meta["house"] == "sothebys"
     assert result.meta["crawler"] == "canary"
     assert result.meta["context"] == {"house": "sothebys", "crawler": "canary"}
+
+
+# ---------------------------------------------------------------------------
+# set_crawl_delay
+# ---------------------------------------------------------------------------
+
+
+def test_set_crawl_delay_stored(config: HttpClientConfig) -> None:
+    c = AsyncHttpClient(config)
+    c.set_crawl_delay("example.com", 2.5)
+    assert c._crawl_delay_overrides["example.com"] == 2.5
+
+
+def test_set_crawl_delay_overwrites(config: HttpClientConfig) -> None:
+    c = AsyncHttpClient(config)
+    c.set_crawl_delay("example.com", 1.0)
+    c.set_crawl_delay("example.com", 3.0)
+    assert c._crawl_delay_overrides["example.com"] == 3.0
