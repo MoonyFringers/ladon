@@ -1,3 +1,7 @@
+# AsyncHttpClient is forward-referenced under TYPE_CHECKING below; its module
+# (networking/async_client.py) does not exist yet, so pyright sees Unknown for
+# the import and all method parameters typed with it. Remove both suppressions
+# once async_client.py is created.
 # pyright: reportUnknownVariableType=false, reportUnknownParameterType=false
 """typing.Protocol definitions for async Ladon crawl plugins.
 

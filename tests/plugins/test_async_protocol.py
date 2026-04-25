@@ -1,6 +1,3 @@
-# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
-# pyright: reportUnknownArgumentType=false, reportArgumentType=false
-# pyright: reportUnknownParameterType=false, reportMissingParameterType=false
 """Structural conformance tests for async crawl plugin protocols.
 
 Uses plain Python classes with no inheritance from ladon.plugins.
@@ -81,6 +78,38 @@ class _NotASink:
     """Has no 'consume' method."""
 
 
+class _PluginMissingExpanders:
+    """Has name/source/sink but no expanders property."""
+
+    @property
+    def name(self) -> str:
+        return "no_expanders"
+
+    @property
+    def source(self) -> _MockAsyncSource:
+        return _MockAsyncSource()
+
+    @property
+    def sink(self) -> _MockAsyncSink:
+        return _MockAsyncSink()
+
+
+class _PluginMissingSink:
+    """Has name/source/expanders but no sink property."""
+
+    @property
+    def name(self) -> str:
+        return "no_sink"
+
+    @property
+    def source(self) -> _MockAsyncSource:
+        return _MockAsyncSource()
+
+    @property
+    def expanders(self) -> list[_MockAsyncExpander]:
+        return [_MockAsyncExpander()]
+
+
 # ---------------------------------------------------------------------------
 # Protocol conformance — positive cases
 # ---------------------------------------------------------------------------
@@ -143,11 +172,11 @@ class TestAsyncSourceNegative:
     def test_missing_discover_not_async_source(self) -> None:
         assert not isinstance(_NotASource(), AsyncSource)
 
-    def test_sync_discover_not_async_source(self) -> None:
-        # runtime_checkable only checks method existence, not coroutine nature.
-        # _SyncSource HAS 'discover', so isinstance returns True at runtime.
-        # This is a known limitation of runtime_checkable Protocol checks.
-        # Pyright catches the distinction at type-check time.
+    def test_sync_discover_passes_isinstance_runtime_limitation(self) -> None:
+        # runtime_checkable only checks that the method name exists, not that
+        # it is a coroutine function. A plain sync def satisfies the check at
+        # runtime even though it is semantically wrong. Pyright catches this
+        # at type-check time; the runtime cannot.
         assert isinstance(_SyncSource(), AsyncSource)
 
 
@@ -164,6 +193,12 @@ class TestAsyncSinkNegative:
 class TestAsyncCrawlPluginNegative:
     def test_plain_object_not_async_crawl_plugin(self) -> None:
         assert not isinstance(object(), AsyncCrawlPlugin)
+
+    def test_missing_expanders_not_async_crawl_plugin(self) -> None:
+        assert not isinstance(_PluginMissingExpanders(), AsyncCrawlPlugin)
+
+    def test_missing_sink_not_async_crawl_plugin(self) -> None:
+        assert not isinstance(_PluginMissingSink(), AsyncCrawlPlugin)
 
 
 # ---------------------------------------------------------------------------
