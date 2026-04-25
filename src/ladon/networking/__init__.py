@@ -1,5 +1,6 @@
 """Networking package for Ladon."""
 
+from .async_client import AsyncHttpClient
 from .circuit_breaker import CircuitState
 from .client import HttpClient
 from .config import HttpClientConfig
@@ -15,6 +16,7 @@ from .proxy_pool import ProxyPool, RoundRobinProxyPool, validate_proxy
 from .types import Result
 
 __all__ = [
+    "AsyncHttpClient",
     "CircuitOpenError",
     "CircuitState",
     "HttpClient",
