@@ -41,8 +41,10 @@ class RunConfig:
     """Configuration for a single runner invocation.
 
     ``leaf_limit`` caps the number of leaves processed; 0 means no limit.
-    ``async_concurrency`` bounds the number of concurrent sink calls in
-    ``async_run_crawl``; ignored by the sync ``run_crawl()``.
+    ``async_concurrency`` bounds the number of concurrent leaf-processing
+    slots in ``async_run_crawl`` — each slot covers the full
+    ``sink.consume()`` + ``on_leaf`` pair, so slow callbacks reduce effective
+    fetch concurrency.  Ignored by the sync ``run_crawl()``.
     """
 
     leaf_limit: int = 0

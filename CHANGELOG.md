@@ -9,6 +9,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Async crawling via `async_run_crawl()`** — asyncio-native counterpart to
+  `run_crawl()`.  Phase 1 (expander traversal) is sequential `await`; Phase 3
+  (sink) issues leaf fetches concurrently behind
+  `asyncio.Semaphore(config.async_concurrency)` (default 10).  Each semaphore
+  slot covers the full `sink.consume()` + `on_leaf` pair so callbacks are
+  naturally isolated.  `LeafUnavailableError` is isolated per leaf (other
+  leaves continue); `ExpansionNotReadyError` remains globally fatal.
+  `RunConfig` gains `async_concurrency: int = 10`; `AsyncHttpClient` and
+  `async_run_crawl` are exported from the top-level `ladon` namespace.
+
 ---
 
 ## [0.1.0] — 2026-04-25

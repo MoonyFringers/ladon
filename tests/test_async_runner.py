@@ -365,9 +365,36 @@ class TestAsyncRunnerErrors:
         config: RunConfig,
     ) -> None:
         """leaves_consumed + leaves_failed == total leaves in Phase 3, always."""
+
+        # Scenario A: all succeed, no callback
         p = _MockAsyncPlugin(child_refs)
         r = await async_run_crawl(top_ref, p, None, config)  # type: ignore[arg-type]
         assert r.leaves_consumed + r.leaves_failed == len(child_refs)
+
+        # Scenario B: all consume() fail
+        class _AlwaysFailSink:
+            async def consume(self, ref: object, client: object) -> object:
+                raise LeafUnavailableError("always fails")
+
+        p2 = _MockAsyncPlugin(child_refs)
+        p2.sink = _AlwaysFailSink()
+        r2 = await async_run_crawl(top_ref, p2, None, config)  # type: ignore[arg-type]
+        assert r2.leaves_consumed + r2.leaves_failed == len(child_refs)
+
+        # Scenario C: all consume() succeed, all callbacks fail
+        async def _failing_cb(leaf: object, parent: object) -> None:
+            raise RuntimeError("db down")
+
+        p3 = _MockAsyncPlugin(child_refs)
+        r3 = await async_run_crawl(top_ref, p3, None, config, on_leaf=_failing_cb)  # type: ignore[arg-type]
+        assert r3.leaves_consumed + r3.leaves_failed == len(child_refs)
+
+        # Scenario D: leaf_limit applied — invariant is over Phase 3 leaves only
+        p4 = _MockAsyncPlugin(child_refs)
+        r4 = await async_run_crawl(  # type: ignore[arg-type]
+            top_ref, p4, None, RunConfig(leaf_limit=1)
+        )
+        assert r4.leaves_consumed + r4.leaves_failed == 1
 
 
 # ---------------------------------------------------------------------------

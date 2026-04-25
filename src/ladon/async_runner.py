@@ -130,11 +130,11 @@ async def async_run_crawl(
         persisted=True when consumed AND on_leaf succeeded (or no callback).
         leaf_errors    holds at most one error string.
         """
-        _parent_repr = repr(parent_record)
-        if len(_parent_repr) > 120:
-            _parent_repr = _parent_repr[:117] + "..."
-
         async with semaphore:
+            _parent_repr = repr(parent_record)
+            if len(_parent_repr) > 120:
+                _parent_repr = _parent_repr[:117] + "..."
+
             try:
                 leaf_record = await plugin.sink.consume(leaf_ref, client)
             except LeafUnavailableError as exc:
