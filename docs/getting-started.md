@@ -2,16 +2,12 @@
 
 ## Installation
 
-Ladon is not yet published on PyPI — a release will follow once example
-adapters are available. Install from source:
-
 ```bash
-git clone https://github.com/moonyfringers/ladon.git
-cd ladon
-pip install -e .
+pip install ladon-crawl
 ```
 
-Ladon requires Python 3.12+.  The only runtime dependency is `requests`.
+Ladon requires Python 3.11+.  Runtime dependencies: `requests` (sync
+client) and `httpx` (async client).
 
 ## First request
 
@@ -123,8 +119,41 @@ the config is immutable after construction.
   `HttpClient` session — at most one fetch per origin (one per
   `scheme + hostname` pair).
 
+## Async crawling
+
+For high-throughput crawls use `async_run_crawl()` with `AsyncHttpClient`:
+
+```python
+import asyncio
+from ladon import AsyncHttpClient, async_run_crawl
+from ladon.networking.config import HttpClientConfig
+from ladon.runner import RunConfig
+
+config = HttpClientConfig(retries=2, timeout_seconds=10)
+
+async def main() -> None:
+    async with AsyncHttpClient(config) as client:
+        result = await async_run_crawl(
+            top_ref=my_ref,
+            plugin=my_async_plugin,
+            client=client,
+            config=RunConfig(async_concurrency=20),
+            on_leaf=my_async_persist,
+        )
+        print(f"consumed {result.leaves_consumed}, failed {result.leaves_failed}")
+
+asyncio.run(main())
+```
+
+Phase 1 (expander traversal) runs sequentially; Phase 3 (sink) issues leaf
+fetches concurrently behind `asyncio.Semaphore(async_concurrency)`.  Each
+slot covers the full `sink.consume()` + `on_leaf` pair so slow callbacks
+do not cause unbounded parallelism.
+
+`on_leaf` must be an `async def` function when used with `async_run_crawl`.
+
 ## Next steps
 
 - [Authoring Plugins](guides/authoring-plugins.md) — build a site adapter
-- [API Reference → Networking](api/networking.md) — `HttpClient` and config
-- [API Reference → Runner](api/runner.md) — `run_crawl` and result types
+- [API Reference → Networking](api/networking.md) — `HttpClient`, `AsyncHttpClient`, and config
+- [API Reference → Runner](api/runner.md) — `run_crawl`, `async_run_crawl`, and result types

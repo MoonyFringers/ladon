@@ -9,6 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.2.0] — 2026-04-25
+
 ### Added
 
 - **Async crawling via `async_run_crawl()`** — asyncio-native counterpart to
@@ -20,6 +24,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   leaves continue); `ExpansionNotReadyError` remains globally fatal.
   `RunConfig` gains `async_concurrency: int = 10`; `AsyncHttpClient` and
   `async_run_crawl` are exported from the top-level `ladon` namespace.
+
+- **`AsyncHttpClient`** — full async HTTP client backed by `httpx`.  Mirrors
+  all policies of `HttpClient` (retries, exponential backoff, full-jitter,
+  429/503 Retry-After, circuit breaker, proxy rotation, HTTP auth,
+  `default_params`, `default_headers`).  `respect_robots_txt=True` raises
+  `NotImplementedError` at construction time (deferred to a later release).
+  Exported from `ladon.networking` and the top-level `ladon` namespace.
+
+- **Async plugin protocols** — `AsyncSource`, `AsyncExpander`, `AsyncSink`,
+  and `AsyncCrawlPlugin` structural protocols (PEP 544, all
+  `@runtime_checkable`).  All four are exported from `ladon.plugins` and the
+  top-level `ladon` namespace.  The sync protocol hierarchy is untouched.
 
 ---
 
@@ -102,6 +118,7 @@ First public release.
   current counters are correct but the model will be simplified
 - Python 3.11, 3.12, and 3.13 supported; 3.10 and below are not
 
-[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/MoonyFringers/ladon/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/MoonyFringers/ladon/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/MoonyFringers/ladon/releases/tag/v0.0.1

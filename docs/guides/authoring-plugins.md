@@ -135,6 +135,60 @@ The CLI uses default `RunConfig` settings (no leaf limit, no `on_leaf`
 callback).  For production use write a Python script that calls `run_crawl`
 directly.
 
+## Async plugins
+
+For high-concurrency crawls implement `AsyncCrawlPlugin` and call
+`async_run_crawl()` instead.  The async protocols mirror the sync ones with
+`async def` methods and `AsyncHttpClient` as the client parameter.
+
+```python
+from ladon.plugins.async_protocol import AsyncCrawlPlugin, AsyncExpander, AsyncSink, AsyncSource
+from ladon.networking.async_client import AsyncHttpClient
+
+class AsyncAuctionPlugin:
+    def __init__(self) -> None:
+        self.name = "async_auction_example"
+        self.source = AsyncCatalogueSource()
+        self.expanders = [AsyncCategoryExpander(), AsyncAuctionExpander()]
+        self.sink = AsyncLotSink()
+
+
+class AsyncLotSink:
+    async def consume(self, ref: object, client: AsyncHttpClient) -> object:
+        result = await client.get(str(ref))
+        if not result.ok:
+            from ladon.plugins.errors import LeafUnavailableError
+            raise LeafUnavailableError(f"fetch failed: {result.error}")
+        return parse_lot(result.value)
+```
+
+Run it:
+
+```python
+import asyncio
+from ladon import AsyncHttpClient, async_run_crawl
+from ladon.networking.config import HttpClientConfig
+from ladon.runner import RunConfig
+
+async def main() -> None:
+    config = HttpClientConfig(retries=2, min_request_interval_seconds=0.5)
+    async with AsyncHttpClient(config) as client:
+        result = await async_run_crawl(
+            top_ref="https://example-auction.com/catalogue/2026",
+            plugin=AsyncAuctionPlugin(),
+            client=client,
+            config=RunConfig(leaf_limit=100, async_concurrency=20),
+            on_leaf=my_async_persist,
+        )
+        print(f"fetched {result.leaves_consumed}, failed {result.leaves_failed}")
+
+asyncio.run(main())
+```
+
+`async_run_crawl` accepts the same `RunConfig` as `run_crawl`.  The
+`async_concurrency` field controls how many leaf fetches run simultaneously
+(default 10).  The sync runner ignores it.
+
 ## Error taxonomy
 
 All errors are in `ladon.plugins.errors` and `ladon.networking.errors`.
