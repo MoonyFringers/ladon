@@ -642,6 +642,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#error-taxonomy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1228,6 +1239,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#error-taxonomy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1383,6 +1405,52 @@ the runner records the failure and moves on.</p>
 <p>The CLI uses default <code>RunConfig</code> settings (no leaf limit, no <code>on_leaf</code>
 callback).  For production use write a Python script that calls <code>run_crawl</code>
 directly.</p>
+<h2 id="async-plugins">Async plugins</h2>
+<p>For high-concurrency crawls implement <code>AsyncCrawlPlugin</code> and call
+<code>async_run_crawl()</code> instead.  The async protocols mirror the sync ones with
+<code>async def</code> methods and <code>AsyncHttpClient</code> as the client parameter.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.plugins.async_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCrawlPlugin</span><span class="p">,</span> <span class="n">AsyncExpander</span><span class="p">,</span> <span class="n">AsyncSink</span><span class="p">,</span> <span class="n">AsyncSource</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.async_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">AsyncAuctionPlugin</span><span class="p">:</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;async_auction_example&quot;</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">AsyncCatalogueSource</span><span class="p">()</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">expanders</span> <span class="o">=</span> <span class="p">[</span><span class="n">AsyncCategoryExpander</span><span class="p">(),</span> <span class="n">AsyncAuctionExpander</span><span class="p">()]</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="n">AsyncLotSink</span><span class="p">()</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">AsyncLotSink</span><span class="p">:</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>            <span class="kn">from</span><span class="w"> </span><span class="nn">ladon.plugins.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeafUnavailableError</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>            <span class="k">raise</span> <span class="n">LeafUnavailableError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetch failed: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>        <span class="k">return</span> <span class="n">parse_lot</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>Run it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_crawl</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_request_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_crawl</span><span class="p">(</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-auction.com/catalogue/2026&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">AsyncAuctionPlugin</span><span class="p">(),</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="p">)</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetched </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+<p><code>async_run_crawl</code> accepts the same <code>RunConfig</code> as <code>run_crawl</code>.  The
+<code>async_concurrency</code> field controls how many leaf fetches run simultaneously
+(default 10).  The sync runner ignores it.</p>
 <h2 id="error-taxonomy">Error taxonomy</h2>
 <p>All errors are in <code>ladon.plugins.errors</code> and <code>ladon.networking.errors</code>.</p>
 <table>

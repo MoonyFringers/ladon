@@ -1172,6 +1172,14 @@ plumbing.</p>
 <td>Result type</td>
 <td><code>Ok</code> / <code>Err</code> without exceptions crossing API boundaries</td>
 </tr>
+<tr>
+<td>Async crawling</td>
+<td><code>async_run_crawl()</code> with <code>asyncio.Semaphore</code> concurrency control</td>
+</tr>
+<tr>
+<td>Async client</td>
+<td><code>AsyncHttpClient</code> — full httpx-backed mirror of <code>HttpClient</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="quick-start">Quick start</h2>

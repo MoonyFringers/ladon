@@ -513,6 +513,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-crawling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async crawling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1189,6 +1200,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-crawling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async crawling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1221,13 +1243,10 @@
 
 <h1 id="getting-started">Getting Started</h1>
 <h2 id="installation">Installation</h2>
-<p>Ladon is not yet published on PyPI — a release will follow once example
-adapters are available. Install from source:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/moonyfringers/ladon.git
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>ladon
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ladon-crawl
 </code></pre></div>
-<p>Ladon requires Python 3.12+.  The only runtime dependency is <code>requests</code>.</p>
+<p>Ladon requires Python 3.11+.  Runtime dependencies: <code>requests</code> (sync
+client) and <code>httpx</code> (async client).</p>
 <h2 id="first-request">First request</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClient</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
@@ -1378,11 +1397,38 @@ work under an explicit institutional policy.</p>
   <code>HttpClient</code> session — at most one fetch per origin (one per
   <code>scheme + hostname</code> pair).</li>
 </ul>
+<h2 id="async-crawling">Async crawling</h2>
+<p>For high-throughput crawls use <code>async_run_crawl()</code> with <code>AsyncHttpClient</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_crawl</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">timeout_seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_crawl</span><span class="p">(</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="n">my_ref</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">my_async_plugin</span><span class="p">,</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="p">)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;consumed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+<p>Phase 1 (expander traversal) runs sequentially; Phase 3 (sink) issues leaf
+fetches concurrently behind <code>asyncio.Semaphore(async_concurrency)</code>.  Each
+slot covers the full <code>sink.consume()</code> + <code>on_leaf</code> pair so slow callbacks
+do not cause unbounded parallelism.</p>
+<p><code>on_leaf</code> must be an <code>async def</code> function when used with <code>async_run_crawl</code>.</p>
 <h2 id="next-steps">Next steps</h2>
 <ul>
 <li><a href="../guides/authoring-plugins/">Authoring Plugins</a> — build a site adapter</li>
-<li><a href="../api/networking/">API Reference → Networking</a> — <code>HttpClient</code> and config</li>
-<li><a href="../api/runner/">API Reference → Runner</a> — <code>run_crawl</code> and result types</li>
+<li><a href="../api/networking/">API Reference → Networking</a> — <code>HttpClient</code>, <code>AsyncHttpClient</code>, and config</li>
+<li><a href="../api/runner/">API Reference → Runner</a> — <code>run_crawl</code>, <code>async_run_crawl</code>, and result types</li>
 </ul>
 
 
