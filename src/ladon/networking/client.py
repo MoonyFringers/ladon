@@ -276,7 +276,6 @@ class HttpClient:
                 meta.setdefault(key, value)
 
         if response is not None:
-            meta["status"] = response.status_code
             meta["status_code"] = response.status_code
             meta["url"] = response.url
             meta["reason"] = response.reason

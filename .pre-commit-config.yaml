@@ -25,3 +25,5 @@ repos:
     hooks:
       - id: pyright
         args: ["--project", "pyproject.toml"]
+        additional_dependencies:
+          - httpx>=0.27
