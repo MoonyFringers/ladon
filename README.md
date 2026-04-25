@@ -101,13 +101,55 @@ directly from Python — see
 [`ladon-hackernews` — Use as a library](https://github.com/MoonyFringers/ladon-hackernews#use-as-a-library)
 for a full example.
 
+## Async crawling
+
+`async_run_crawl()` is the asyncio-native counterpart to `run_crawl()`.
+Phase 1 (expander traversal) runs sequentially; Phase 3 issues leaf fetches
+concurrently behind `asyncio.Semaphore(config.async_concurrency)` (default 10):
+
+```python
+import asyncio
+from ladon import AsyncHttpClient, async_run_crawl
+from ladon.networking.config import HttpClientConfig
+from ladon.runner import RunConfig
+
+async def main() -> None:
+    config = HttpClientConfig(retries=2, timeout_seconds=10)
+    async with AsyncHttpClient(config) as client:
+        result = await async_run_crawl(
+            top_ref=my_ref,
+            plugin=my_async_plugin,
+            client=client,
+            config=RunConfig(async_concurrency=20),
+            on_leaf=my_async_persist,
+        )
+        print(f"consumed {result.leaves_consumed}, failed {result.leaves_failed}")
+
+asyncio.run(main())
+```
+
+`AsyncHttpClient` mirrors all policies of `HttpClient` (retries, backoff,
+Retry-After, circuit breaker, proxy rotation, auth) using `httpx` as the
+backend. Adapters implement `AsyncCrawlPlugin`, `AsyncSource`, `AsyncExpander`,
+and `AsyncSink` — the same structural-protocol pattern as the sync stack.
+
 ## Status
 
-`v0.0.1` — alpha. The SES protocol and HTTP layer are stable. One reference
-adapter (`ladon-hackernews`) is available as open source and tested against
-the real HN API.
+`v0.2.0` — async crawling milestone. `AsyncHttpClient`, `AsyncCrawlPlugin`,
+and `async_run_crawl()` are stable and fully tested. The sync API is unchanged.
 
-What is in v0.0.1:
+What is in v0.2.0:
+- **Async crawling** — `async_run_crawl()` + `AsyncHttpClient` (httpx backend)
+- **Async plugin protocols** — `AsyncSource`, `AsyncExpander`, `AsyncSink`, `AsyncCrawlPlugin`
+- `RunConfig.async_concurrency` — bounded leaf-fetch concurrency (default 10)
+
+What was in v0.1.0:
+- HTTP 429/503 Retry-After respect and full-jitter backoff
+- Static and rotating proxy support (`ProxyPool`, `RoundRobinProxyPool`)
+- HTTP authentication — Basic, Digest, any `requests.auth.AuthBase`
+- Default query parameters via `HttpClientConfig(default_params=...)`
+
+What was in v0.0.1:
 - SES protocol (Source / Expander / Sink) with structural typing
 - `run_crawl()` runner with leaf isolation and `RunResult` summary
 - `HttpClient` with retries, back-off, rate limiting, circuit breaker, robots.txt
@@ -115,10 +157,9 @@ What is in v0.0.1:
 - `Repository` and `RunAudit` persistence protocols with `NullRepository`
 - `ladon run` / `ladon info` CLI
 
-What is coming in v0.1.0 (in progress):
-- HTTP 429/503 Retry-After respect, full-jitter backoff, static and rotating proxy support ✓
-- HTTP authentication — Basic, Digest, OAuth client credentials (issue [#86](https://github.com/MoonyFringers/ladon/issues/86))
-- RunResult counter semantics redesign (issue [#62](https://github.com/MoonyFringers/ladon/issues/62))
+What is coming:
+- `ladon-mimir` — async Wikipedia adapter for LLM fine-tuning (issue [#96](https://github.com/MoonyFringers/ladon/issues/96))
+- Async robots.txt enforcement in `AsyncHttpClient`
 - Structured logging baseline (ADR-009)
 
 ## Contributing
