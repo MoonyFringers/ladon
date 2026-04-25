@@ -231,6 +231,19 @@ class TestAsyncRunnerHappyPath:
         result = await async_run_crawl(top_ref, plugin, None, config)  # type: ignore[arg-type]
         assert result.leaves_consumed == 3
 
+    async def test_zero_leaves_when_first_expander_returns_empty(
+        self,
+        top_ref: Ref,
+        config: RunConfig,
+    ) -> None:
+        p = _MockAsyncPlugin([])  # expander yields no children
+        result = await async_run_crawl(top_ref, p, None, config)  # type: ignore[arg-type]
+        assert result.leaves_consumed == 0
+        assert result.leaves_persisted == 0
+        assert result.leaves_failed == 0
+        assert result.errors == ()
+        assert isinstance(result.record, _DemoRecord)
+
 
 # ---------------------------------------------------------------------------
 # Runner — error handling
@@ -338,6 +351,40 @@ class TestAsyncRunnerErrors:
         assert result.leaves_consumed == 0
         assert result.leaves_persisted == 0
         assert result.leaves_failed == 3
+
+    async def test_on_leaf_not_called_for_failed_leaves(
+        self,
+        top_ref: Ref,
+        config: RunConfig,
+    ) -> None:
+        refs = [
+            Ref(url="https://demo.example.com/leaf/1"),
+            Ref(url="https://demo.example.com/leaf/2"),
+        ]
+
+        class _FailingSink:
+            async def consume(
+                self, ref: object, client: object
+            ) -> _DemoLeafRecord:
+                r = ref if isinstance(ref, Ref) else Ref(url="")
+                if r.url.endswith("/2"):
+                    raise LeafUnavailableError("missing")
+                return _make_leaf(leaf_id="1", url=r.url)
+
+        calls: list[object] = []
+
+        async def on_leaf(leaf: object, parent: object) -> None:
+            calls.append(leaf)
+
+        p = _MockAsyncPlugin(refs)
+        p.sink = _FailingSink()
+        result = await async_run_crawl(top_ref, p, None, config, on_leaf=on_leaf)  # type: ignore[arg-type]
+        assert (
+            len(calls) == 1
+        )  # only the successful leaf triggered the callback
+        assert result.leaves_consumed == 1
+        assert result.leaves_persisted == 1
+        assert result.leaves_failed == 1
 
     async def test_on_leaf_exception_is_non_fatal(
         self,
