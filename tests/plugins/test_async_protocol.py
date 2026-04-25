@@ -6,7 +6,7 @@ All isinstance checks are synchronous — pytest-asyncio is not required.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from ladon.plugins.async_protocol import (
     AsyncCrawlPlugin,
