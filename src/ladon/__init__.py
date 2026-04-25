@@ -2,6 +2,8 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from .async_runner import async_run_crawl
+from .networking.async_client import AsyncHttpClient
 from .networking.client import HttpClient
 from .networking.config import HttpClientConfig
 from .networking.errors import (
@@ -53,6 +55,7 @@ except PackageNotFoundError:
 __all__ = [
     # Runner
     "run_crawl",
+    "async_run_crawl",
     "RunConfig",
     "RunResult",
     # Sync plugin protocols
@@ -77,6 +80,7 @@ __all__ = [
     "AssetDownloadError",
     # Networking
     "HttpClient",
+    "AsyncHttpClient",
     "HttpClientConfig",
     "Result",
     "HttpClientError",
