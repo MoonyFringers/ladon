@@ -124,6 +124,36 @@ async def test_get_success_metadata(
     assert isinstance(result.meta["timeout_s"], httpx.Timeout)
 
 
+async def test_get_url_preserved_in_metadata(
+    client: AsyncHttpClient, httpx_mock: HTTPXMock
+) -> None:
+    httpx_mock.add_response(content=b"ok", url="http://example.com")
+
+    result = await client.get("http://example.com")
+
+    assert result.meta["url"] == "http://example.com"
+    assert result.meta["final_url"] == "http://example.com"
+    assert "redirected" not in result.meta
+
+
+async def test_get_redirect_tracked_in_metadata(
+    client: AsyncHttpClient, httpx_mock: HTTPXMock
+) -> None:
+    httpx_mock.add_response(
+        status_code=301,
+        headers={"Location": "http://example.com/new"},
+        url="http://example.com",
+    )
+    httpx_mock.add_response(content=b"ok", url="http://example.com/new")
+
+    result = await client.get("http://example.com")
+
+    assert result.ok
+    assert result.meta["url"] == "http://example.com"
+    assert result.meta["final_url"] == "http://example.com/new"
+    assert result.meta["redirected"] is True
+
+
 async def test_get_uses_override_timeout(
     config: HttpClientConfig, httpx_mock: HTTPXMock
 ) -> None:

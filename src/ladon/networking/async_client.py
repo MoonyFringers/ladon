@@ -242,7 +242,12 @@ class AsyncHttpClient:
             await self._sleep_between_attempts(attempt)
 
     async def _enforce_rate_limit(self, url: str) -> None:
-        """Enforce per-host politeness delay before issuing a request."""
+        """Enforce per-host politeness delay before issuing a request.
+
+        Only waits — does not stamp ``_last_request_time``.  All stamping is
+        done by the ``_request`` loop's ``finally`` block so that every actual
+        attempt (including retries) updates the timestamp.
+        """
         host = urlparse(url).netloc
         if not host:
             return
@@ -258,7 +263,6 @@ class AsyncHttpClient:
             remaining = interval - elapsed
             if remaining > 0:
                 await asyncio.sleep(remaining)
-        self._last_request_time[host] = monotonic()
 
     def _merge_params(
         self, params: Mapping[str, str] | None
