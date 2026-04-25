@@ -18,6 +18,10 @@ from .networking.types import Result
 from .persistence import NullRepository, Repository, RunAudit, RunRecord
 from .plugins import (
     AssetDownloadError,
+    AsyncCrawlPlugin,
+    AsyncExpander,
+    AsyncSink,
+    AsyncSource,
     ChildListUnavailableError,
     CrawlPlugin,
     Expander,
@@ -51,11 +55,16 @@ __all__ = [
     "run_crawl",
     "RunConfig",
     "RunResult",
-    # Plugin protocols
+    # Sync plugin protocols
     "CrawlPlugin",
     "Source",
     "Expander",
     "Sink",
+    # Async plugin protocols
+    "AsyncCrawlPlugin",
+    "AsyncSource",
+    "AsyncExpander",
+    "AsyncSink",
     # Plugin models
     "Ref",
     "Expansion",
