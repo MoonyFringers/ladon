@@ -9,7 +9,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.1.0] — 2026-04-25
+
 ### Added
+
+- **HTTP authentication** — `HttpClientConfig(auth=("user", "pass"))` for HTTP Basic Auth;
+  `auth=HTTPDigestAuth("user", "pass")` or any `requests.auth.AuthBase` subclass for Digest
+  and custom schemes (HMAC signing, OAuth token injection). Wired directly to
+  `requests.Session.auth`. Tuple length validated at construction. Bearer tokens and static
+  API keys remain in `default_headers` as before.
+
+- **Default query parameters** — `HttpClientConfig(default_params={"api_key": "..."})` injects
+  query parameters into every request. Per-request `params` take precedence on key collision,
+  matching the same override contract as `default_headers`. Frozen via `MappingProxyType`.
+  Useful for API keys that must appear in the query string.
+
+- **`params` kwarg on `post()` and `download()`** — symmetry with `get()` and `head()`;
+  merged with `default_params` in the same way.
 
 - **Proxy rotation via `ProxyPool`** — `HttpClientConfig(proxy_pool=RoundRobinProxyPool([...]))`
   rotates through a list of proxies on every request attempt. Custom rotation strategies
@@ -72,4 +90,6 @@ First public release.
   current counters are correct but the model will be simplified
 - Python 3.11, 3.12, and 3.13 supported; 3.10 and below are not
 
+[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/MoonyFringers/ladon/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/MoonyFringers/ladon/releases/tag/v0.0.1
