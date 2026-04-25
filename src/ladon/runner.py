@@ -41,9 +41,20 @@ class RunConfig:
     """Configuration for a single runner invocation.
 
     ``leaf_limit`` caps the number of leaves processed; 0 means no limit.
+    ``async_concurrency`` bounds the number of concurrent leaf-processing
+    slots in ``async_run_crawl`` — each slot covers the full
+    ``sink.consume()`` + ``on_leaf`` pair, so slow callbacks reduce effective
+    fetch concurrency.  Ignored by the sync ``run_crawl()``.
     """
 
     leaf_limit: int = 0
+    async_concurrency: int = 10
+
+    def __post_init__(self) -> None:
+        if self.async_concurrency < 1:
+            raise ValueError(
+                f"async_concurrency must be >= 1, got {self.async_concurrency}"
+            )
 
 
 @dataclass(frozen=True)
