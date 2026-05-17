@@ -9,6 +9,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`cffi` optional dependency group** — `pip install ladon-crawl[cffi]` installs
+  `curl-cffi>=0.11,<1`, enabling the `CurlHttpClient` and `AsyncCurlHttpClient`
+  backends for Cloudflare-protected targets (issue #107).
+
+- **`CurlHttpClient` / `AsyncCurlHttpClient`** — sync and async HTTP clients
+  backed by curl-cffi.  Mirror all policies of `HttpClient` / `AsyncHttpClient`
+  (retries, exponential backoff, circuit breaker, proxy rotation, rate limiting)
+  but use TLS fingerprint impersonation (JA3/JA4) to bypass Cloudflare L1+L2
+  challenges without browser automation.  Both are exported from `ladon.networking`
+  and the top-level `ladon` namespace.
+
+- **`HttpClientConfig(backend=, impersonate=)`** — two new fields select the
+  HTTP backend without changing call sites.  `backend="curl-cffi"` (requires
+  `impersonate`) returns a `CurlHttpClient` / `AsyncCurlHttpClient` from the
+  factory helpers.  Default is `backend="requests"` (unchanged behaviour).
+
+- **`make_http_client()` / `make_async_http_client()`** — factory helpers that
+  instantiate the correct sync or async client based on `config.backend`.
+  Exported from `ladon.networking` and the top-level `ladon` namespace.
+
 ---
 
 ## [0.2.0] — 2026-04-25
