@@ -329,6 +329,18 @@ class SyncPolicyBase(ABC):
         """
         self._crawl_delay_overrides[host] = delay_seconds
 
+    @staticmethod
+    def _content_value(response: Any) -> bytes:
+        return response.content  # type: ignore[no-any-return]
+
+    @staticmethod
+    def _headers_value(response: Any) -> Mapping[str, Any]:
+        return dict(response.headers)
+
+    @staticmethod
+    def _response_value(response: Any) -> Any:
+        return response
+
     def _request(
         self,
         method: str,

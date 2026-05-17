@@ -146,18 +146,6 @@ class CurlHttpClient(SyncPolicyBase):
 
         return Err(HttpClientError(str(e)), meta=meta)
 
-    @staticmethod
-    def _content_value(response: Any) -> bytes:
-        return response.content  # type: ignore[no-any-return]
-
-    @staticmethod
-    def _headers_value(response: Any) -> Mapping[str, Any]:
-        return dict(response.headers)
-
-    @staticmethod
-    def _response_value(response: Any) -> Any:
-        return response
-
     def get(
         self,
         url: str,

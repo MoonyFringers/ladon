@@ -112,18 +112,6 @@ class HttpClient(SyncPolicyBase):
 
         return Err(HttpClientError(str(e)), meta=meta)
 
-    @staticmethod
-    def _content_value(response: requests.Response) -> bytes:
-        return response.content
-
-    @staticmethod
-    def _headers_value(response: requests.Response) -> Mapping[str, Any]:
-        return dict(response.headers)
-
-    @staticmethod
-    def _response_value(response: requests.Response) -> requests.Response:
-        return response
-
     def get(
         self,
         url: str,
