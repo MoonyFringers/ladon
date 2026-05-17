@@ -18,6 +18,7 @@ chosen over the alternatives.
 | ADR-009 | Observability (metrics, structured logs) | Proposed — Phase 3 |
 | [ADR-010](adr-010-dual-license-model.md) | Dual-License Model (AGPL-3.0-only + Commercial) | Accepted |
 | [ADR-011](adr-011-curl-cffi-cloudflare-bypass.md) | curl-cffi as the Cloudflare-Bypass HTTP Backend | Accepted |
+| [ADR-012](adr-012-session-contract-boundary.md) | Session Contract Boundary in `SyncPolicyBase` | Accepted |
 
 ## Format
 
