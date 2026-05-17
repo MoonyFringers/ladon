@@ -18,7 +18,7 @@ Bootstrap symbols (cffi, cffi_exc, BrowserType) are owned by _cffi_common.py.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Mapping, MutableMapping
 
 from ._cffi_common import cffi as _cffi
 from ._cffi_common import cffi_exc as _cffi_exc
@@ -103,7 +103,7 @@ class CurlHttpClient(SyncPolicyBase):
         self._session.close()
 
     @property
-    def _proxies(self) -> dict[str, str]:
+    def _proxies(self) -> MutableMapping[str, str]:
         return self._session.proxies  # type: ignore[no-any-return]
 
     def _is_transport_exception(self, exc: Exception) -> bool:
