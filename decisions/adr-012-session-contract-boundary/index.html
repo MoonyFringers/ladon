@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-012-session-contract-boundary/">
       
       
-        <link rel="prev" href="../api/plugins/">
-      
-      
-        <link rel="next" href="adr-001-ladon-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Overview - Ladon</title>
+        <title>Adr 012 session contract boundary - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-decision-records" class="md-skip">
+        <a href="#adr-012-session-contract-boundary-in-syncpolicybase" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Adr 012 session contract boundary
             
           </span>
         </div>
@@ -225,7 +221,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -244,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
+      <a href="../../getting-started/" class="md-tabs__link">
         
   
   
@@ -265,7 +261,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -285,7 +281,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/networking/" class="md-tabs__link">
+        <a href="../../api/networking/" class="md-tabs__link">
           
   
   
@@ -301,13 +297,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -341,7 +335,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -371,7 +365,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -398,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -477,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -505,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -592,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/networking/" class="md-nav__link">
+      <a href="../../api/networking/" class="md-nav__link">
         
   
   
@@ -620,7 +614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/runner/" class="md-nav__link">
+      <a href="../../api/runner/" class="md-nav__link">
         
   
   
@@ -648,7 +642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plugins/" class="md-nav__link">
+      <a href="../../api/plugins/" class="md-nav__link">
         
   
   
@@ -680,31 +674,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -722,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -737,37 +726,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -783,37 +745,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -826,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -861,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -896,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -931,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -966,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1001,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-007-circuit-breaker/" class="md-nav__link">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1029,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-008-robots-txt/" class="md-nav__link">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1084,10 +1015,82 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
+  <a href="#context-and-problem-statement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-evolve-this-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to evolve this decision
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rejected-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected option
       
     </span>
   </a>
@@ -1114,86 +1117,79 @@
   
 
 
-<h1 id="architecture-decision-records">Architecture Decision Records</h1>
-<p>This directory contains the Architecture Decision Records (ADRs) for Ladon.
-Each ADR documents a significant technical decision: the context, the options
-considered, the chosen option, and — crucially — <strong>why</strong> that option was
-chosen over the alternatives.</p>
-<table>
-<thead>
-<tr>
-<th>ADR</th>
-<th>Title</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="adr-001-ladon-architecture/">ADR-001</a></td>
-<td>Ladon Architecture</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-002-http-status-result-contract/">ADR-002</a></td>
-<td>HTTP Result Contract</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-003-plugin-adapter-interface/">ADR-003</a></td>
-<td>Plugin Adapter Interface</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-004-ses-protocol-design/">ADR-004</a></td>
-<td>Source / Expander / Sink Protocol Design</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-005</td>
-<td>Asset Storage (<code>ladon.storage</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-006-persistence-layer/">ADR-006</a></td>
-<td>Persistence Layer (<code>ladon.persistence</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-007-circuit-breaker/">ADR-007</a></td>
-<td>Per-Host Circuit Breaker</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-008-robots-txt/">ADR-008</a></td>
-<td>robots.txt Enforcement</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-009</td>
-<td>Observability (metrics, structured logs)</td>
-<td>Proposed — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-010-dual-license-model/">ADR-010</a></td>
-<td>Dual-License Model (AGPL-3.0-only + Commercial)</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-011-curl-cffi-cloudflare-bypass/">ADR-011</a></td>
-<td>curl-cffi as the Cloudflare-Bypass HTTP Backend</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-012-session-contract-boundary/">ADR-012</a></td>
-<td>Session Contract Boundary in <code>SyncPolicyBase</code></td>
-<td>Accepted</td>
-</tr>
-</tbody>
-</table>
-<h2 id="format">Format</h2>
-<p>ADRs follow the <a href="https://adr.github.io/madr/">MADR</a> template.
-To propose a new decision, copy <code>docs/decisions/adr-template.md</code>,
-fill in the sections, and open a PR.</p>
+<hr />
+<p>status: accepted
+date: 2026-05-17
+decision-makers: [Maintainers]
+informed: [Contributors]
+refs: [ADR-011, Issue #109]</p>
+<hr />
+<h1 id="adr-012-session-contract-boundary-in-syncpolicybase">ADR-012 — Session Contract Boundary in <code>SyncPolicyBase</code></h1>
+<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
+<p>Issue #109 extracted the shared sync policy pipeline into <code>SyncPolicyBase</code>, an
+ABC subclassed by both <code>HttpClient</code> (requests) and <code>CurlHttpClient</code> (curl-cffi).
+After extraction, <code>_apply_proxy</code> — the only method in the base class that touches
+the underlying session — directly accessed <code>self._session.proxies</code>.  This leaks
+transport internals into the base class with no structural contract: if a third
+transport's session exposes proxies under a different name or shape, the failure
+is silent at import time and discovered only at runtime.</p>
+<p>Two options were considered for encoding the contract.</p>
+<h2 id="decision-drivers">Decision Drivers</h2>
+<ul>
+<li>The base class must not silently assume session shape it has no structural
+  claim to.</li>
+<li>Any third transport added in the future must get a compile-time or
+  construction-time signal when it fails to meet the contract.</li>
+<li>The solution must be proportionate to the current scope: one access point
+  (<code>self._session.proxies</code>) in one method (<code>_apply_proxy</code>).</li>
+<li>The solution must not introduce abstractions that will need to be unwound if
+  the scope grows.</li>
+</ul>
+<h2 id="considered-options">Considered Options</h2>
+<ul>
+<li><strong>A — Abstract <code>_proxies</code> property (chosen)</strong></li>
+<li><strong>B — <code>_SessionProtocol</code> typed on <code>_session</code></strong></li>
+</ul>
+<h2 id="decision-outcome">Decision Outcome</h2>
+<p><strong>Chosen: Option A — abstract <code>_proxies</code> property.</strong></p>
+<p><code>SyncPolicyBase</code> declares an abstract property <code>_proxies</code> returning
+<code>MutableMapping[str, str]</code>.  <code>_apply_proxy</code> uses <code>self._proxies</code> exclusively —
+it no longer touches <code>self._session</code> directly.  Each subclass implements
+<code>_proxies</code> by delegating to its own session object.</p>
+<p>This is proportionate: one access point, one abstract property, zero duplication
+of logic.  The pyright abstract-method check enforces the contract at
+class-definition time — a concrete subclass that forgets <code>_proxies</code> is a type
+error before any test runs.</p>
+<h3 id="when-to-evolve-this-decision">When to evolve this decision</h3>
+<p>If a <strong>second</strong> session-level concern ever needs to move into the base class
+(e.g., <code>_apply_headers</code>, <code>_apply_auth</code>), <strong>do not add a second abstract
+property</strong>.  That is the signal to switch to Option B: define a
+<code>_SessionProtocol</code> with the full surface the base needs, type
+<code>_session: _SessionProtocol</code>, and let structural subtyping do the work.
+At that point, each subclass drops its individual abstract properties and
+simply provides a conforming <code>_session</code> — one Protocol definition replaces
+<em>n</em> abstract properties across <em>m</em> transports.</p>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li><strong>Good</strong>: <code>SyncPolicyBase</code> no longer touches <code>self._session</code> directly — the
+  session is fully encapsulated in each subclass.</li>
+<li><strong>Good</strong>: Missing <code>_proxies</code> implementation is a pyright type error and an
+  <code>abc</code> <code>TypeError</code> at instantiation, not a <code>KeyError</code> at runtime.</li>
+<li><strong>Neutral</strong>: Each subclass gains a one-line property boilerplate.  Acceptable
+  for two transports; the Protocol upgrade path eliminates it if transports
+  multiply.</li>
+<li><strong>Bad</strong>: The abstract-property pattern scales poorly: <em>n</em> concerns × <em>m</em>
+  transports = <em>n×m</em> boilerplate properties.  The "when to evolve" clause above
+  caps this at one property before the switch.</li>
+</ul>
+<h2 id="rejected-option">Rejected option</h2>
+<p><strong>B — <code>_SessionProtocol</code>:</strong> Correct at scale but premature today.  Defining a
+Protocol surface for a single <code>.proxies</code> access would require typing a contract
+for <code>requests.Session</code> and <code>curl_cffi.Session</code> alike — both of which have
+large, partially-typed APIs.  The Protocol would either be artificially narrow
+(and need expanding on every new access) or artificially wide (and pull in
+unnecessary coupling).  Better to let the surface reveal itself organically and
+switch when the second access point appears.</p>
 
 
 
@@ -1249,10 +1245,10 @@ fill in the sections, and open a PR.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
