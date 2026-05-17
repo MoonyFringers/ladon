@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from random import uniform
 from time import monotonic, sleep
-from typing import Any, Callable, Mapping, Self, TypeVar
+from typing import Any, Callable, Mapping, MutableMapping, Self, TypeVar
 from urllib.parse import urlparse
 
 from .circuit_breaker import CircuitBreaker, CircuitState
@@ -84,6 +84,16 @@ class SyncPolicyBase(ABC):
         timeout: float | tuple[float, float],
     ) -> Result[Any, Exception]:
         """Map a transport exception to a Ladon error Result."""
+
+    @property
+    @abstractmethod
+    def _proxies(self) -> MutableMapping[str, str]:
+        """The session's proxy mapping.
+
+        Subclasses delegate to their transport session's proxy dict.
+        If a second session-level concern is ever needed here, switch to a
+        _SessionProtocol instead — see ADR-012.
+        """
 
     # ------------------------------------------------------------------ #
     # Concrete policy helpers                                              #
@@ -163,9 +173,9 @@ class SyncPolicyBase(ABC):
 
     def _apply_proxy(self, proxy: Mapping[str, str] | None) -> None:
         """Update session proxy to *proxy*, clearing any previous setting."""
-        self._session.proxies.clear()
+        self._proxies.clear()
         if proxy is not None:
-            self._session.proxies.update(proxy)
+            self._proxies.update(proxy)
 
     def _merge_params(
         self, params: Mapping[str, str] | None

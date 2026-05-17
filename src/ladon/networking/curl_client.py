@@ -102,6 +102,10 @@ class CurlHttpClient(SyncPolicyBase):
         """Close the underlying session and release pooled connections."""
         self._session.close()
 
+    @property
+    def _proxies(self) -> dict[str, str]:
+        return self._session.proxies  # type: ignore[no-any-return]
+
     def _is_transport_exception(self, exc: Exception) -> bool:
         """Return True for any curl-cffi transport exception."""
         return isinstance(exc, _cffi_exc.RequestException)
