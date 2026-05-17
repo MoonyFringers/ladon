@@ -150,7 +150,12 @@ class AsyncPolicyBase(ABC):
         return merged if merged else None
 
     async def _enforce_rate_limit(self, host: str) -> None:
-        """Enforce per-host politeness delay before issuing a request."""
+        """Enforce per-host politeness delay before issuing a request.
+
+        Only waits — does not stamp ``_last_request_time``.  All stamping is
+        done by the ``_request`` loop's ``finally`` block so that every actual
+        attempt (including retries) updates the timestamp.
+        """
         if not host:
             return
         interval = max(
