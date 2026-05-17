@@ -38,7 +38,7 @@ class SyncPolicyBase(ABC):
     implement the four abstract methods that vary per transport library.
     """
 
-    _session: Any
+    _session: Any  # must be assigned by subclass __init__ before any request
 
     def __init__(self, config: HttpClientConfig) -> None:
         self._config = config
@@ -46,6 +46,14 @@ class SyncPolicyBase(ABC):
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
         self._robots_cache: RobotsCache | None = None
         self._crawl_delay_overrides: dict[str, float] = {}
+
+    def __getattr__(self, name: str) -> Any:
+        if name == "_session":
+            raise RuntimeError(
+                f"{type(self).__name__} must assign self._session in __init__ "
+                "before making any requests"
+            )
+        raise AttributeError(name)
 
     def __enter__(self) -> Self:
         return self
