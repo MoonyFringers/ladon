@@ -184,7 +184,7 @@ def test_proxy_pool_rotates_on_rate_limit_retry():
     with patch(
         "requests.Session.get", side_effect=[blocked, _make_ok_response()]
     ):
-        with patch("ladon.networking.client.sleep"):
+        with patch("ladon.networking._sync_policy_base.sleep"):
             client = HttpClient(config)
             client.get("https://example.com")
 

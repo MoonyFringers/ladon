@@ -70,8 +70,8 @@ class TestRateLimitConfig:
 
 
 class TestRateLimitEnforcement:
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_first_request_no_sleep(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -84,8 +84,8 @@ class TestRateLimitEnforcement:
 
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_second_request_sleeps_remaining_interval(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -104,8 +104,8 @@ class TestRateLimitEnforcement:
         sleep_arg = mock_sleep.call_args[0][0]
         assert sleep_arg == pytest.approx(0.7, abs=1e-9)
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_request_after_full_interval_no_sleep(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -120,8 +120,8 @@ class TestRateLimitEnforcement:
 
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_different_hosts_not_rate_limited_against_each_other(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -136,8 +136,8 @@ class TestRateLimitEnforcement:
 
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_rate_limit_is_per_host_not_per_url_path(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -155,7 +155,7 @@ class TestRateLimitEnforcement:
         sleep_arg = mock_sleep.call_args[0][0]
         assert sleep_arg == pytest.approx(0.8, abs=1e-9)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_zero_interval_never_sleeps(self, mock_get, mock_sleep):
         """With default interval (0.0), sleep must never be called."""
@@ -169,8 +169,8 @@ class TestRateLimitEnforcement:
 
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     def test_rate_limit_applies_to_consecutive_requests(
         self, mock_get, mock_mono, mock_sleep, rate_limited_client
@@ -186,8 +186,8 @@ class TestRateLimitEnforcement:
 
         assert mock_sleep.call_count == 1
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.monotonic")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.monotonic")
     @patch("requests.Session.get")
     @patch("requests.Session.head")
     @patch("requests.Session.post")

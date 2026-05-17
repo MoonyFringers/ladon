@@ -108,7 +108,7 @@ class TestParseRetryAfter:
 
 
 class TestRetryAfterBehavior:
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_no_retries_returns_rate_limited_error(
         self, mock_get, mock_sleep
@@ -127,7 +127,7 @@ class TestRetryAfterBehavior:
         assert result.meta["final_error"] == "RateLimitedError"
         mock_get.assert_called_once()
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_503_returns_rate_limited_error(self, mock_get, mock_sleep):
         client = HttpClient(HttpClientConfig(timeout_seconds=5.0))
@@ -141,7 +141,7 @@ class TestRetryAfterBehavior:
         assert isinstance(result.error, RateLimitedError)
         assert result.error.status_code == 503
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_with_retry_after_sleeps_and_succeeds(
         self, mock_get, mock_sleep
@@ -159,7 +159,7 @@ class TestRetryAfterBehavior:
         assert result.value == b"ok"
         mock_sleep.assert_called_once_with(45.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_retry_after_capped_at_max(self, mock_get, mock_sleep):
         config = HttpClientConfig(
@@ -176,7 +176,7 @@ class TestRetryAfterBehavior:
         assert result.ok
         mock_sleep.assert_called_once_with(10.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_no_retry_after_falls_back_to_backoff(
         self, mock_get, mock_sleep
@@ -195,7 +195,7 @@ class TestRetryAfterBehavior:
         assert result.ok
         mock_sleep.assert_called_once_with(2.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_exhausts_retries_returns_rate_limited_error(
         self, mock_get, mock_sleep
@@ -217,7 +217,7 @@ class TestRetryAfterBehavior:
         assert result.meta["final_error"] == "RateLimitedError"
         assert mock_get.call_count == 3
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.post")
     def test_post_429_not_retried_returns_ok(self, mock_post, mock_sleep):
         config = HttpClientConfig(timeout_seconds=5.0, retries=3)
@@ -231,7 +231,7 @@ class TestRetryAfterBehavior:
         mock_post.assert_called_once()
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.head")
     def test_head_429_retried_like_get(self, mock_head, mock_sleep):
         config = HttpClientConfig(timeout_seconds=5.0, retries=1)
@@ -247,7 +247,7 @@ class TestRetryAfterBehavior:
         assert mock_head.call_count == 2
         mock_sleep.assert_called_once_with(5.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_circuit_breaker_trips_on_exhausted_429(self, mock_get, mock_sleep):
         config = HttpClientConfig(
@@ -263,7 +263,7 @@ class TestRetryAfterBehavior:
         assert not result.ok
         assert client.circuit_state("http://example.com") == CircuitState.OPEN
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_empty_retry_on_status_returns_ok_for_429(
         self, mock_get, mock_sleep
@@ -280,7 +280,7 @@ class TestRetryAfterBehavior:
         assert result.meta["status_code"] == 429
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_custom_retry_on_status_403_retried(self, mock_get, mock_sleep):
         config = HttpClientConfig(
@@ -299,7 +299,7 @@ class TestRetryAfterBehavior:
         assert result.ok
         assert mock_get.call_count == 2
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_meta_includes_status_and_reason_on_rate_limited_error(
         self, mock_get, mock_sleep
@@ -315,7 +315,7 @@ class TestRetryAfterBehavior:
         assert result.meta["reason"] == "Too Many Requests"
         assert result.meta["method"] == "GET"
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_retry_after_below_min_interval_sleeps_min_interval(
         self, mock_get, mock_sleep
@@ -337,7 +337,7 @@ class TestRetryAfterBehavior:
         assert result.ok
         mock_sleep.assert_called_once_with(60.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_retry_after_above_min_interval_sleeps_retry_after(
         self, mock_get, mock_sleep
@@ -359,7 +359,7 @@ class TestRetryAfterBehavior:
         assert result.ok
         mock_sleep.assert_called_once_with(45.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_download_429_retried_like_get(self, mock_get, mock_sleep):
         config = HttpClientConfig(timeout_seconds=5.0, retries=1)
@@ -379,7 +379,7 @@ class TestRetryAfterBehavior:
         assert mock_get.call_count == 2
         mock_sleep.assert_called_once_with(5.0)
 
-    @patch("ladon.networking.client.sleep")
+    @patch("ladon.networking._sync_policy_base.sleep")
     @patch("requests.Session.get")
     def test_get_429_no_retry_after_backoff_increases_per_attempt(
         self, mock_get, mock_sleep

@@ -221,10 +221,8 @@ class AsyncHttpClient:
         except ValueError:
             pass
         try:
-            # parsedate_to_datetime has no type stubs; cast gives pyright a
-            # concrete datetime so downstream arithmetic is fully typed.
-            raw = parsedate_to_datetime(header)  # pyright: ignore
-            dt = cast(datetime, raw)
+            raw = parsedate_to_datetime(header)  # type: ignore
+            dt = cast(datetime, raw)  # pyright: ignore[reportUnnecessaryCast]
             delta = (dt - datetime.now(tz=timezone.utc)).total_seconds()
             return max(0.0, delta)
         except Exception:

@@ -41,8 +41,8 @@ def test_backoff_jitter_can_be_enabled():
 
 
 class TestJitterDisabled:
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_deterministic_backoff_no_jitter(
         self, mock_get, mock_uniform, mock_sleep
@@ -58,8 +58,8 @@ class TestJitterDisabled:
         mock_uniform.assert_not_called()
         assert mock_sleep.call_args_list == [call(1.0), call(2.0)]
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_zero_base_no_sleep_no_uniform(
         self, mock_get, mock_uniform, mock_sleep
@@ -82,8 +82,8 @@ class TestJitterDisabled:
 
 
 class TestJitterEnabled:
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_jitter_calls_uniform_with_correct_caps(
         self, mock_get, mock_uniform, mock_sleep
@@ -106,8 +106,8 @@ class TestJitterEnabled:
         assert mock_uniform.call_args_list == [call(0.0, 1.0), call(0.0, 2.0)]
         assert mock_sleep.call_args_list == [call(0.37), call(0.37)]
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_jitter_sleep_uses_uniform_return_value(
         self, mock_get, mock_uniform, mock_sleep
@@ -128,8 +128,8 @@ class TestJitterEnabled:
         mock_uniform.assert_called_once_with(0.0, 4.0)
         mock_sleep.assert_called_once_with(1.23)
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_jitter_zero_base_is_noop(self, mock_get, mock_uniform, mock_sleep):
         config = HttpClientConfig(
@@ -146,8 +146,8 @@ class TestJitterEnabled:
         mock_uniform.assert_not_called()
         mock_sleep.assert_not_called()
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_jitter_cap_grows_exponentially(
         self, mock_get, mock_uniform, mock_sleep
@@ -175,8 +175,8 @@ class TestJitterEnabled:
 
 
 class TestJitterWithRetryAfterFallback:
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_retry_after_header_present_jitter_not_applied(
         self, mock_get, mock_uniform, mock_sleep
@@ -202,8 +202,8 @@ class TestJitterWithRetryAfterFallback:
         mock_uniform.assert_not_called()
         mock_sleep.assert_called_once_with(30.0)
 
-    @patch("ladon.networking.client.sleep")
-    @patch("ladon.networking.client.uniform")
+    @patch("ladon.networking._sync_policy_base.sleep")
+    @patch("ladon.networking._sync_policy_base.uniform")
     @patch("requests.Session.get")
     def test_retry_after_absent_jitter_applied_to_fallback(
         self, mock_get, mock_uniform, mock_sleep

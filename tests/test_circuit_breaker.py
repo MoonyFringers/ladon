@@ -6,6 +6,7 @@ from __future__ import annotations
 from time import monotonic
 from typing import Generator
 from unittest.mock import patch
+from urllib.parse import urlparse
 
 import pytest
 
@@ -283,7 +284,7 @@ class TestHttpClientCircuitBreaker:
         assert cb_client.circuit_state(url) is CircuitState.OPEN
 
         # Force into HALF_OPEN by backdating the timer.
-        cb = cb_client._get_circuit_breaker(url)  # type: ignore[attr-defined]
+        cb = cb_client._get_circuit_breaker(urlparse(url).netloc)  # type: ignore[attr-defined]
         assert cb is not None
         cb._opened_at = monotonic() - 61.0  # type: ignore[attr-defined]
 
@@ -340,7 +341,7 @@ class TestHttpClientCircuitBreaker:
             cb_client.get(url)  # opens
 
         # Backdate the timer to trigger HALF_OPEN on next allow_request().
-        cb = cb_client._get_circuit_breaker(url)  # type: ignore[attr-defined]
+        cb = cb_client._get_circuit_breaker(urlparse(url).netloc)  # type: ignore[attr-defined]
         assert cb is not None
         cb._opened_at = monotonic() - 61.0  # type: ignore[attr-defined]
         # Trigger the transition without completing a request.
