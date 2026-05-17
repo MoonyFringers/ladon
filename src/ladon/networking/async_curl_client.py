@@ -18,36 +18,24 @@ Bootstrap symbols (cffi, cffi_exc, BrowserType) are owned by _cffi_common.py.
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
-from random import uniform
-from time import monotonic
-from typing import Any, Callable, Coroutine, Mapping, TypeVar
-from urllib.parse import urlparse
+from typing import Any, Mapping
 
+from ._async_policy_base import AsyncPolicyBase
 from ._cffi_common import cffi as _cffi
 from ._cffi_common import cffi_exc as _cffi_exc
 from ._cffi_common import curl_cffi_available as _curl_cffi_available
 from ._cffi_common import import_error_msg as _import_error_msg
 from ._cffi_common import valid_impersonate as _valid_impersonate
-from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
 from .errors import (
-    CircuitOpenError,
     HttpClientError,
-    RateLimitedError,
     RequestTimeoutError,
     TransientNetworkError,
 )
-from .types import Err, Ok, Result
-
-ResponseValue = TypeVar("ResponseValue")
-
-_AsyncRequestFn = Callable[[], Coroutine[Any, Any, Any]]
+from .types import Err, Result
 
 
-class AsyncCurlHttpClient:
+class AsyncCurlHttpClient(AsyncPolicyBase):
     """Async HTTP client with TLS fingerprint impersonation via curl-cffi.
 
     Drop-in async replacement for ``AsyncHttpClient`` for targets protected
@@ -93,12 +81,9 @@ class AsyncCurlHttpClient:
                 "not supported. Use default_headers={'Authorization': '...'} "
                 "for Bearer tokens or other header-based schemes."
             )
-        self._config = config
+        super().__init__(config)
         self._impersonate = impersonate
         self._session: Any = _cffi.AsyncSession(impersonate=impersonate)
-        self._last_request_time: dict[str, float] = {}
-        self._circuit_breakers: dict[str, CircuitBreaker] = {}
-        self._crawl_delay_overrides: dict[str, float] = {}
         if self._config.user_agent:
             self._session.headers["User-Agent"] = self._config.user_agent
         self._session.headers.update(self._config.default_headers)
@@ -115,12 +100,6 @@ class AsyncCurlHttpClient:
     async def aclose(self) -> None:
         """Close the underlying session and release pooled connections."""
         await self._session.close()
-
-    async def __aenter__(self) -> AsyncCurlHttpClient:
-        return self
-
-    async def __aexit__(self, *_: object) -> None:
-        await self.aclose()
 
     def _get_timeout(
         self, override: float | None
@@ -139,124 +118,41 @@ class AsyncCurlHttpClient:
             )
         return self._config.timeout_seconds
 
-    def _max_attempts(self) -> int:
-        return 1 + max(0, self._config.retries)
+    def _is_transport_exception(self, exc: Exception) -> bool:
+        """Return True for any curl-cffi transport exception."""
+        return isinstance(exc, _cffi_exc.RequestException)
 
-    def _is_retryable_exception(self, method: str, error: Any) -> bool:
+    def _is_retryable_exception(self, method: str, exc: Exception) -> bool:
         if method.upper() not in {"GET", "HEAD"}:
             return False
         # SSLError subclasses ConnectionError and will be retried here; cert
         # failures are not transient but exhausting retries is the safe default.
-        return isinstance(error, (_cffi_exc.Timeout, _cffi_exc.ConnectionError))
-
-    async def _sleep_between_attempts(self, attempt: int) -> None:
-        backoff_base = self._config.backoff_base_seconds
-        if backoff_base <= 0:
-            return
-        cap = backoff_base * (2 ** max(0, attempt - 1))
-        await asyncio.sleep(
-            uniform(0.0, cap) if self._config.backoff_jitter else cap
-        )
-
-    @staticmethod
-    def _parse_retry_after(response: Any) -> float | None:
-        header = response.headers.get("Retry-After")
-        if header is None:
-            return None
-        try:
-            return max(0.0, float(header))
-        except ValueError:
-            pass
-        try:
-            dt: datetime = parsedate_to_datetime(str(header))
-            delta: float = (dt - datetime.now(tz=timezone.utc)).total_seconds()
-            return max(0.0, delta)
-        except Exception:
-            return None
-
-    async def _sleep_for_retry_after(
-        self, retry_after: float | None, attempt: int
-    ) -> None:
-        if retry_after is not None:
-            capped = min(retry_after, self._config.max_retry_after_seconds)
-            await asyncio.sleep(
-                max(capped, self._config.min_request_interval_seconds)
-            )
-        else:
-            await self._sleep_between_attempts(attempt)
+        return isinstance(exc, (_cffi_exc.Timeout, _cffi_exc.ConnectionError))
 
     def _apply_proxy(self, proxy: Mapping[str, str] | None) -> None:
         self._session.proxies.clear()
         if proxy is not None:
             self._session.proxies.update(proxy)
 
-    def _merge_params(
-        self, params: Mapping[str, str] | None
-    ) -> Mapping[str, str] | None:
-        dp = self._config.default_params
-        if dp is None:
-            return params
-        merged = {**dp, **(params or {})}
-        return merged if merged else None
-
-    async def _enforce_rate_limit(self, url: str) -> None:
-        host = urlparse(url).netloc
-        if not host:
-            return
-        interval = max(
-            self._config.min_request_interval_seconds,
-            self._crawl_delay_overrides.get(host, 0.0),
-        )
-        if interval <= 0:
-            return
-        last = self._last_request_time.get(host)
-        if last is not None:
-            elapsed = monotonic() - last
-            remaining = interval - elapsed
-            if remaining > 0:
-                await asyncio.sleep(remaining)
-
-    def _build_meta(
+    async def _execute_attempt(
         self,
-        method: str,
-        request_url: str,
-        response: Any | None,
-        context: Mapping[str, Any] | None,
-        attempts: int,
-        timeout: float | tuple[float, float] | None,
-        final_error: str | None = None,
-    ) -> dict[str, Any]:
-        meta: dict[str, Any] = {}
-        meta["method"] = method
-        meta["url"] = request_url
-        meta["attempts"] = attempts
-        meta["timeout_s"] = timeout
-        if context:
-            context_dict = dict(context)
-            meta["context"] = context_dict
-            for key, value in context_dict.items():
-                meta.setdefault(key, value)
-        if response is not None:
-            meta["status_code"] = response.status_code
-            meta["url"] = response.url
-            meta["reason"] = response.reason
-            try:
-                meta["elapsed_s"] = response.elapsed.total_seconds()
-            except AttributeError:
-                pass
-        if final_error is not None:
-            meta["final_error"] = final_error
-        return meta
+        request_fn: Any,
+        proxy: Mapping[str, str] | None,
+    ) -> Any:
+        if self._config.proxy_pool is not None:
+            self._apply_proxy(proxy)
+        return await request_fn()
 
     def _handle_request_exception(
         self,
         method: str,
         request_url: str,
-        e: Any,
+        e: Exception,
         context: Mapping[str, Any] | None,
         attempts: int,
-        timeout: float | tuple[float, float] | None,
+        timeout: Any,
     ) -> Result[Any, Exception]:
+        """Map curl-cffi exceptions to Ladon errors."""
         response = getattr(e, "response", None)
         meta = self._build_meta(
             method,
@@ -272,172 +168,6 @@ class AsyncCurlHttpClient:
         if isinstance(e, _cffi_exc.ConnectionError):
             return Err(TransientNetworkError(str(e)), meta=meta)
         return Err(HttpClientError(str(e)), meta=meta)
-
-    def _get_circuit_breaker(self, url: str) -> CircuitBreaker | None:
-        threshold = self._config.circuit_breaker_failure_threshold
-        if threshold is None:
-            return None
-        host = urlparse(url).netloc
-        if not host:
-            return None
-        if host not in self._circuit_breakers:
-            self._circuit_breakers[host] = CircuitBreaker(
-                threshold=threshold,
-                recovery_seconds=self._config.circuit_breaker_recovery_seconds,
-            )
-        return self._circuit_breakers[host]
-
-    def circuit_state(self, url: str) -> CircuitState | None:
-        """Return the current circuit-breaker state for *url*'s host, or None."""
-        cb = self._circuit_breakers.get(urlparse(url).netloc)
-        return cb.state if cb is not None else None
-
-    def set_crawl_delay(self, host: str, delay_seconds: float) -> None:
-        """Override the per-host crawl delay for *host*.
-
-        Takes precedence over ``HttpClientConfig.min_request_interval_seconds``
-        when the override is larger.  Intended for callers that parse a site's
-        ``robots.txt`` and want to honour its ``Crawl-delay`` directive.
-        """
-        self._crawl_delay_overrides[host] = delay_seconds
-
-    async def _request(
-        self,
-        method: str,
-        url: str,
-        *,
-        context: Mapping[str, Any] | None,
-        timeout: float | tuple[float, float],
-        request_fn: _AsyncRequestFn,
-        value_builder: Callable[[Any], ResponseValue],
-    ) -> Result[ResponseValue, Exception]:
-        cb = self._get_circuit_breaker(url)
-        if cb is not None and not cb.allow_request():
-            meta = self._build_meta(
-                method=method,
-                request_url=url,
-                response=None,
-                context=context,
-                attempts=0,
-                timeout=timeout,
-                final_error="CircuitOpenError",
-            )
-            return Err(CircuitOpenError(urlparse(url).netloc), meta=meta)
-
-        await self._enforce_rate_limit(url)
-        host = urlparse(url).netloc
-        is_safe_method = method.upper() in {"GET", "HEAD"}
-        pool = self._config.proxy_pool
-        attempts = 0
-        last_error: Any = None
-        last_blocked_response: Any = None
-        last_blocked_retry_after: float | None = None
-        current_proxy: Mapping[str, str] | None = None
-        if pool is not None:
-            current_proxy = pool.next_proxy()
-            self._apply_proxy(current_proxy)
-
-        for _ in range(self._max_attempts()):
-            attempts += 1
-            try:
-                response = await request_fn()
-                if (
-                    response.status_code in self._config.retry_on_status
-                    and is_safe_method
-                ):
-                    last_blocked_retry_after = self._parse_retry_after(response)
-                    last_blocked_response = response
-                    last_error = None
-                    if attempts < self._max_attempts():
-                        if pool is not None:
-                            pool.mark_failure(current_proxy)
-                            current_proxy = pool.next_proxy()
-                            self._apply_proxy(current_proxy)
-                        await self._sleep_for_retry_after(
-                            last_blocked_retry_after, attempts
-                        )
-                        continue
-                    break
-                if cb is not None:
-                    cb.record_success()
-                return Ok(
-                    value_builder(response),
-                    meta=self._build_meta(
-                        method=method,
-                        request_url=url,
-                        response=response,
-                        context=context,
-                        attempts=attempts,
-                        timeout=timeout,
-                    ),
-                )
-            except _cffi_exc.RequestException as exc:
-                last_error = exc
-                last_blocked_response = None
-                last_blocked_retry_after = None
-                if (
-                    attempts >= self._max_attempts()
-                    or not self._is_retryable_exception(method, exc)
-                ):
-                    break
-                if pool is not None:
-                    pool.mark_failure(current_proxy)
-                    current_proxy = pool.next_proxy()
-                    self._apply_proxy(current_proxy)
-                await self._sleep_between_attempts(attempts)
-            except Exception as exc:  # pragma: no cover - defensive fallback
-                if cb is not None:
-                    cb.record_failure()
-                return Err(
-                    HttpClientError(str(exc)),
-                    meta=self._build_meta(
-                        method=method,
-                        request_url=url,
-                        response=None,
-                        context=context,
-                        attempts=attempts,
-                        timeout=timeout,
-                        final_error=type(exc).__name__,
-                    ),
-                )
-            finally:
-                if host:
-                    self._last_request_time[host] = monotonic()
-
-        if last_blocked_response is not None:
-            if cb is not None:
-                cb.record_failure()
-            if pool is not None:
-                pool.mark_failure(current_proxy)
-            return Err(
-                RateLimitedError(
-                    last_blocked_response.status_code,
-                    last_blocked_retry_after,
-                ),
-                meta=self._build_meta(
-                    method=method,
-                    request_url=url,
-                    response=last_blocked_response,
-                    context=context,
-                    attempts=attempts,
-                    timeout=timeout,
-                    final_error="RateLimitedError",
-                ),
-            )
-
-        assert last_error is not None
-        if cb is not None:
-            cb.record_failure()
-        if pool is not None:
-            pool.mark_failure(current_proxy)
-        return self._handle_request_exception(
-            method=method,
-            request_url=url,
-            e=last_error,
-            context=context,
-            attempts=attempts,
-            timeout=timeout,
-        )
 
     async def get(
         self,
