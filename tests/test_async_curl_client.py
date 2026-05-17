@@ -639,7 +639,7 @@ async def test_backoff_with_jitter_calls_sleep() -> None:
             ]
         )
         with patch(
-            "ladon.networking.async_curl_client.asyncio.sleep"
+            "ladon.networking._async_policy_base.asyncio.sleep"
         ) as mock_sleep:
             mock_sleep.return_value = None
             result = await c.get("http://example.com")
@@ -690,11 +690,11 @@ async def test_rate_limit_sleep_enforced() -> None:
         # Second get() completes → finally records 1001.0
         with (
             patch(
-                "ladon.networking.async_curl_client.monotonic",
+                "ladon.networking._async_policy_base.monotonic",
                 side_effect=[1000.0, 1000.5, 1001.0],
             ),
             patch(
-                "ladon.networking.async_curl_client.asyncio.sleep"
+                "ladon.networking._async_policy_base.asyncio.sleep"
             ) as mock_sleep,
         ):
             mock_sleep.return_value = None

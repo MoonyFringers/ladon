@@ -605,7 +605,7 @@ def test_set_crawl_delay_overwrites(config: HttpClientConfig) -> None:
 # ---------------------------------------------------------------------------
 
 
-@patch("ladon.networking.curl_client.sleep")
+@patch("ladon.networking._sync_policy_base.sleep")
 @patch("curl_cffi.requests.Session.get")
 def test_backoff_with_jitter_calls_sleep(
     mock_get: Mock, mock_sleep: Mock
@@ -690,8 +690,8 @@ def test_robots_crawl_delay_sets_override() -> None:
 # ---------------------------------------------------------------------------
 
 
-@patch("ladon.networking.curl_client.sleep")
-@patch("ladon.networking.curl_client.monotonic")
+@patch("ladon.networking._sync_policy_base.sleep")
+@patch("ladon.networking._sync_policy_base.monotonic")
 @patch("curl_cffi.requests.Session.get")
 def test_rate_limit_sleep_enforced(
     mock_get: Mock, mock_monotonic: Mock, mock_sleep: Mock

@@ -391,7 +391,7 @@ class TestRobotsCacheCrawlDelayVsRateLimit:
 
         Verifies that the override recorded by _enforce_robots is actually
         consumed by _enforce_rate_limit on the *next* request to the same host.
-        We patch ``ladon.networking.client.sleep`` so the test is instant.
+        We patch ``ladon.networking._sync_policy_base.sleep`` so the test is instant.
         """
         config = HttpClientConfig(
             respect_robots_txt=True,
@@ -409,7 +409,7 @@ class TestRobotsCacheCrawlDelayVsRateLimit:
                     "requests.Session.get",
                     return_value=_mock_robots_response(ROBOTS_WITH_DELAY),
                 ),
-                patch("ladon.networking.client.sleep") as mock_sleep,
+                patch("ladon.networking._sync_policy_base.sleep") as mock_sleep,
             ):
                 # First request: registers the Crawl-delay override, no sleep yet
                 # (no prior timestamp for this host).
