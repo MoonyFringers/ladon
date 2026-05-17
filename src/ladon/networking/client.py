@@ -1,8 +1,8 @@
-"""Synchronous HTTP client interface for the Ladon networking layer.
+"""HttpClient — synchronous HTTP client for the Ladon networking layer.
 
-This module defines the public interface used by crawlers/adapters. It is
-policy-agnostic by design; retries, rate limits, circuit breaking, and
-robots enforcement are applied by the concrete implementation.
+Policy (retries, rate limits, circuit breaking, robots.txt) is provided by
+SyncPolicyBase.  This module contains only the requests-specific session
+setup and exception mapping.
 """
 
 from __future__ import annotations
@@ -67,6 +67,7 @@ class HttpClient(SyncPolicyBase):
         self._session.close()
 
     def _is_transport_exception(self, exc: Exception) -> bool:
+        """Return True for any requests library transport exception."""
         return isinstance(exc, requests.exceptions.RequestException)
 
     def _is_retryable_exception(self, method: str, exc: Exception) -> bool:

@@ -103,6 +103,7 @@ class CurlHttpClient(SyncPolicyBase):
         self._session.close()
 
     def _is_transport_exception(self, exc: Exception) -> bool:
+        """Return True for any curl-cffi transport exception."""
         return isinstance(exc, _cffi_exc.RequestException)
 
     def _is_retryable_exception(self, method: str, exc: Exception) -> bool:

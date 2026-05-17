@@ -250,7 +250,7 @@ class SyncPolicyBase(ABC):
         response: Any | None,
         context: Mapping[str, Any] | None,
         attempts: int,
-        timeout: float | tuple[float, float] | None,
+        timeout: float | tuple[float, float],
         final_error: str | None = None,
     ) -> dict[str, Any]:
         """Construct metadata dictionary from response and context."""
@@ -404,8 +404,7 @@ class SyncPolicyBase(ABC):
                     ),
                 )
             except Exception as exc:
-                if not self._is_transport_exception(exc):
-                    # pragma: no cover - defensive fallback for non-transport errors
+                if not self._is_transport_exception(exc):  # pragma: no cover
                     if cb is not None:
                         cb.record_failure()
                     return Err(
