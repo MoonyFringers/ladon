@@ -1,10 +1,9 @@
 """Configuration models for the HttpClient interface."""
 
-from __future__ import annotations
-
+import warnings
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Literal, Mapping
 
 from requests.auth import AuthBase
 
@@ -18,6 +17,26 @@ def _default_headers() -> Mapping[str, str]:
     """Return immutable empty default headers mapping."""
 
     return MappingProxyType({})
+
+
+_cffi_valid_impersonate: frozenset[str] | None = None
+
+
+def _get_cffi_valid_impersonate() -> frozenset[str] | None:
+    global _cffi_valid_impersonate
+    if _cffi_valid_impersonate is None:
+        try:
+            from curl_cffi.requests import (
+                BrowserType as _BrowserType,  # type: ignore[import-untyped, import-not-found]
+            )
+
+            _cffi_valid_impersonate = frozenset(
+                b.value  # type: ignore[union-attr]
+                for b in _BrowserType  # type: ignore[union-attr]
+            )
+        except ImportError:
+            pass
+    return _cffi_valid_impersonate
 
 
 @dataclass(frozen=True)
@@ -46,19 +65,48 @@ class HttpClientConfig:
 
     Authentication patterns
     -----------------------
-    +---------------------------------+--------------------------------------------------+
-    | Mechanism                       | Config                                           |
-    +=================================+==================================================+
-    | HTTP Basic Auth                 | ``auth=("user", "pass")``                        |
-    +---------------------------------+--------------------------------------------------+
-    | HTTP Digest Auth                | ``auth=HTTPDigestAuth("user", "pass")``          |
-    +---------------------------------+--------------------------------------------------+
-    | Bearer token / API key (header) | ``default_headers={"Authorization": "Bearer …"}``|
-    +---------------------------------+--------------------------------------------------+
-    | API key in query string         | ``default_params={"api_key": "…"}``              |
-    +---------------------------------+--------------------------------------------------+
-    | HMAC signing / OAuth tokens     | Custom ``requests.auth.AuthBase`` via ``auth``   |
-    +---------------------------------+--------------------------------------------------+
+    +---------------------------------+--------------------------------------------------+--------------------+
+    | Mechanism                       | Config                                           | Backends           |
+    +=================================+==================================================+====================+
+    | HTTP Basic Auth                 | ``auth=("user", "pass")``                        | all                |
+    +---------------------------------+--------------------------------------------------+--------------------+
+    | HTTP Digest Auth                | ``auth=HTTPDigestAuth("user", "pass")``          | requests only      |
+    +---------------------------------+--------------------------------------------------+--------------------+
+    | Bearer token / API key (header) | ``default_headers={"Authorization": "Bearer …"}``| all                |
+    +---------------------------------+--------------------------------------------------+--------------------+
+    | API key in query string         | ``default_params={"api_key": "…"}``              | all                |
+    +---------------------------------+--------------------------------------------------+--------------------+
+    | HMAC signing / OAuth tokens     | Custom ``requests.auth.AuthBase`` via ``auth``   | requests only      |
+    +---------------------------------+--------------------------------------------------+--------------------+
+
+    ``curl-cffi`` only supports Basic Auth (``auth`` as a tuple).  Passing an
+    ``AuthBase`` subclass with ``backend="curl-cffi"`` raises ``ValueError``
+    at client construction time.
+
+    Backend selection
+    -----------------
+    The default backend (``"requests"``) is sufficient for most targets.
+    Use ``"curl-cffi"`` for Cloudflare-protected sites — it impersonates a
+    real browser's TLS ``ClientHello`` (JA3/JA4), bypassing L1 (JS challenge)
+    and L2 (TLS fingerprint) without a browser process:
+
+    .. code-block:: python
+
+        HttpClientConfig(backend="curl-cffi", impersonate="chrome136")
+
+    ``impersonate`` is required when ``backend="curl-cffi"``; construction
+    raises ``ValueError`` otherwise.  Valid values are the members of
+    ``curl_cffi.requests.BrowserType`` (e.g. ``"chrome136"``,
+    ``"firefox147"``, ``"safari184"``).  Requires
+    ``pip install ladon-crawl[cffi]``.
+
+    When curl-cffi is installed, ``HttpClientConfig`` checks ``impersonate``
+    against ``BrowserType`` at construction time.  An unrecognised value
+    emits a ``UserWarning`` but does **not** raise — forward-compatible
+    strings (fingerprints added in a newer curl-cffi release) should not
+    be blocked.  When curl-cffi is not installed the check is skipped; an
+    invalid value will raise ``ValueError`` at client construction time
+    (``CurlHttpClient`` / ``AsyncCurlHttpClient`` or the factory helpers).
     """
 
     user_agent: str | None = None
@@ -93,7 +141,7 @@ class HttpClientConfig:
     # Proxy rotation strategy.  Mutually exclusive with proxies.
     # HttpClient calls next_proxy() before each request attempt and
     # mark_failure() when a transport error or rate-limit response occurs.
-    proxy_pool: ProxyPool | None = None
+    proxy_pool: "ProxyPool | None" = None
     # HTTP authentication passed verbatim to requests.Session.auth.
     # Use a (username, password) tuple for Basic Auth, or an AuthBase subclass
     # (HTTPDigestAuth, custom HMAC/OAuth token injectors) for other schemes.
@@ -103,6 +151,10 @@ class HttpClientConfig:
     # override contract as default_headers: per-request params take precedence
     # on key collision.  Useful for API keys passed as query string parameters.
     default_params: Mapping[str, str] | None = None
+    # HTTP backend — "requests" (default) or "curl-cffi".  See class docstring.
+    backend: Literal["requests", "curl-cffi"] = "requests"
+    # Browser fingerprint for curl-cffi impersonation.  See class docstring.
+    impersonate: str | None = None
 
     def __post_init__(self) -> None:
         if self.retries < 0:
@@ -166,6 +218,27 @@ class HttpClientConfig:
                 "proxies",
                 MappingProxyType(dict(self.proxies)),
             )
+        if self.backend not in {"requests", "curl-cffi"}:
+            raise ValueError(
+                f"backend must be 'requests' or 'curl-cffi', got {self.backend!r}"
+            )
+        if self.backend == "curl-cffi" and self.impersonate is None:
+            raise ValueError(
+                "impersonate is required when backend='curl-cffi'; "
+                "e.g. HttpClientConfig(backend='curl-cffi', impersonate='chrome136')"
+            )
+        if self.backend == "curl-cffi" and self.impersonate is not None:
+            valid = _get_cffi_valid_impersonate()
+            if valid is not None and self.impersonate not in valid:
+                warnings.warn(
+                    f"Unknown impersonate target {self.impersonate!r}; "
+                    "it will be rejected at client construction time. "
+                    'Run `python -c "from curl_cffi.requests import '
+                    'BrowserType; print([b.value for b in BrowserType])"`'
+                    " for valid values.",
+                    UserWarning,
+                    stacklevel=3,
+                )
         if isinstance(self.auth, tuple) and len(self.auth) != 2:
             raise ValueError("auth tuple must be (username, password)")
         if self.default_params is not None:

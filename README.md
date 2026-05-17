@@ -101,6 +101,40 @@ directly from Python — see
 [`ladon-hackernews` — Use as a library](https://github.com/MoonyFringers/ladon-hackernews#use-as-a-library)
 for a full example.
 
+## Cloudflare-protected targets
+
+Standard HTTP clients fail against Cloudflare because their TLS fingerprint
+is identifiable as non-browser traffic.  Ladon's optional curl-cffi backend
+impersonates a real browser's TLS `ClientHello` to bypass L1 and L2 challenges
+without a browser process.
+
+```bash
+pip install ladon-crawl[cffi]   # adds curl-cffi (binary wheel, ~10 MB)
+```
+
+```python
+from ladon.networking import make_http_client
+from ladon.networking.config import HttpClientConfig
+
+config = HttpClientConfig(
+    backend="curl-cffi",
+    impersonate="chrome136",
+    timeout_seconds=20.0,
+    retries=2,
+)
+with make_http_client(config) as client:
+    result = client.get("https://protected-target.example/")
+```
+
+`make_http_client()` and `make_async_http_client()` dispatch on
+`config.backend` — change one field to switch backends with no call-site
+changes.  All policies (retries, circuit breaker, proxy rotation, rate
+limiting) are identical to the standard backends.
+
+See the [Cloudflare bypass guide](docs/guides/cloudflare-bypass.md) for the
+full layer-by-layer breakdown, impersonate target list, and L3 (IP reputation)
+considerations.
+
 ## Async crawling
 
 `async_run_crawl()` is the asyncio-native counterpart to `run_crawl()`.
@@ -156,6 +190,11 @@ What was in v0.0.1:
 - `Storage` protocol with `LocalFileStorage`
 - `Repository` and `RunAudit` persistence protocols with `NullRepository`
 - `ladon run` / `ladon info` CLI
+
+What is in progress (unreleased):
+- **Cloudflare bypass** — `CurlHttpClient` / `AsyncCurlHttpClient` via
+  curl-cffi, `HttpClientConfig(backend="curl-cffi", impersonate="chrome136")`,
+  `make_http_client()` / `make_async_http_client()` factories (issue [#107](https://github.com/MoonyFringers/ladon/issues/107))
 
 What is coming:
 - `ladon-mimir` — async Wikipedia adapter for LLM fine-tuning (issue [#96](https://github.com/MoonyFringers/ladon/issues/96))

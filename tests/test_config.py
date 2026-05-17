@@ -26,6 +26,8 @@ def test_config_defaults_are_stable():
     assert config.proxy_pool is None
     assert config.auth is None
     assert config.default_params is None
+    assert config.backend == "requests"
+    assert config.impersonate is None
 
 
 def test_config_default_headers_are_independent():
@@ -112,3 +114,51 @@ def test_config_rejects_invalid_retry_on_status_values():
         HttpClientConfig(retry_on_status=frozenset({99}))
     with pytest.raises(ValueError, match="retry_on_status"):
         HttpClientConfig(retry_on_status=frozenset({600}))
+
+
+# ---------------------------------------------------------------------------
+# backend / impersonate
+# ---------------------------------------------------------------------------
+
+
+def test_config_defaults_backend_requests():
+    config = HttpClientConfig()
+    assert config.backend == "requests"
+    assert config.impersonate is None
+
+
+def test_config_curl_cffi_backend_requires_impersonate():
+    with pytest.raises(ValueError, match="impersonate"):
+        HttpClientConfig(backend="curl-cffi")
+
+
+def test_config_curl_cffi_backend_with_impersonate_accepted():
+    config = HttpClientConfig(backend="curl-cffi", impersonate="chrome136")
+    assert config.backend == "curl-cffi"
+    assert config.impersonate == "chrome136"
+
+
+def test_config_impersonate_without_curl_cffi_backend_accepted():
+    # Storing an impersonate value with the default backend is allowed —
+    # make_http_client / make_async_http_client will ignore it.
+    config = HttpClientConfig(impersonate="chrome136")
+    assert config.backend == "requests"
+    assert config.impersonate == "chrome136"
+
+
+def test_config_unknown_impersonate_warns_when_curl_cffi_installed():
+    pytest.importorskip("curl_cffi", reason="curl-cffi not installed")
+    with pytest.warns(UserWarning, match="Unknown impersonate target"):
+        config = HttpClientConfig(
+            backend="curl-cffi", impersonate="notabrowser999"
+        )
+    assert config.impersonate == "notabrowser999"  # still accepted
+
+
+def test_config_valid_impersonate_does_not_warn():
+    pytest.importorskip("curl_cffi", reason="curl-cffi not installed")
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        HttpClientConfig(backend="curl-cffi", impersonate="chrome136")

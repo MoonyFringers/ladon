@@ -314,3 +314,19 @@ def test_context_cannot_override_canonical_metadata(mock_get, client):
     assert result.meta["method"] == "GET"
     assert result.meta["context"]["url"] == "http://context.example"
     assert result.meta["context"]["method"] == "PATCH"
+
+
+# ---------------------------------------------------------------------------
+# set_crawl_delay
+# ---------------------------------------------------------------------------
+
+
+def test_set_crawl_delay_stored(client):
+    client.set_crawl_delay("example.com", 2.5)
+    assert client._crawl_delay_overrides["example.com"] == 2.5
+
+
+def test_set_crawl_delay_overwrites(client):
+    client.set_crawl_delay("example.com", 1.0)
+    client.set_crawl_delay("example.com", 3.0)
+    assert client._crawl_delay_overrides["example.com"] == 3.0

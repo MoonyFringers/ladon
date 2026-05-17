@@ -3,9 +3,12 @@
 from importlib.metadata import PackageNotFoundError, version
 
 from .async_runner import async_run_crawl
+from .networking import make_async_http_client, make_http_client
 from .networking.async_client import AsyncHttpClient
+from .networking.async_curl_client import AsyncCurlHttpClient
 from .networking.client import HttpClient
 from .networking.config import HttpClientConfig
+from .networking.curl_client import CurlHttpClient
 from .networking.errors import (
     CircuitOpenError,
     HttpClientError,
@@ -81,6 +84,10 @@ __all__ = [
     # Networking
     "HttpClient",
     "AsyncHttpClient",
+    "CurlHttpClient",
+    "AsyncCurlHttpClient",
+    "make_http_client",
+    "make_async_http_client",
     "HttpClientConfig",
     "Result",
     "HttpClientError",

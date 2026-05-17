@@ -1,14 +1,18 @@
-"""Asynchronous HTTP client for the Ladon networking layer (httpx backend).
+"""Asynchronous HTTP client backed by curl-cffi (Cloudflare bypass).
 
-``AsyncHttpClient`` is the **only** module in Ladon that imports ``httpx``.
-All three httpx API deltas vs ``requests`` are encapsulated as private
-methods so the rest of the codebase remains completely unaware of httpx:
+Mirrors ``AsyncHttpClient`` exactly but uses ``curl_cffi.requests.AsyncSession``
+instead of ``httpx.AsyncClient``, enabling TLS fingerprint impersonation
+(JA3/JA4) to bypass Cloudflare L1+L2 challenges without browser automation.
 
-  ``_to_httpx_proxies()``  — scheme key conversion + Transport wrapping
-  ``_to_httpx_timeout()``  — float/tuple → ``httpx.Timeout``
-  ``_build_meta()``        — ``str(r.url)``, ``r.reason_phrase``
+Requires the optional ``cffi`` extra::
 
-If httpx changes its API or is replaced, the blast radius is this file only.
+    pip install ladon-crawl[cffi]
+
+If curl-cffi is not installed, importing this module succeeds but
+instantiating ``AsyncCurlHttpClient`` raises ``ImportError`` with an
+actionable message.
+
+Blast radius: if curl-cffi changes its async API, only this file is affected.
 """
 
 from __future__ import annotations
@@ -18,10 +22,29 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from random import uniform
 from time import monotonic
-from typing import Any, Callable, Coroutine, Mapping, TypeVar, cast
+from typing import Any, Callable, Coroutine, Mapping, TypeVar
 from urllib.parse import urlparse
 
-import httpx
+try:
+    from curl_cffi import (
+        requests as _cffi,  # type: ignore[import-untyped, import-not-found]
+    )
+    from curl_cffi.requests import (
+        BrowserType as _BrowserType,  # type: ignore[import-untyped, import-not-found]
+    )
+    from curl_cffi.requests import (
+        exceptions as _cffi_exc,  # type: ignore[import-untyped, import-not-found]
+    )
+
+    _curl_cffi_available: bool = True
+    _valid_impersonate: frozenset[str] = frozenset(
+        b.value for b in _BrowserType  # type: ignore[union-attr]
+    )
+except ImportError:
+    _cffi: Any = None
+    _cffi_exc: Any = None
+    _curl_cffi_available = False
+    _valid_impersonate = frozenset()
 
 from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
@@ -36,171 +59,115 @@ from .types import Err, Ok, Result
 
 ResponseValue = TypeVar("ResponseValue")
 
-_RequestFn = Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]
+_AsyncRequestFn = Callable[[], Coroutine[Any, Any, Any]]
+
+_IMPORT_ERROR_MSG = (
+    "curl-cffi is required for AsyncCurlHttpClient.\n"
+    "Install it with:  pip install ladon-crawl[cffi]"
+)
 
 
-class AsyncHttpClient:
-    """Core async HTTP client (httpx backend).
+class AsyncCurlHttpClient:
+    """Async HTTP client with TLS fingerprint impersonation via curl-cffi.
 
-    All outbound async HTTP in Ladon must go through this client to ensure
-    consistent politeness, resilience, and observability. Methods return a
-    ``Result`` that contains either a value or an error plus request metadata.
+    Drop-in async replacement for ``AsyncHttpClient`` for targets protected
+    by Cloudflare L1 (JS challenge) or L2 (TLS fingerprint / JA3 hash).
+    All policy (retries, rate limiting, circuit breaking) is identical to
+    ``AsyncHttpClient``.
 
-    This is the only Ladon module that imports ``httpx``. Adapters must not
-    import ``httpx`` directly.
-
-    Robots.txt enforcement is not yet supported; passing
-    ``respect_robots_txt=True`` raises ``NotImplementedError`` at
-    construction time.
-
-    Auth is limited to ``(username, password)`` tuples (HTTP Basic Auth).
-    Passing a ``requests.auth.AuthBase`` subclass raises ``NotImplementedError``
-    at construction time; use an ``httpx.Auth`` subclass for other schemes.
+    Robots.txt enforcement is not supported (same limitation as
+    ``AsyncHttpClient``). Passing ``respect_robots_txt=True`` raises
+    ``NotImplementedError`` at construction time.
 
     Concurrent safety
     -----------------
     Safe for concurrent use within a single asyncio event loop. Do not share
     an instance across threads.
+
+    Args:
+        config: Standard ``HttpClientConfig``.
+        impersonate: Browser fingerprint to impersonate.
+            Examples: ``"chrome136"``, ``"firefox147"``, ``"safari184"``.
+            Run ``python -c "from curl_cffi.requests import BrowserType;
+            print([b.value for b in BrowserType])"`` for the full list.
     """
 
-    def __init__(self, config: HttpClientConfig) -> None:
+    def __init__(self, config: HttpClientConfig, *, impersonate: str) -> None:
+        if not _curl_cffi_available:
+            raise ImportError(_IMPORT_ERROR_MSG)
         if config.respect_robots_txt:
             raise NotImplementedError(
-                "respect_robots_txt is not supported by AsyncHttpClient; "
+                "respect_robots_txt is not supported by AsyncCurlHttpClient; "
                 "async robots enforcement is deferred to a future release"
             )
-        if config.auth is not None and not isinstance(config.auth, tuple):
-            raise NotImplementedError(
-                "AsyncHttpClient only supports (username, password) tuple auth; "
-                "for other schemes use an httpx.Auth subclass directly"
+        if impersonate not in _valid_impersonate:
+            raise ValueError(
+                f"Unknown impersonate target {impersonate!r}. "
+                f'Run `python -c "from curl_cffi.requests import BrowserType; '
+                f'print([b.value for b in BrowserType])"` for valid values.'
             )
-
+        if config.auth is not None and not isinstance(config.auth, tuple):
+            raise ValueError(
+                "curl-cffi only supports HTTP Basic Auth; "
+                "AuthBase subclasses (HTTPDigestAuth, custom HMAC/OAuth) are "
+                "not supported. Use default_headers={'Authorization': '...'} "
+                "for Bearer tokens or other header-based schemes."
+            )
         self._config = config
+        self._impersonate = impersonate
+        self._session: Any = _cffi.AsyncSession(impersonate=impersonate)
         self._last_request_time: dict[str, float] = {}
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
         self._crawl_delay_overrides: dict[str, float] = {}
+        if self._config.user_agent:
+            self._session.headers["User-Agent"] = self._config.user_agent
+        self._session.headers.update(self._config.default_headers)
+        if self._config.proxies is not None:
+            self._session.proxies.update(self._config.proxies)
+        if self._config.auth is not None:
+            self._session.auth = self._config.auth
 
-        headers: dict[str, str] = {}
-        if config.user_agent:
-            headers["User-Agent"] = config.user_agent
-        headers.update(config.default_headers)
-        self._base_headers = headers
-        self._auth: tuple[str, str] | None = (
-            config.auth if isinstance(config.auth, tuple) else None
-        )
-
-        mounts = (
-            self._to_httpx_proxies(config.proxies)
-            if config.proxies is not None
-            else None
-        )
-        self._http = httpx.AsyncClient(
-            headers=headers,
-            mounts=mounts,
-            auth=self._auth,
-            verify=config.verify_tls,
-        )
+    @property
+    def impersonate(self) -> str:
+        """The browser fingerprint this client is configured to impersonate."""
+        return self._impersonate
 
     async def aclose(self) -> None:
-        """Close the underlying httpx client and release connections."""
-        await self._http.aclose()
+        """Close the underlying session and release pooled connections."""
+        await self._session.close()
 
-    async def __aenter__(self) -> AsyncHttpClient:
+    async def __aenter__(self) -> AsyncCurlHttpClient:
         return self
 
     async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
-    # ------------------------------------------------------------------
-    # httpx API delta converters — the blast-radius boundary
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _to_httpx_proxies(
-        proxies: Mapping[str, str],
-    ) -> dict[str, httpx.AsyncHTTPTransport]:
-        """Convert a requests-style proxy dict to an httpx mounts dict.
-
-        requests: ``{"https": "http://proxy:8080"}``
-        httpx:    ``{"https://": AsyncHTTPTransport(proxy=Proxy("http://proxy:8080"))}``
-
-        A missed conversion means proxies silently do not apply.
-        """
-        return {
-            (k if k.endswith("://") else k + "://"): httpx.AsyncHTTPTransport(
-                proxy=httpx.Proxy(v)
-            )
-            for k, v in proxies.items()
-        }
-
-    def _to_httpx_timeout(self, override: float | None) -> httpx.Timeout:
-        """Build an ``httpx.Timeout`` from config, with optional scalar override."""
+    def _get_timeout(
+        self, override: float | None
+    ) -> float | tuple[float, float]:
         if override is not None:
             if override <= 0:
                 raise ValueError("timeout override must be > 0 when provided")
-            return httpx.Timeout(override)
+            return override
         if (
             self._config.connect_timeout_seconds is not None
             and self._config.read_timeout_seconds is not None
         ):
-            return httpx.Timeout(
-                connect=self._config.connect_timeout_seconds,
-                read=self._config.read_timeout_seconds,
-                write=None,
-                pool=None,
+            return (
+                self._config.connect_timeout_seconds,
+                self._config.read_timeout_seconds,
             )
-        return httpx.Timeout(self._config.timeout_seconds)
-
-    def _build_meta(
-        self,
-        method: str,
-        request_url: str,
-        response: httpx.Response | None,
-        context: Mapping[str, Any] | None,
-        attempts: int,
-        timeout: httpx.Timeout | None,
-        final_error: str | None = None,
-    ) -> dict[str, Any]:
-        meta: dict[str, Any] = {}
-        meta["method"] = method
-        meta["url"] = request_url
-        meta["attempts"] = attempts
-        meta["timeout_s"] = timeout
-        if context:
-            context_dict = dict(context)
-            meta["context"] = context_dict
-            for key, value in context_dict.items():
-                meta.setdefault(key, value)
-        if response is not None:
-            meta["status_code"] = response.status_code
-            final_url = str(response.url)  # httpx.URL → str
-            meta["final_url"] = final_url
-            if final_url != request_url:
-                meta["redirected"] = True
-            meta["reason"] = (
-                response.reason_phrase
-            )  # httpx renames .reason → .reason_phrase
-            try:
-                meta["elapsed_s"] = response.elapsed.total_seconds()
-            except AttributeError:
-                pass
-        if final_error is not None:
-            meta["final_error"] = final_error
-        return meta
-
-    # ------------------------------------------------------------------
-    # Internal helpers — mirrors HttpClient
-    # ------------------------------------------------------------------
+        return self._config.timeout_seconds
 
     def _max_attempts(self) -> int:
         return 1 + max(0, self._config.retries)
 
-    def _is_retryable_exception(
-        self, method: str, error: httpx.RequestError
-    ) -> bool:
+    def _is_retryable_exception(self, method: str, error: Any) -> bool:
         if method.upper() not in {"GET", "HEAD"}:
             return False
-        return isinstance(error, (httpx.TimeoutException, httpx.ConnectError))
+        # SSLError subclasses ConnectionError and will be retried here; cert
+        # failures are not transient but exhausting retries is the safe default.
+        return isinstance(error, (_cffi_exc.Timeout, _cffi_exc.ConnectionError))
 
     async def _sleep_between_attempts(self, attempt: int) -> None:
         backoff_base = self._config.backoff_base_seconds
@@ -212,7 +179,7 @@ class AsyncHttpClient:
         )
 
     @staticmethod
-    def _parse_retry_after(response: httpx.Response) -> float | None:
+    def _parse_retry_after(response: Any) -> float | None:
         header = response.headers.get("Retry-After")
         if header is None:
             return None
@@ -221,11 +188,8 @@ class AsyncHttpClient:
         except ValueError:
             pass
         try:
-            # parsedate_to_datetime has no type stubs; cast gives pyright a
-            # concrete datetime so downstream arithmetic is fully typed.
-            raw = parsedate_to_datetime(header)  # pyright: ignore
-            dt = cast(datetime, raw)
-            delta = (dt - datetime.now(tz=timezone.utc)).total_seconds()
+            dt: datetime = parsedate_to_datetime(str(header))
+            delta: float = (dt - datetime.now(tz=timezone.utc)).total_seconds()
             return max(0.0, delta)
         except Exception:
             return None
@@ -241,13 +205,21 @@ class AsyncHttpClient:
         else:
             await self._sleep_between_attempts(attempt)
 
-    async def _enforce_rate_limit(self, url: str) -> None:
-        """Enforce per-host politeness delay before issuing a request.
+    def _apply_proxy(self, proxy: Mapping[str, str] | None) -> None:
+        self._session.proxies.clear()
+        if proxy is not None:
+            self._session.proxies.update(proxy)
 
-        Only waits — does not stamp ``_last_request_time``.  All stamping is
-        done by the ``_request`` loop's ``finally`` block so that every actual
-        attempt (including retries) updates the timestamp.
-        """
+    def _merge_params(
+        self, params: Mapping[str, str] | None
+    ) -> Mapping[str, str] | None:
+        dp = self._config.default_params
+        if dp is None:
+            return params
+        merged = {**dp, **(params or {})}
+        return merged if merged else None
+
+    async def _enforce_rate_limit(self, url: str) -> None:
         host = urlparse(url).netloc
         if not host:
             return
@@ -264,14 +236,62 @@ class AsyncHttpClient:
             if remaining > 0:
                 await asyncio.sleep(remaining)
 
-    def _merge_params(
-        self, params: Mapping[str, str] | None
-    ) -> Mapping[str, str] | None:
-        dp = self._config.default_params
-        if dp is None:
-            return params
-        merged = {**dp, **(params or {})}
-        return merged if merged else None
+    def _build_meta(
+        self,
+        method: str,
+        request_url: str,
+        response: Any | None,
+        context: Mapping[str, Any] | None,
+        attempts: int,
+        timeout: float | tuple[float, float] | None,
+        final_error: str | None = None,
+    ) -> dict[str, Any]:
+        meta: dict[str, Any] = {}
+        meta["method"] = method
+        meta["url"] = request_url
+        meta["attempts"] = attempts
+        meta["timeout_s"] = timeout
+        if context:
+            context_dict = dict(context)
+            meta["context"] = context_dict
+            for key, value in context_dict.items():
+                meta.setdefault(key, value)
+        if response is not None:
+            meta["status_code"] = response.status_code
+            meta["url"] = response.url
+            meta["reason"] = response.reason
+            try:
+                meta["elapsed_s"] = response.elapsed.total_seconds()
+            except AttributeError:
+                pass
+        if final_error is not None:
+            meta["final_error"] = final_error
+        return meta
+
+    def _handle_request_exception(
+        self,
+        method: str,
+        request_url: str,
+        e: Any,
+        context: Mapping[str, Any] | None,
+        attempts: int,
+        timeout: float | tuple[float, float] | None,
+    ) -> Result[Any, Exception]:
+        response = getattr(e, "response", None)
+        meta = self._build_meta(
+            method,
+            request_url,
+            response,
+            context,
+            attempts,
+            timeout,
+            final_error=type(e).__name__,
+        )
+        if isinstance(e, _cffi_exc.Timeout):
+            return Err(RequestTimeoutError(str(e)), meta=meta)
+        if isinstance(e, _cffi_exc.ConnectionError):
+            return Err(TransientNetworkError(str(e)), meta=meta)
+        return Err(HttpClientError(str(e)), meta=meta)
 
     def _get_circuit_breaker(self, url: str) -> CircuitBreaker | None:
         threshold = self._config.circuit_breaker_failure_threshold
@@ -301,69 +321,16 @@ class AsyncHttpClient:
         """
         self._crawl_delay_overrides[host] = delay_seconds
 
-    def _client_for_proxy(
-        self, proxy: Mapping[str, str] | None
-    ) -> httpx.AsyncClient:
-        """Return the httpx client to use for this proxy.
-
-        When proxy pool rotation is active a fresh client is created per
-        attempt; the caller is responsible for closing it (``client is not
-        self._http`` is the sentinel).  Without a pool the shared
-        ``self._http`` is returned for connection-pool efficiency.
-        """
-        if self._config.proxy_pool is None:
-            return self._http
-        mounts = self._to_httpx_proxies(proxy) if proxy is not None else None
-        return httpx.AsyncClient(
-            headers=self._base_headers,
-            mounts=mounts,
-            auth=self._auth,
-            verify=self._config.verify_tls,
-        )
-
-    def _handle_request_exception(
-        self,
-        method: str,
-        request_url: str,
-        e: httpx.RequestError,
-        context: Mapping[str, Any] | None,
-        attempts: int,
-        timeout: httpx.Timeout | None,
-    ) -> Result[Any, Exception]:
-        meta = self._build_meta(
-            method,
-            request_url,
-            None,
-            context,
-            attempts,
-            timeout,
-            final_error=type(e).__name__,
-        )
-        if isinstance(e, httpx.TimeoutException):
-            return Err(RequestTimeoutError(str(e)), meta=meta)
-        if isinstance(
-            e,
-            (
-                httpx.ConnectError,
-                httpx.NetworkError,
-                httpx.RemoteProtocolError,
-                httpx.LocalProtocolError,
-            ),
-        ):
-            return Err(TransientNetworkError(str(e)), meta=meta)
-        return Err(HttpClientError(str(e)), meta=meta)
-
     async def _request(
         self,
         method: str,
         url: str,
         *,
         context: Mapping[str, Any] | None,
-        timeout_obj: httpx.Timeout,
-        request_fn: _RequestFn,
-        value_builder: Callable[[httpx.Response], ResponseValue],
+        timeout: float | tuple[float, float],
+        request_fn: _AsyncRequestFn,
+        value_builder: Callable[[Any], ResponseValue],
     ) -> Result[ResponseValue, Exception]:
-        """Execute an async request with retries, circuit breaking, and rate limiting."""
         cb = self._get_circuit_breaker(url)
         if cb is not None and not cb.allow_request():
             meta = self._build_meta(
@@ -372,7 +339,7 @@ class AsyncHttpClient:
                 response=None,
                 context=context,
                 attempts=0,
-                timeout=timeout_obj,
+                timeout=timeout,
                 final_error="CircuitOpenError",
             )
             return Err(CircuitOpenError(urlparse(url).netloc), meta=meta)
@@ -382,19 +349,18 @@ class AsyncHttpClient:
         is_safe_method = method.upper() in {"GET", "HEAD"}
         pool = self._config.proxy_pool
         attempts = 0
-        last_error: httpx.RequestError | None = None
-        last_blocked_response: httpx.Response | None = None
+        last_error: Any = None
+        last_blocked_response: Any = None
         last_blocked_retry_after: float | None = None
         current_proxy: Mapping[str, str] | None = None
         if pool is not None:
             current_proxy = pool.next_proxy()
+            self._apply_proxy(current_proxy)
 
         for _ in range(self._max_attempts()):
             attempts += 1
-            client = self._client_for_proxy(current_proxy)
-            should_close = client is not self._http
             try:
-                response = await request_fn(client)
+                response = await request_fn()
                 if (
                     response.status_code in self._config.retry_on_status
                     and is_safe_method
@@ -406,6 +372,7 @@ class AsyncHttpClient:
                         if pool is not None:
                             pool.mark_failure(current_proxy)
                             current_proxy = pool.next_proxy()
+                            self._apply_proxy(current_proxy)
                         await self._sleep_for_retry_after(
                             last_blocked_retry_after, attempts
                         )
@@ -421,10 +388,10 @@ class AsyncHttpClient:
                         response=response,
                         context=context,
                         attempts=attempts,
-                        timeout=timeout_obj,
+                        timeout=timeout,
                     ),
                 )
-            except httpx.RequestError as exc:
+            except _cffi_exc.RequestException as exc:
                 last_error = exc
                 last_blocked_response = None
                 last_blocked_retry_after = None
@@ -436,14 +403,26 @@ class AsyncHttpClient:
                 if pool is not None:
                     pool.mark_failure(current_proxy)
                     current_proxy = pool.next_proxy()
+                    self._apply_proxy(current_proxy)
                 await self._sleep_between_attempts(attempts)
+            except Exception as exc:  # pragma: no cover - defensive fallback
+                if cb is not None:
+                    cb.record_failure()
+                return Err(
+                    HttpClientError(str(exc)),
+                    meta=self._build_meta(
+                        method=method,
+                        request_url=url,
+                        response=None,
+                        context=context,
+                        attempts=attempts,
+                        timeout=timeout,
+                        final_error=type(exc).__name__,
+                    ),
+                )
             finally:
-                # Stamp after every attempt so the next _request call sees an
-                # accurate "last request time" even when retries consumed seconds.
                 if host:
                     self._last_request_time[host] = monotonic()
-                if should_close:
-                    await client.aclose()
 
         if last_blocked_response is not None:
             if cb is not None:
@@ -461,7 +440,7 @@ class AsyncHttpClient:
                     response=last_blocked_response,
                     context=context,
                     attempts=attempts,
-                    timeout=timeout_obj,
+                    timeout=timeout,
                     final_error="RateLimitedError",
                 ),
             )
@@ -477,12 +456,8 @@ class AsyncHttpClient:
             e=last_error,
             context=context,
             attempts=attempts,
-            timeout=timeout_obj,
+            timeout=timeout,
         )
-
-    # ------------------------------------------------------------------
-    # Public API — mirrors HttpClient
-    # ------------------------------------------------------------------
 
     async def get(
         self,
@@ -496,26 +471,35 @@ class AsyncHttpClient:
     ) -> Result[bytes, Exception]:
         """Perform an async HTTP GET request.
 
+        Args:
+            url: Absolute URL to request.
+            headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
+            timeout: Override timeout in seconds for this request.
+            allow_redirects: Whether redirects should be followed.
+            context: Optional caller context for logging/tracing.
+
         Returns:
             Result containing response bytes on success, or an error on failure.
         """
-        timeout_obj = self._to_httpx_timeout(timeout)
+        resolved_timeout = self._get_timeout(timeout)
         merged_params = self._merge_params(params)
 
-        async def _fn(client: httpx.AsyncClient) -> httpx.Response:
-            return await client.get(
+        async def _fn() -> Any:
+            return await self._session.get(
                 url,
                 headers=headers,
                 params=merged_params,
-                timeout=timeout_obj,
-                follow_redirects=allow_redirects,
+                timeout=resolved_timeout,
+                allow_redirects=allow_redirects,
+                verify=self._config.verify_tls,
             )
 
         return await self._request(
             method="GET",
             url=url,
             context=context,
-            timeout_obj=timeout_obj,
+            timeout=resolved_timeout,
             request_fn=_fn,
             value_builder=lambda r: r.content,
         )
@@ -532,26 +516,35 @@ class AsyncHttpClient:
     ) -> Result[Mapping[str, Any], Exception]:
         """Perform an async HTTP HEAD request.
 
+        Args:
+            url: Absolute URL to request.
+            headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
+            timeout: Override timeout in seconds for this request.
+            allow_redirects: Whether redirects should be followed.
+            context: Optional caller context for logging/tracing.
+
         Returns:
             Result containing response headers on success, or an error on failure.
         """
-        timeout_obj = self._to_httpx_timeout(timeout)
+        resolved_timeout = self._get_timeout(timeout)
         merged_params = self._merge_params(params)
 
-        async def _fn(client: httpx.AsyncClient) -> httpx.Response:
-            return await client.head(
+        async def _fn() -> Any:
+            return await self._session.head(
                 url,
                 headers=headers,
                 params=merged_params,
-                timeout=timeout_obj,
-                follow_redirects=allow_redirects,
+                timeout=resolved_timeout,
+                allow_redirects=allow_redirects,
+                verify=self._config.verify_tls,
             )
 
         return await self._request(
             method="HEAD",
             url=url,
             context=context,
-            timeout_obj=timeout_obj,
+            timeout=resolved_timeout,
             request_fn=_fn,
             value_builder=lambda r: dict(r.headers),
         )
@@ -570,28 +563,39 @@ class AsyncHttpClient:
     ) -> Result[bytes, Exception]:
         """Perform an async HTTP POST request.
 
+        Args:
+            url: Absolute URL to request.
+            headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
+            data: Optional form/body payload.
+            json: Optional JSON payload (mutually exclusive with data).
+            timeout: Override timeout in seconds for this request.
+            allow_redirects: Whether redirects should be followed.
+            context: Optional caller context for logging/tracing.
+
         Returns:
             Result containing response bytes on success, or an error on failure.
         """
-        timeout_obj = self._to_httpx_timeout(timeout)
+        resolved_timeout = self._get_timeout(timeout)
         merged_params = self._merge_params(params)
 
-        async def _fn(client: httpx.AsyncClient) -> httpx.Response:
-            return await client.post(
+        async def _fn() -> Any:
+            return await self._session.post(
                 url,
                 headers=headers,
                 params=merged_params,
                 data=data,
                 json=json,
-                timeout=timeout_obj,
-                follow_redirects=allow_redirects,
+                timeout=resolved_timeout,
+                allow_redirects=allow_redirects,
+                verify=self._config.verify_tls,
             )
 
         return await self._request(
             method="POST",
             url=url,
             context=context,
-            timeout_obj=timeout_obj,
+            timeout=resolved_timeout,
             request_fn=_fn,
             value_builder=lambda r: r.content,
         )
@@ -605,30 +609,40 @@ class AsyncHttpClient:
         timeout: float | None = None,
         allow_redirects: bool = True,
         context: Mapping[str, Any] | None = None,
-    ) -> Result[httpx.Response, Exception]:
-        """Perform an async download (GET, returns the full httpx.Response).
+    ) -> Result[Any, Exception]:
+        """Perform an async download (GET, returns the full curl-cffi response).
+
+        Args:
+            url: Absolute URL to request.
+            headers: Optional per-request headers merged with defaults.
+            params: Optional query parameters.
+            timeout: Override timeout in seconds for this request.
+            allow_redirects: Whether redirects should be followed.
+            context: Optional caller context for logging/tracing.
 
         Returns:
-            Result containing the ``httpx.Response`` on success, or an error
-            on failure.
+            Result containing a curl-cffi response object with ``iter_content``
+            and ``iter_lines`` for streaming, or an error on failure.
         """
-        timeout_obj = self._to_httpx_timeout(timeout)
+        resolved_timeout = self._get_timeout(timeout)
         merged_params = self._merge_params(params)
 
-        async def _fn(client: httpx.AsyncClient) -> httpx.Response:
-            return await client.get(
+        async def _fn() -> Any:
+            return await self._session.get(
                 url,
                 headers=headers,
                 params=merged_params,
-                timeout=timeout_obj,
-                follow_redirects=allow_redirects,
+                timeout=resolved_timeout,
+                allow_redirects=allow_redirects,
+                stream=True,
+                verify=self._config.verify_tls,
             )
 
         return await self._request(
             method="GET",
             url=url,
             context=context,
-            timeout_obj=timeout_obj,
+            timeout=resolved_timeout,
             request_fn=_fn,
             value_builder=lambda r: r,
         )

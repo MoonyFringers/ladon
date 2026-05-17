@@ -1,8 +1,18 @@
-"""Synchronous HTTP client interface for the Ladon networking layer.
+"""Synchronous HTTP client backed by curl-cffi (Cloudflare bypass).
 
-This module defines the public interface used by crawlers/adapters. It is
-policy-agnostic by design; retries, rate limits, circuit breaking, and
-robots enforcement are applied by the concrete implementation.
+Mirrors ``HttpClient`` exactly but uses ``curl_cffi.requests.Session``
+instead of ``requests.Session``, allowing TLS fingerprint impersonation
+(JA3/JA4) to bypass Cloudflare L1+L2 challenges without browser automation.
+
+Requires the optional ``cffi`` extra::
+
+    pip install ladon-crawl[cffi]
+
+If curl-cffi is not installed, importing this module succeeds but
+instantiating ``CurlHttpClient`` raises ``ImportError`` with an
+actionable message.
+
+Blast radius: if curl-cffi changes its API, only this file is affected.
 """
 
 from __future__ import annotations
@@ -14,7 +24,26 @@ from time import monotonic, sleep
 from typing import Any, Callable, Mapping, TypeVar
 from urllib.parse import urlparse
 
-import requests
+try:
+    from curl_cffi import (
+        requests as _cffi,  # type: ignore[import-untyped, import-not-found]
+    )
+    from curl_cffi.requests import (
+        BrowserType as _BrowserType,  # type: ignore[import-untyped, import-not-found]
+    )
+    from curl_cffi.requests import (
+        exceptions as _cffi_exc,  # type: ignore[import-untyped, import-not-found]
+    )
+
+    _curl_cffi_available: bool = True
+    _valid_impersonate: frozenset[str] = frozenset(
+        b.value for b in _BrowserType  # type: ignore[union-attr]
+    )
+except ImportError:
+    _cffi: Any = None
+    _cffi_exc: Any = None
+    _curl_cffi_available = False
+    _valid_impersonate = frozenset()
 
 from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
@@ -31,29 +60,51 @@ from .types import Err, Ok, Result
 
 ResponseValue = TypeVar("ResponseValue")
 
+_IMPORT_ERROR_MSG = (
+    "curl-cffi is required for CurlHttpClient.\n"
+    "Install it with:  pip install ladon-crawl[cffi]"
+)
 
-class HttpClient:
-    """Core HTTP client interface (sync).
 
-    All outbound HTTP in Ladon must go through this client to ensure consistent
-    politeness, resilience, and observability. Methods return a Result that
-    contains either a value or an error plus request metadata.
+class CurlHttpClient:
+    """Sync HTTP client with TLS fingerprint impersonation via curl-cffi.
+
+    Drop-in replacement for ``HttpClient`` for targets protected by
+    Cloudflare L1 (JS challenge) or L2 (TLS fingerprint / JA3 hash).
+    All policy (retries, rate limiting, circuit breaking, robots.txt) is
+    identical to ``HttpClient``.
 
     Thread safety
     -------------
-    ``HttpClient`` is **not** thread-safe.  It is designed for the
-    single-threaded, single-run crawler model.  Do not share an instance
-    across threads without external locking.
+    Not thread-safe — same contract as ``HttpClient``.
+
+    Args:
+        config: Standard ``HttpClientConfig``.
+        impersonate: Browser fingerprint to impersonate.
+            Examples: ``"chrome136"``, ``"firefox147"``, ``"safari184"``.
+            Run ``python -c "from curl_cffi.requests import BrowserType;
+            print([b.value for b in BrowserType])"`` for the full list.
     """
 
-    def __init__(self, config: HttpClientConfig) -> None:
-        """Create a new HttpClient.
-
-        Args:
-            config: Configuration for timeouts, headers, and policy settings.
-        """
+    def __init__(self, config: HttpClientConfig, *, impersonate: str) -> None:
+        if not _curl_cffi_available:
+            raise ImportError(_IMPORT_ERROR_MSG)
+        if impersonate not in _valid_impersonate:
+            raise ValueError(
+                f"Unknown impersonate target {impersonate!r}. "
+                f'Run `python -c "from curl_cffi.requests import BrowserType; '
+                f'print([b.value for b in BrowserType])"` for valid values.'
+            )
+        if config.auth is not None and not isinstance(config.auth, tuple):
+            raise ValueError(
+                "curl-cffi only supports HTTP Basic Auth; "
+                "AuthBase subclasses (HTTPDigestAuth, custom HMAC/OAuth) are "
+                "not supported. Use default_headers={'Authorization': '...'} "
+                "for Bearer tokens or other header-based schemes."
+            )
         self._config = config
-        self._session = requests.Session()
+        self._impersonate = impersonate
+        self._session: Any = _cffi.Session(impersonate=impersonate)
         self._last_request_time: dict[str, float] = {}
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
         if self._config.user_agent:
@@ -73,15 +124,18 @@ class HttpClient:
             if self._config.respect_robots_txt
             else None
         )
-        # Per-host Crawl-delay overrides populated by _enforce_robots.
-        # These take precedence over min_request_interval_seconds when larger.
         self._crawl_delay_overrides: dict[str, float] = {}
+
+    @property
+    def impersonate(self) -> str:
+        """The browser fingerprint this client is configured to impersonate."""
+        return self._impersonate
 
     def close(self) -> None:
         """Close the underlying session and release pooled connections."""
         self._session.close()
 
-    def __enter__(self) -> HttpClient:
+    def __enter__(self) -> CurlHttpClient:
         return self
 
     def __exit__(self, *_: object) -> None:
@@ -90,7 +144,6 @@ class HttpClient:
     def _get_timeout(
         self, override: float | None
     ) -> float | tuple[float, float]:
-        """Resolve timeout preference."""
         if override is not None:
             if override <= 0:
                 raise ValueError("timeout override must be > 0 when provided")
@@ -106,22 +159,19 @@ class HttpClient:
         return self._config.timeout_seconds
 
     def _max_attempts(self) -> int:
-        """Return the total number of attempts for one request."""
         return 1 + max(0, self._config.retries)
 
-    def _is_retryable_exception(
-        self, method: str, error: requests.exceptions.RequestException
-    ) -> bool:
-        """Return True for retryable transport errors."""
+    def _is_retryable_exception(self, method: str, error: Any) -> bool:
         if method.upper() not in {"GET", "HEAD"}:
             return False
+        # SSLError subclasses ConnectionError and will be retried here; cert
+        # failures are not transient but exhausting retries is the safe default.
         return isinstance(
             error,
-            (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
+            (_cffi_exc.Timeout, _cffi_exc.ConnectionError),
         )
 
     def _sleep_between_attempts(self, attempt: int) -> None:
-        """Sleep between retry attempts using exponential backoff."""
         backoff_base = self._config.backoff_base_seconds
         if backoff_base <= 0:
             return
@@ -129,16 +179,7 @@ class HttpClient:
         sleep(uniform(0.0, cap) if self._config.backoff_jitter else cap)
 
     @staticmethod
-    def _parse_retry_after(response: requests.Response) -> float | None:
-        """Parse the ``Retry-After`` header from *response* into seconds.
-
-        Handles both delta-seconds (``"60"``) and HTTP-date
-        (``"Wed, 21 Oct 2015 07:28:00 GMT"``) forms per RFC 7231 §7.1.3.
-
-        Returns:
-            Seconds to wait (clamped to 0.0 minimum), or ``None`` if the
-            header is absent or cannot be parsed.
-        """
+    def _parse_retry_after(response: Any) -> float | None:
         header = response.headers.get("Retry-After")
         if header is None:
             return None
@@ -147,23 +188,15 @@ class HttpClient:
         except ValueError:
             pass
         try:
-            dt = parsedate_to_datetime(header)
-            delta = (dt - datetime.now(tz=timezone.utc)).total_seconds()
+            dt: datetime = parsedate_to_datetime(str(header))
+            delta: float = (dt - datetime.now(tz=timezone.utc)).total_seconds()
             return max(0.0, delta)
-        except Exception:  # fail-open: treat any unparseable date as absent
+        except Exception:
             return None
 
     def _sleep_for_retry_after(
         self, retry_after: float | None, attempt: int
     ) -> None:
-        """Sleep before a retry triggered by a rate-limiting HTTP response.
-
-        When *retry_after* is not ``None``: caps it at
-        ``max_retry_after_seconds``, then takes the longer of the capped value
-        and ``min_request_interval_seconds`` so the client's own politeness
-        policy is never violated.  Falls back to ``_sleep_between_attempts``
-        when *retry_after* is ``None``.
-        """
         if retry_after is not None:
             capped = min(retry_after, self._config.max_retry_after_seconds)
             sleep(max(capped, self._config.min_request_interval_seconds))
@@ -171,7 +204,6 @@ class HttpClient:
             self._sleep_between_attempts(attempt)
 
     def _apply_proxy(self, proxy: Mapping[str, str] | None) -> None:
-        """Update session proxy to *proxy*, clearing any previous setting."""
         self._session.proxies.clear()
         if proxy is not None:
             self._session.proxies.update(proxy)
@@ -179,7 +211,6 @@ class HttpClient:
     def _merge_params(
         self, params: Mapping[str, str] | None
     ) -> Mapping[str, str] | None:
-        """Merge *params* with ``default_params``, per-request wins on collision."""
         dp = self._config.default_params
         if dp is None:
             return params
@@ -187,39 +218,10 @@ class HttpClient:
         return merged if merged else None
 
     def _enforce_robots(self, url: str) -> None:
-        """Raise ``RobotsBlockedError`` if *url* is disallowed by robots.txt.
-
-        No-op when ``respect_robots_txt`` is False (the default) or when the
-        robots.txt fetch fails (fail-open behaviour).
-
-        Called before ``_enforce_rate_limit`` so that blocked requests are
-        rejected before the rate-limit slot is consumed — honouring the spirit
-        of the robots.txt contract: don't even waste a rate-limit slot on a
-        host that has explicitly opted out of being crawled.
-
-        Known limitation — robots.txt fetch bypasses rate-limiter
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ``RobotsCache`` fetches ``/robots.txt`` via a raw ``session.get``
-        call that is invisible to ``_enforce_rate_limit``.  On the first
-        request to any origin this produces two outbound HTTP requests to
-        that host in rapid succession (robots.txt fetch + the actual request),
-        regardless of ``min_request_interval_seconds``.  The cache guarantees
-        at most one robots.txt fetch per origin per session, so subsequent
-        requests to the same host are unaffected.  This trade-off is
-        documented in ADR-008.
-        """
         if self._robots_cache is None:
             return
         if not self._robots_cache.is_allowed(url):
             raise RobotsBlockedError(f"robots.txt disallows: {url}")
-        # Propagate Crawl-delay into the rate limiter for this host.
-        # HttpClientConfig is frozen so we maintain a side-table of per-host
-        # delay overrides rather than mutating config.
-        # Note: Crawl-delay is only registered here, on the *allowed* path.
-        # A domain that disallows all URLs but advertises Crawl-delay will
-        # have the delay present in RobotsCache._crawl_delays (populated at
-        # fetch time) but absent from _crawl_delay_overrides (since no request
-        # is ever made to that host, there is nothing to throttle).
         delay = self._robots_cache.crawl_delay(url)
         if delay is not None:
             host = urlparse(url).netloc
@@ -228,17 +230,9 @@ class HttpClient:
                 self._crawl_delay_overrides[host] = delay
 
     def _enforce_rate_limit(self, url: str) -> None:
-        """Enforce per-host politeness delay before issuing a request.
-
-        If ``min_request_interval_seconds`` is set, sleeps for however long
-        remains since the last request to the same host, then records the
-        current time as the new last-request timestamp for that host.
-
-        No-op when ``min_request_interval_seconds`` is zero (the default).
-        """
         host = urlparse(url).netloc
         if not host:
-            return  # malformed URL — skip rather than poisoning the empty-key slot
+            return
         interval = max(
             self._config.min_request_interval_seconds,
             self._crawl_delay_overrides.get(host, 0.0),
@@ -251,21 +245,17 @@ class HttpClient:
             remaining = interval - elapsed
             if remaining > 0:
                 sleep(remaining)
-        # Writes here (start-to-start semantics). The three other clients write
-        # in the _request finally block (end-to-start). Will be aligned in #109.
-        self._last_request_time[host] = monotonic()
 
     def _build_meta(
         self,
         method: str,
         request_url: str,
-        response: requests.Response | None,
+        response: Any | None,
         context: Mapping[str, Any] | None,
         attempts: int,
         timeout: float | tuple[float, float] | None,
         final_error: str | None = None,
     ) -> dict[str, Any]:
-        """Construct metadata dictionary from response and context."""
         meta: dict[str, Any] = {}
         meta["method"] = method
         meta["url"] = request_url
@@ -284,7 +274,7 @@ class HttpClient:
             try:
                 meta["elapsed_s"] = response.elapsed.total_seconds()
             except AttributeError:
-                pass  # In case elapsed is not available or mocked
+                pass
         if final_error is not None:
             meta["final_error"] = final_error
 
@@ -294,13 +284,12 @@ class HttpClient:
         self,
         method: str,
         request_url: str,
-        e: requests.exceptions.RequestException,
+        e: Any,
         context: Mapping[str, Any] | None,
         attempts: int,
         timeout: float | tuple[float, float] | None,
     ) -> Result[Any, Exception]:
-        """Map requests exceptions to Ladon errors."""
-        response = e.response
+        response = getattr(e, "response", None)
         meta = self._build_meta(
             method,
             request_url,
@@ -311,17 +300,15 @@ class HttpClient:
             final_error=type(e).__name__,
         )
 
-        if isinstance(e, requests.exceptions.Timeout):
+        if isinstance(e, _cffi_exc.Timeout):
             return Err(RequestTimeoutError(str(e)), meta=meta)
 
-        if isinstance(e, requests.exceptions.ConnectionError):
+        if isinstance(e, _cffi_exc.ConnectionError):
             return Err(TransientNetworkError(str(e)), meta=meta)
 
-        # Generic fallback for other request exceptions
         return Err(HttpClientError(str(e)), meta=meta)
 
     def _get_circuit_breaker(self, url: str) -> CircuitBreaker | None:
-        """Return the CircuitBreaker for the host of *url*, or None if disabled."""
         threshold = self._config.circuit_breaker_failure_threshold
         if threshold is None:
             return None
@@ -338,15 +325,8 @@ class HttpClient:
     def circuit_state(self, url: str) -> CircuitState | None:
         """Return the current circuit-breaker state for *url*'s host.
 
-        Returns ``None`` when the circuit breaker is disabled
-        (``circuit_breaker_failure_threshold`` is ``None``) or when no
-        request has been made to the host yet.
-
-        Intended for logging, metrics, and operational dashboards — lets
-        callers surface open circuits without touching private state.
-
-        Args:
-            url: Any URL on the host to query (only the ``netloc`` is used).
+        Returns ``None`` when circuit breaking is disabled or no request has
+        been made to the host yet.
         """
         cb = self._circuit_breakers.get(urlparse(url).netloc)
         if cb is None:
@@ -368,11 +348,10 @@ class HttpClient:
         url: str,
         *,
         context: Mapping[str, Any] | None,
-        timeout: float | tuple[float, float] | None,
-        request_fn: Callable[[], requests.Response],
-        value_builder: Callable[[requests.Response], ResponseValue],
+        timeout: float | tuple[float, float],
+        request_fn: Callable[[], Any],
+        value_builder: Callable[[Any], ResponseValue],
     ) -> Result[ResponseValue, Exception]:
-        """Execute request with retries and normalized metadata."""
         cb = self._get_circuit_breaker(url)
         if cb is not None and not cb.allow_request():
             meta = self._build_meta(
@@ -384,10 +363,7 @@ class HttpClient:
                 timeout=timeout,
                 final_error="CircuitOpenError",
             )
-            return Err(
-                CircuitOpenError(urlparse(url).netloc),
-                meta=meta,
-            )
+            return Err(CircuitOpenError(urlparse(url).netloc), meta=meta)
 
         try:
             self._enforce_robots(url)
@@ -404,11 +380,12 @@ class HttpClient:
             return Err(exc, meta=meta)
 
         self._enforce_rate_limit(url)
+        host = urlparse(url).netloc
         is_safe_method = method.upper() in {"GET", "HEAD"}
         pool = self._config.proxy_pool
         attempts = 0
-        last_error: requests.exceptions.RequestException | None = None
-        last_blocked_response: requests.Response | None = None
+        last_error: Any = None
+        last_blocked_response: Any = None
         last_blocked_retry_after: float | None = None
         current_proxy: Mapping[str, str] | None = None
         if pool is not None:
@@ -448,7 +425,7 @@ class HttpClient:
                         timeout=timeout,
                     ),
                 )
-            except requests.exceptions.RequestException as exc:
+            except _cffi_exc.RequestException as exc:
                 last_error = exc
                 last_blocked_response = None
                 last_blocked_retry_after = None
@@ -477,6 +454,9 @@ class HttpClient:
                         final_error=type(exc).__name__,
                     ),
                 )
+            finally:
+                if host:
+                    self._last_request_time[host] = monotonic()
 
         if last_blocked_response is not None:
             if cb is not None:
@@ -513,15 +493,15 @@ class HttpClient:
         )
 
     @staticmethod
-    def _content_value(response: requests.Response) -> bytes:
-        return response.content
+    def _content_value(response: Any) -> bytes:
+        return response.content  # type: ignore[no-any-return]
 
     @staticmethod
-    def _headers_value(response: requests.Response) -> Mapping[str, Any]:
+    def _headers_value(response: Any) -> Mapping[str, Any]:
         return dict(response.headers)
 
     @staticmethod
-    def _response_value(response: requests.Response) -> requests.Response:
+    def _response_value(response: Any) -> Any:
         return response
 
     def get(
@@ -660,7 +640,7 @@ class HttpClient:
         timeout: float | None = None,
         allow_redirects: bool = True,
         context: Mapping[str, Any] | None = None,
-    ) -> Result[requests.Response, Exception]:
+    ) -> Result[Any, Exception]:
         """Stream a download request.
 
         Args:
@@ -672,8 +652,8 @@ class HttpClient:
             context: Optional caller context for logging/tracing.
 
         Returns:
-            Result containing a stream/handle or download descriptor on success,
-            or an error on failure.
+            Result containing a curl-cffi response object with ``iter_content``
+            and ``iter_lines`` for streaming, or an error on failure.
         """
         resolved_timeout = self._get_timeout(timeout)
         return self._request(
