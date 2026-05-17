@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-011-curl-cffi-cloudflare-bypass/">
       
       
-        <link rel="prev" href="../api/plugins/">
-      
-      
-        <link rel="next" href="adr-001-ladon-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Overview - Ladon</title>
+        <title>Adr 011 curl cffi cloudflare bypass - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-decision-records" class="md-skip">
+        <a href="#adr-011-curl-cffi-as-the-cloudflare-bypass-http-backend" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Adr 011 curl cffi cloudflare bypass
             
           </span>
         </div>
@@ -225,7 +221,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -244,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
+      <a href="../../getting-started/" class="md-tabs__link">
         
   
   
@@ -265,7 +261,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -285,7 +281,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/networking/" class="md-tabs__link">
+        <a href="../../api/networking/" class="md-tabs__link">
           
   
   
@@ -301,13 +297,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -341,7 +335,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -371,7 +365,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -398,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -477,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -505,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -592,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/networking/" class="md-nav__link">
+      <a href="../../api/networking/" class="md-nav__link">
         
   
   
@@ -620,7 +614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/runner/" class="md-nav__link">
+      <a href="../../api/runner/" class="md-nav__link">
         
   
   
@@ -648,7 +642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plugins/" class="md-nav__link">
+      <a href="../../api/plugins/" class="md-nav__link">
         
   
   
@@ -680,31 +674,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -722,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -737,37 +726,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -783,37 +745,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -826,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -861,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -896,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -931,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -966,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1001,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-007-circuit-breaker/" class="md-nav__link">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1029,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-008-robots-txt/" class="md-nav__link">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1084,10 +1015,93 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
+  <a href="#context-and-problem-statement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rejected-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirmation
       
     </span>
   </a>
@@ -1114,81 +1128,112 @@
   
 
 
-<h1 id="architecture-decision-records">Architecture Decision Records</h1>
-<p>This directory contains the Architecture Decision Records (ADRs) for Ladon.
-Each ADR documents a significant technical decision: the context, the options
-considered, the chosen option, and — crucially — <strong>why</strong> that option was
-chosen over the alternatives.</p>
-<table>
-<thead>
-<tr>
-<th>ADR</th>
-<th>Title</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="adr-001-ladon-architecture/">ADR-001</a></td>
-<td>Ladon Architecture</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-002-http-status-result-contract/">ADR-002</a></td>
-<td>HTTP Result Contract</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-003-plugin-adapter-interface/">ADR-003</a></td>
-<td>Plugin Adapter Interface</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-004-ses-protocol-design/">ADR-004</a></td>
-<td>Source / Expander / Sink Protocol Design</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-005</td>
-<td>Asset Storage (<code>ladon.storage</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-006-persistence-layer/">ADR-006</a></td>
-<td>Persistence Layer (<code>ladon.persistence</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-007-circuit-breaker/">ADR-007</a></td>
-<td>Per-Host Circuit Breaker</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-008-robots-txt/">ADR-008</a></td>
-<td>robots.txt Enforcement</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-009</td>
-<td>Observability (metrics, structured logs)</td>
-<td>Proposed — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-010-dual-license-model/">ADR-010</a></td>
-<td>Dual-License Model (AGPL-3.0-only + Commercial)</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-011-curl-cffi-cloudflare-bypass/">ADR-011</a></td>
-<td>curl-cffi as the Cloudflare-Bypass HTTP Backend</td>
-<td>Accepted</td>
-</tr>
-</tbody>
-</table>
-<h2 id="format">Format</h2>
-<p>ADRs follow the <a href="https://adr.github.io/madr/">MADR</a> template.
-To propose a new decision, copy <code>docs/decisions/adr-template.md</code>,
-fill in the sections, and open a PR.</p>
+<hr />
+<p>status: accepted
+date: 2026-05-16
+decision-makers: [Maintainers]
+informed: [Contributors]
+refs: [ADR-001, Issue #107]</p>
+<hr />
+<h1 id="adr-011-curl-cffi-as-the-cloudflare-bypass-http-backend">ADR-011 — curl-cffi as the Cloudflare-Bypass HTTP Backend</h1>
+<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
+<p>Ladon's primary motivating use case includes crawling comics databases and
+similar sites that are protected by Cloudflare.  The existing <code>HttpClient</code>
+(requests) and <code>AsyncHttpClient</code> (httpx) backends fail against Cloudflare L2
+(TLS fingerprint challenge) because their TLS <code>ClientHello</code> is identifiable
+as non-browser traffic.  The <code>ladon-dylan-dog</code> adapter targets <code>comics.org</code>,
+which is behind Cloudflare and blocks both standard backends.</p>
+<p>We need a third backend that can bypass Cloudflare L1+L2 without requiring
+browser automation (Playwright, Selenium), which would be a heavyweight and
+operationally complex dependency.</p>
+<h2 id="decision-drivers">Decision Drivers</h2>
+<ul>
+<li>Must bypass Cloudflare L1 (JS challenge) and L2 (TLS fingerprint / JA3 hash).</li>
+<li>Must not require a system-level browser installation or subprocess.</li>
+<li>Must mirror the full policy surface of <code>HttpClient</code> (retries, circuit breaker,
+  proxy rotation, rate limiting, auth) — adapters should not need special-casing.</li>
+<li>Must be an optional dependency — users who don't crawl Cloudflare-protected
+  targets should not pay the binary wheel cost (~10 MB).</li>
+<li>Must be compatible with Ladon's strict-mode Pyright type checking.</li>
+</ul>
+<h2 id="considered-options">Considered Options</h2>
+<ul>
+<li><strong>A — curl-cffi (chosen)</strong></li>
+<li><strong>B — DrissionPage</strong></li>
+<li><strong>C — cloudscraper</strong></li>
+<li><strong>D — Playwright / Selenium</strong></li>
+</ul>
+<h2 id="decision-outcome">Decision Outcome</h2>
+<p><strong>Chosen: Option A — curl-cffi.</strong></p>
+<p>curl-cffi is a Python binding over libcurl with BoringSSL (the same TLS
+library used by Chrome).  It can impersonate the exact TLS <code>ClientHello</code> of
+43 browser targets (chrome99–chrome136, firefox, safari, tor) including
+ALPN, cipher suites, and extension order — the fields that make up the JA3/JA4
+hash.  The result is a response identical to what a real browser would receive,
+with no JavaScript execution or DOM required.</p>
+<h3 id="implementation">Implementation</h3>
+<ul>
+<li>New <code>ladon/networking/curl_client.py</code> (<code>CurlHttpClient</code>) and
+  <code>ladon/networking/async_curl_client.py</code> (<code>AsyncCurlHttpClient</code>).</li>
+<li>Both files mirror <code>client.py</code> / <code>async_client.py</code> exactly — same public
+  interface, same policy pipeline, different underlying session class.</li>
+<li><code>HttpClientConfig</code> gains <code>backend: Literal["requests", "curl-cffi"]</code> and
+  <code>impersonate: str | None</code> fields.  <code>make_http_client()</code> and
+  <code>make_async_http_client()</code> factories dispatch on <code>config.backend</code>.</li>
+<li>curl-cffi is placed behind the <code>[cffi]</code> optional extra group so it is
+  never installed as a transitive dependency.</li>
+<li>Import guard at module top: if curl-cffi is not installed, importing the
+  module succeeds but instantiating the class raises <code>ImportError</code> with an
+  actionable message.  This keeps <code>from ladon.networking import *</code> safe in
+  all environments.</li>
+</ul>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li><strong>Good</strong>: L1+L2 Cloudflare bypass without a browser process or system
+  dependency — a single binary wheel.</li>
+<li><strong>Good</strong>: Full policy parity with existing backends — adapters require zero
+  changes to use the curl backend.</li>
+<li><strong>Good</strong>: Optional dependency — zero impact on users who don't need it.</li>
+<li><strong>Good</strong>: <code>impersonate</code> validated at construction time against <code>BrowserType</code>
+  — no runtime surprise on first network call.</li>
+<li><strong>Neutral</strong>: L3 (IP reputation / ASN blocking) is not addressed and is
+  explicitly out of scope.  Residential proxies remain required for datacenter
+  IPs against aggressive Cloudflare configurations.</li>
+<li><strong>Neutral</strong>: <code>respect_robots_txt=True</code> raises <code>NotImplementedError</code> on
+  <code>AsyncCurlHttpClient</code> — async robots.txt enforcement is deferred.
+  <code>CurlHttpClient</code> (sync) supports robots.txt via the standard <code>RobotsCache</code>.</li>
+<li><strong>Bad</strong>: Binary wheel (~10 MB) with bundled BoringSSL.  Acceptable for an
+  optional extra; not acceptable as a default dependency.</li>
+<li><strong>Bad</strong>: <code>curl_cffi</code> is untyped; <code>type: ignore[import-untyped]</code> annotations
+  required at import sites.  Mitigated by keeping all curl-cffi interaction
+  confined to the two backend files.</li>
+</ul>
+<h2 id="rejected-options">Rejected options</h2>
+<p><strong>B — DrissionPage:</strong> Bundles a Chromium browser and requires system-level
+dependencies.  A 200 MB install for a problem that curl-cffi solves with 10 MB.
+Operationally impractical for server deployments.</p>
+<p><strong>C — cloudscraper:</strong> A requests-based library that solves L1 (JS challenge)
+by re-implementing the JavaScript solver in Python.  Does not address L2 (TLS
+fingerprint) — Cloudflare's Turnstile and newer IUAM challenges are not
+solvable without a real TLS fingerprint.  Also unmaintained (last release 2022).</p>
+<p><strong>D — Playwright / Selenium:</strong> Full browser automation.  Definitively solves
+L1+L2+L3 (human-like behaviour) but requires a running browser process, a
+display server or <code>--headless</code> mode, and significant operational overhead.
+The right tool for interactive challenges; overkill for what is fundamentally
+a TLS fingerprinting problem.</p>
+<h2 id="confirmation">Confirmation</h2>
+<p>The decision is confirmed by:</p>
+<ul>
+<li><code>tests/test_curl_client.py</code> and <code>tests/test_async_curl_client.py</code> — 191 unit
+  tests covering the full policy surface (retries, circuit breaker, 429/503,
+  proxy pool, <code>ImpersonateError</code> mapping, robots.txt, rate limiting, backoff
+  jitter, Retry-After HTTP-date, proxy pool rotation, context metadata).</li>
+<li><code>tests/test_factory.py</code> — factory dispatch and backend selection.</li>
+<li><code>scripts/smoke_test_gcd.py</code> — live smoke test against <code>www.comics.org</code>.
+  Confirmed: TLS fingerprint impersonation works (HTTP connections succeed,
+  real Cloudflare responses received).  L3 IP reputation blocking is the
+  remaining obstacle on datacenter IPs, as expected.</li>
+</ul>
 
 
 
@@ -1244,10 +1289,10 @@ fill in the sections, and open a PR.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
