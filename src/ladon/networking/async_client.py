@@ -108,7 +108,7 @@ class AsyncHttpClient:
     async def __aenter__(self) -> AsyncHttpClient:
         return self
 
-    async def __aexit__(self, *args: object) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
     # ------------------------------------------------------------------

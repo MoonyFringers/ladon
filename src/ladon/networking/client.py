@@ -84,7 +84,7 @@ class HttpClient:
     def __enter__(self) -> HttpClient:
         return self
 
-    def __exit__(self, *args: object) -> None:
+    def __exit__(self, *_: object) -> None:
         self.close()
 
     def _get_timeout(
@@ -251,6 +251,8 @@ class HttpClient:
             remaining = interval - elapsed
             if remaining > 0:
                 sleep(remaining)
+        # Writes here (start-to-start semantics). The three other clients write
+        # in the _request finally block (end-to-start). Will be aligned in #109.
         self._last_request_time[host] = monotonic()
 
     def _build_meta(
@@ -350,6 +352,15 @@ class HttpClient:
         if cb is None:
             return None
         return cb.state
+
+    def set_crawl_delay(self, host: str, delay_seconds: float) -> None:
+        """Override the per-host crawl delay for *host*.
+
+        Takes precedence over ``HttpClientConfig.min_request_interval_seconds``
+        when the override is larger.  Intended for callers that parse a site's
+        ``robots.txt`` and want to honour its ``Crawl-delay`` directive.
+        """
+        self._crawl_delay_overrides[host] = delay_seconds
 
     def _request(
         self,
