@@ -12,7 +12,8 @@ If curl-cffi is not installed, importing this module succeeds but
 instantiating ``AsyncCurlHttpClient`` raises ``ImportError`` with an
 actionable message.
 
-Blast radius: if curl-cffi changes its async API, only this file is affected.
+Blast radius: if curl-cffi changes its async session API, only this file is affected.
+Bootstrap symbols (cffi, cffi_exc, BrowserType) are owned by _cffi_common.py.
 """
 
 from __future__ import annotations
@@ -25,27 +26,11 @@ from time import monotonic
 from typing import Any, Callable, Coroutine, Mapping, TypeVar
 from urllib.parse import urlparse
 
-try:
-    from curl_cffi import (
-        requests as _cffi,  # type: ignore[import-untyped, import-not-found]
-    )
-    from curl_cffi.requests import (
-        BrowserType as _BrowserType,  # type: ignore[import-untyped, import-not-found]
-    )
-    from curl_cffi.requests import (
-        exceptions as _cffi_exc,  # type: ignore[import-untyped, import-not-found]
-    )
-
-    _curl_cffi_available: bool = True
-    _valid_impersonate: frozenset[str] = frozenset(
-        b.value for b in _BrowserType  # type: ignore[union-attr]
-    )
-except ImportError:
-    _cffi: Any = None
-    _cffi_exc: Any = None
-    _curl_cffi_available = False
-    _valid_impersonate = frozenset()
-
+from ._cffi_common import cffi as _cffi
+from ._cffi_common import cffi_exc as _cffi_exc
+from ._cffi_common import curl_cffi_available as _curl_cffi_available
+from ._cffi_common import import_error_msg as _import_error_msg
+from ._cffi_common import valid_impersonate as _valid_impersonate
 from .circuit_breaker import CircuitBreaker, CircuitState
 from .config import HttpClientConfig
 from .errors import (
@@ -60,11 +45,6 @@ from .types import Err, Ok, Result
 ResponseValue = TypeVar("ResponseValue")
 
 _AsyncRequestFn = Callable[[], Coroutine[Any, Any, Any]]
-
-_IMPORT_ERROR_MSG = (
-    "curl-cffi is required for AsyncCurlHttpClient.\n"
-    "Install it with:  pip install ladon-crawl[cffi]"
-)
 
 
 class AsyncCurlHttpClient:
@@ -94,7 +74,7 @@ class AsyncCurlHttpClient:
 
     def __init__(self, config: HttpClientConfig, *, impersonate: str) -> None:
         if not _curl_cffi_available:
-            raise ImportError(_IMPORT_ERROR_MSG)
+            raise ImportError(_import_error_msg(type(self).__name__))
         if config.respect_robots_txt:
             raise NotImplementedError(
                 "respect_robots_txt is not supported by AsyncCurlHttpClient; "
