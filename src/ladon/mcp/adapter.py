@@ -25,6 +25,8 @@ class LadonMCPAdapter(ABC):
     """
 
     def __init__(self, db_path: str) -> None:
+        # v0.2: all adapters receive the same --db path from ladon-nous.
+        # Multi-path support (--db adapter=path) is planned for v0.3.
         self.db_path = db_path
 
     @property
@@ -44,9 +46,19 @@ class LadonMCPAdapter(ABC):
         ...
 
     def mcp_resources(self) -> list[tuple[str, Callable[..., object]]]:
-        """Resource (uri_template, handler) pairs to register on the server.
+        """Resource (uri_template, handler_fn) pairs to register on the server.
 
-        The URI template follows FastMCP syntax, e.g.
-        ``"ladon://mimir/articles/{page_id}"``. Override to expose resources.
+        The URI template follows FastMCP syntax. Path parameter names in the
+        template **must match** the handler function's parameter names exactly —
+        a mismatch fails silently at call time, not at registration.
+
+        Example::
+
+            def article_handler(page_id: int) -> str:
+                \"\"\"Full article content.\"\"\"
+                ...
+            return [("ladon://mimir/articles/{page_id}", article_handler)]
+
+        All database access in the handler **must** use ``read_only=True``.
         """
         return []
