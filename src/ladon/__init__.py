@@ -3,6 +3,7 @@
 from importlib.metadata import PackageNotFoundError, version
 
 from .async_runner import async_run_crawl
+from .mcp import LadonMCPAdapter
 from .networking import make_async_http_client, make_http_client
 from .networking.async_client import AsyncHttpClient
 from .networking.async_curl_client import AsyncCurlHttpClient
@@ -53,7 +54,7 @@ try:
     __version__ = version("ladon-crawl")
 except PackageNotFoundError:
     __version__ = (
-        "0.3.0"  # editable install without metadata — bump with every release
+        "0.3.1"  # editable install without metadata — bump with every release
     )
 
 
@@ -113,5 +114,7 @@ __all__ = [
     "StorageKeyNotFoundError",
     "StorageReadError",
     "StorageWriteError",
+    # MCP adapter protocol
+    "LadonMCPAdapter",
     "__version__",
 ]
