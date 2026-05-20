@@ -172,29 +172,29 @@ and `AsyncSink` — the same structural-protocol pattern as the sync stack.
 `v0.2.0` — async crawling milestone. `AsyncHttpClient`, `AsyncCrawlPlugin`,
 and `async_run_crawl()` are stable and fully tested. The sync API is unchanged.
 
-What is in v0.2.0:
+What was added in v0.3.0:
+- **Cloudflare bypass** — `CurlHttpClient` / `AsyncCurlHttpClient` via
+  curl-cffi, `HttpClientConfig(backend="curl-cffi", impersonate="chrome136")`,
+  `make_http_client()` / `make_async_http_client()` factories (issue [#107](https://github.com/MoonyFringers/ladon/issues/107))
+
+What was added in v0.2.0:
 - **Async crawling** — `async_run_crawl()` + `AsyncHttpClient` (httpx backend)
 - **Async plugin protocols** — `AsyncSource`, `AsyncExpander`, `AsyncSink`, `AsyncCrawlPlugin`
 - `RunConfig.async_concurrency` — bounded leaf-fetch concurrency (default 10)
 
-What was in v0.1.0:
+What was added in v0.1.0:
 - HTTP 429/503 Retry-After respect and full-jitter backoff
 - Static and rotating proxy support (`ProxyPool`, `RoundRobinProxyPool`)
 - HTTP authentication — Basic, Digest, any `requests.auth.AuthBase`
 - Default query parameters via `HttpClientConfig(default_params=...)`
 
-What was in v0.0.1:
+What was added in v0.0.1:
 - SES protocol (Source / Expander / Sink) with structural typing
 - `run_crawl()` runner with leaf isolation and `RunResult` summary
 - `HttpClient` with retries, back-off, rate limiting, circuit breaker, robots.txt
 - `Storage` protocol with `LocalFileStorage`
 - `Repository` and `RunAudit` persistence protocols with `NullRepository`
 - `ladon run` / `ladon info` CLI
-
-What is in progress (unreleased):
-- **Cloudflare bypass** — `CurlHttpClient` / `AsyncCurlHttpClient` via
-  curl-cffi, `HttpClientConfig(backend="curl-cffi", impersonate="chrome136")`,
-  `make_http_client()` / `make_async_http_client()` factories (issue [#107](https://github.com/MoonyFringers/ladon/issues/107))
 
 What is coming:
 - `ladon-mimir` — async Wikipedia adapter for LLM fine-tuning (issue [#96](https://github.com/MoonyFringers/ladon/issues/96))
