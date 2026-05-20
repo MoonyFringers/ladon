@@ -15,7 +15,7 @@ chosen over the alternatives.
 | [ADR-006](adr-006-persistence-layer.md) | Persistence Layer (`ladon.persistence`) | Accepted — Phase 3 |
 | [ADR-007](adr-007-circuit-breaker.md) | Per-Host Circuit Breaker | Accepted |
 | [ADR-008](adr-008-robots-txt.md) | robots.txt Enforcement | Accepted |
-| ADR-009 | Observability (metrics, structured logs) | Proposed — Phase 3 |
+| [ADR-009](adr-009-observability.md) | Observability (metrics, structured logs) | Proposed — Phase 3 |
 | [ADR-010](adr-010-dual-license-model.md) | Dual-License Model (AGPL-3.0-only + Commercial) | Accepted |
 | [ADR-011](adr-011-curl-cffi-cloudflare-bypass.md) | curl-cffi as the Cloudflare-Bypass HTTP Backend | Accepted |
 | [ADR-012](adr-012-session-contract-boundary.md) | Session Contract Boundary in `SyncPolicyBase` | Accepted |
