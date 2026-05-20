@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-005-asset-storage/">
       
       
-        <link rel="prev" href="../api/plugins/">
-      
-      
-        <link rel="next" href="adr-001-ladon-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Overview - Ladon</title>
+        <title>ADR-005 — Asset Storage (ladon.storage) - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-decision-records" class="md-skip">
+        <a href="#adr-005-asset-storage-ladonstorage" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              ADR-005 — Asset Storage (ladon.storage)
             
           </span>
         </div>
@@ -225,7 +221,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -244,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
+      <a href="../../getting-started/" class="md-tabs__link">
         
   
   
@@ -265,7 +261,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -285,7 +281,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/networking/" class="md-tabs__link">
+        <a href="../../api/networking/" class="md-tabs__link">
           
   
   
@@ -301,13 +297,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -341,7 +335,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -371,7 +365,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -398,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -477,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -505,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -592,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/networking/" class="md-nav__link">
+      <a href="../../api/networking/" class="md-nav__link">
         
   
   
@@ -620,7 +614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/runner/" class="md-nav__link">
+      <a href="../../api/runner/" class="md-nav__link">
         
   
   
@@ -648,7 +642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plugins/" class="md-nav__link">
+      <a href="../../api/plugins/" class="md-nav__link">
         
   
   
@@ -680,31 +674,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -722,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -737,37 +726,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -783,37 +745,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -826,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -861,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -896,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -931,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -966,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1001,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-007-circuit-breaker/" class="md-nav__link">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1029,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-008-robots-txt/" class="md-nav__link">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1084,10 +1015,132 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
+  <a href="#context-and-problem-statement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pros-and-cons-of-the-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pros and Cons of the Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pros and Cons of the Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-embed-file-io-in-each-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Embed file I/O in each plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-pass-storage-through-run_crawl-and-sinkconsume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Pass storage through run_crawl() and Sink.consume()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-c-storage-protocol-injected-at-plugin-construction-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option C: Storage protocol injected at plugin construction (chosen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More Information
       
     </span>
   </a>
@@ -1114,92 +1167,158 @@
   
 
 
-<h1 id="architecture-decision-records">Architecture Decision Records</h1>
-<p>This directory contains the Architecture Decision Records (ADRs) for Ladon.
-Each ADR documents a significant technical decision: the context, the options
-considered, the chosen option, and — crucially — <strong>why</strong> that option was
-chosen over the alternatives.</p>
+<h1 id="adr-005-asset-storage-ladonstorage">ADR-005 — Asset Storage (<code>ladon.storage</code>)</h1>
+<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
+<p>Ladon plugins that download binary assets (images, PDFs, attachments) have no
+framework-provided abstraction for writing them. The previous <code>RunConfig</code> carried
+<code>output_dir: str | None</code> and <code>skip_assets: bool</code>, but these fields were never read
+by the runner and never passed to any plugin — dead API surface. As a result, plugins
+embedded file I/O directly against hard-coded local paths, making it impossible to
+swap backends (e.g. from local disk to object storage) without modifying plugin code.</p>
+<p><strong>The question is:</strong> what is the minimum storage surface the framework can provide
+without prescribing specific backends or adding runtime dependencies to core?</p>
+<h2 id="decision-drivers">Decision Drivers</h2>
+<ul>
+<li>The framework defines protocols, not implementations — storage backends are adapter
+  concerns.</li>
+<li>Core must remain dependency-free: no <code>boto3</code>, no cloud SDK in <code>ladon</code>.</li>
+<li>Storage backends must be swappable without changing plugin code.</li>
+<li>Plugins in multi-worker deployments (separate processes or containers) need a shared
+  external backend; local storage must not be assumed as the only option.</li>
+<li>Third parties must be able to implement custom backends (GCS, Azure Blob, Redis)
+  without forking or patching the framework.</li>
+<li><code>Sink.consume(ref, client)</code> signature must not change — storage injection must
+  happen at plugin construction, not at call time.</li>
+</ul>
+<h2 id="considered-options">Considered Options</h2>
+<ul>
+<li>
+<p><strong>Option A: Embed file I/O in each plugin</strong> — each plugin writes directly to a
+  local path. Simple, but couples path management to plugin code and makes backend
+  swapping impossible.</p>
+</li>
+<li>
+<p><strong>Option B: Pass <code>storage</code> through <code>run_crawl()</code> and down to <code>Sink.consume()</code></strong> —
+  the runner threads a storage instance through the call stack. Avoids plugin
+  construction changes but requires modifying the <code>Sink.consume</code> protocol signature,
+  a breaking change for all existing plugins.</p>
+</li>
+<li>
+<p><strong>Option C: <code>Storage</code> protocol injected at plugin construction (chosen)</strong> — a
+  <code>Storage</code> structural protocol lives in <code>ladon.storage</code>. Plugins accept
+  <code>storage: Storage | None = None</code> at construction. <code>None</code> means no asset download.
+  The runner is unaware of storage; the plugin decides when and whether to use it.</p>
+</li>
+</ul>
+<h2 id="decision-outcome">Decision Outcome</h2>
+<p>Chosen option: <strong>Option C</strong>, because it keeps the <code>Sink.consume</code> signature stable,
+makes the storage backend fully swappable, and follows the same structural-protocol
+pattern used throughout Ladon (ADR-003, ADR-006).</p>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li>Good, because storage backends are testable independently of plugin logic — mock
+  the protocol in tests, use <code>LocalFileStorage</code> in development, <code>S3Storage</code> in
+  production, all without changing plugin code.</li>
+<li>Good, because third parties can implement custom backends (GCS, Azure Blob, Redis)
+  by satisfying the four-method structural protocol — no inheritance or registration
+  required.</li>
+<li>Good, because <code>storage=None</code> is an explicit, readable convention that replaces the
+  former <code>skip_assets: bool</code> flag.</li>
+<li>Good, because <code>ladon</code> core ships <code>LocalFileStorage</code> with no new runtime
+  dependencies — S3 and other cloud backends are separate opt-in packages.</li>
+<li>Bad, because each plugin that handles assets must accept <code>storage</code> at construction,
+  a minor but required API change.</li>
+<li>Bad, because key collision within a storage backend is the plugin's responsibility
+  — the framework provides no deduplication.</li>
+</ul>
+<h3 id="confirmation">Confirmation</h3>
+<ul>
+<li><code>ladon.storage</code> exports a <code>Storage</code> protocol (structural, <code>@runtime_checkable</code>)
+  and <code>LocalFileStorage(root: Path)</code>.</li>
+<li><code>isinstance(LocalFileStorage(...), Storage)</code> returns <code>True</code>.</li>
+<li>A cloud-backend package (<code>ladon-storage-s3</code>) ships separately and depends on
+  <code>boto3</code>; core remains dependency-free.</li>
+<li>Plugins receive <code>storage: Storage | None = None</code> at construction; the runner
+  passes no storage argument.</li>
+</ul>
+<h2 id="pros-and-cons-of-the-options">Pros and Cons of the Options</h2>
+<h3 id="option-a-embed-file-io-in-each-plugin">Option A: Embed file I/O in each plugin</h3>
+<ul>
+<li>Good, because zero framework changes required.</li>
+<li>Bad, because path management is duplicated across all plugins.</li>
+<li>Bad, because swapping from local disk to object storage requires modifying every
+  plugin that writes assets.</li>
+<li>Bad, because multi-worker deployments sharing a storage backend cannot use a
+  local path.</li>
+</ul>
+<h3 id="option-b-pass-storage-through-run_crawl-and-sinkconsume">Option B: Pass <code>storage</code> through <code>run_crawl()</code> and <code>Sink.consume()</code></h3>
+<ul>
+<li>Good, because plugins do not need a constructor change.</li>
+<li>Bad, because <code>Sink.consume(ref, client, storage)</code> is a breaking change for all
+  existing plugins.</li>
+<li>Bad, because the runner acquires a dependency on a concept it does not own.</li>
+</ul>
+<h3 id="option-c-storage-protocol-injected-at-plugin-construction-chosen">Option C: <code>Storage</code> protocol injected at plugin construction (chosen)</h3>
+<ul>
+<li>Good, because <code>Sink.consume</code> signature is unchanged — no breaking change.</li>
+<li>Good, because the <code>Storage</code> protocol is the extension point: structural subtyping
+  means any compliant class satisfies it without inheriting from Ladon.</li>
+<li>Good, because <code>None</code> injection disables asset download cleanly.</li>
+<li>Neutral, because plugin constructors must be updated to accept <code>storage</code>.</li>
+</ul>
+<h2 id="more-information">More Information</h2>
+<p>The <code>Storage</code> protocol exposes four methods:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nd">@runtime_checkable</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Storage</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+</code></pre></div>
+<p>Key scheme (<code>{domain}/{run_id}/{leaf_id}/{filename}</code>) is the plugin's responsibility.
+The framework enforces no convention; structural isolation between plugin domains is
+achieved through key prefixes.</p>
+<p>Idempotency pattern — plugins should check before downloading:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_storage</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_storage</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_storage</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+<p>Package boundary:</p>
 <table>
 <thead>
 <tr>
-<th>ADR</th>
-<th>Title</th>
-<th>Status</th>
+<th>Package</th>
+<th>Ships</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="adr-001-ladon-architecture/">ADR-001</a></td>
-<td>Ladon Architecture</td>
-<td>Accepted</td>
+<td><code>ladon</code> (core)</td>
+<td><code>Storage</code> protocol, <code>LocalFileStorage</code>, error taxonomy</td>
 </tr>
 <tr>
-<td><a href="adr-002-http-status-result-contract/">ADR-002</a></td>
-<td>HTTP Result Contract</td>
-<td>Accepted</td>
+<td><code>ladon-storage-s3</code></td>
+<td><code>S3Storage(bucket, prefix, client)</code> — depends on <code>boto3</code></td>
 </tr>
 <tr>
-<td><a href="adr-003-plugin-adapter-interface/">ADR-003</a></td>
-<td>Plugin Adapter Interface</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-004-ses-protocol-design/">ADR-004</a></td>
-<td>Source / Expander / Sink Protocol Design</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-005-asset-storage/">ADR-005</a></td>
-<td>Asset Storage (<code>ladon.storage</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-006-persistence-layer/">ADR-006</a></td>
-<td>Persistence Layer (<code>ladon.persistence</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-007-circuit-breaker/">ADR-007</a></td>
-<td>Per-Host Circuit Breaker</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-008-robots-txt/">ADR-008</a></td>
-<td>robots.txt Enforcement</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td>ADR-009</td>
-<td>Observability (metrics, structured logs)</td>
-<td>Proposed — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-010-dual-license-model/">ADR-010</a></td>
-<td>Dual-License Model (AGPL-3.0-only + Commercial)</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-011-curl-cffi-cloudflare-bypass/">ADR-011</a></td>
-<td>curl-cffi as the Cloudflare-Bypass HTTP Backend</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-012-session-contract-boundary/">ADR-012</a></td>
-<td>Session Contract Boundary in <code>SyncPolicyBase</code></td>
-<td>Accepted</td>
+<td>Adapter repos</td>
+<td>Consume <code>Storage</code> via injection — no storage implementation</td>
 </tr>
 </tbody>
 </table>
-<h2 id="format">Format</h2>
-<p>ADRs follow the <a href="https://adr.github.io/madr/">MADR</a> template.
-To propose a new decision, copy <code>docs/decisions/adr-template.md</code>,
-fill in the sections, and open a PR.</p>
+<p>Related decisions: ADR-003 (plugin interface), ADR-004 (SES protocol), ADR-006
+(persistence layer).</p>
 
 
 
 
 
 
+
+  
+  
 
 
 
@@ -1249,10 +1368,10 @@ fill in the sections, and open a PR.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
