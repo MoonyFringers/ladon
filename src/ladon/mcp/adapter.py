@@ -32,7 +32,8 @@ class LadonMCPAdapter(ABC):
     @property
     @abstractmethod
     def adapter_name(self) -> str:
-        """Short identifier used in tool name prefixes: ``mimir``, ``hermes``."""
+        """Short identifier used in log messages and reserved for future
+        tool-name prefixing: ``mimir``, ``hermes``."""
         ...
 
     @abstractmethod
@@ -42,6 +43,10 @@ class LadonMCPAdapter(ABC):
         Each callable must have a descriptive docstring (used as the tool
         description) and type-annotated parameters (used to build the JSON
         schema). All database access **must** use ``read_only=True``.
+
+        On ``duckdb.Error``, return a structured ``{"error": "..."}`` payload
+        (or ``[{"error": "..."}]`` for list-returning tools) rather than
+        raising — MCP clients may not handle exceptions gracefully.
         """
         ...
 
