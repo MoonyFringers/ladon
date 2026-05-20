@@ -52,7 +52,9 @@ from .storage import (
 try:
     __version__ = version("ladon-crawl")
 except PackageNotFoundError:
-    __version__ = "0.0.1"  # editable install without metadata
+    __version__ = (
+        "0.3.0"  # editable install without metadata — bump with every release
+    )
 
 
 __all__ = [

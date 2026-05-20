@@ -11,6 +11,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+### Fixed
+
+### Changed
+
+---
+
+## [0.3.0] — 2026-05-18
+
+### Added
+
 - **`cffi` optional dependency group** — `pip install ladon-crawl[cffi]` installs
   `curl-cffi>=0.11,<1`, enabling the `CurlHttpClient` and `AsyncCurlHttpClient`
   backends for Cloudflare-protected targets (issue #107).
@@ -140,7 +150,8 @@ First public release.
   current counters are correct but the model will be simplified
 - Python 3.11, 3.12, and 3.13 supported; 3.10 and below are not
 
-[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/MoonyFringers/ladon/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/MoonyFringers/ladon/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/MoonyFringers/ladon/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/MoonyFringers/ladon/releases/tag/v0.0.1
