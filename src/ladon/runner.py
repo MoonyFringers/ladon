@@ -16,6 +16,14 @@ condition: when any expander raises it, the run is aborted immediately
 and the exception propagates to the caller. The caller must treat it as
 "not yet ready" and schedule a retry on the next run — it is never
 silently swallowed or converted into a partial result.
+
+The plan/execute split (v0.3):
+  ``plan_crawl_sync`` runs Phase 1 only and returns a ``CrawlPlan``.
+  ``execute_plan_sync`` runs Phase 3 against an existing plan.
+  ``run_crawl`` remains a self-contained Phase 1+3 entry point with the
+  original ``on_leaf(leaf_record, parent_record)`` contract.
+  ``execute_plan_sync``'s ``on_leaf`` receives ``(leaf_record, leaf_ref)``
+  per ADR-011 — different from ``run_crawl``'s contract.
 """
 
 from __future__ import annotations
@@ -34,6 +42,37 @@ from ladon.plugins.errors import (
 from ladon.plugins.protocol import CrawlPlugin
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CrawlPlan:
+    """Immutable output of ``plan_crawl_sync()`` / ``plan_crawl()``.
+
+    Carries the top-level record, all leaf refs collected during Phase 1
+    tree traversal, and any branch errors that occurred.  Use
+    ``excluding()`` and ``limited_to()`` to derive filtered variants
+    before passing to ``execute_plan_sync()`` / ``execute_plan()``.
+    """
+
+    record: object
+    leaves: tuple[object, ...]
+    errors: tuple[str, ...]
+
+    def excluding(self, predicate: Callable[[object], bool]) -> CrawlPlan:
+        """Return a new plan with leaves for which predicate is True removed."""
+        return CrawlPlan(
+            record=self.record,
+            leaves=tuple(ref for ref in self.leaves if not predicate(ref)),
+            errors=self.errors,
+        )
+
+    def limited_to(self, n: int) -> CrawlPlan:
+        """Return a new plan capped at the first n leaves."""
+        return CrawlPlan(
+            record=self.record,
+            leaves=self.leaves[:n],
+            errors=self.errors,
+        )
 
 
 @dataclass(frozen=True)
@@ -250,6 +289,154 @@ def run_crawl(
 
     return RunResult(
         record=top_record,
+        leaves_consumed=leaves_consumed,
+        leaves_persisted=leaves_persisted,
+        leaves_failed=leaves_failed,
+        errors=tuple(errors),
+    )
+
+
+def plan_crawl_sync(
+    top_ref: object,
+    plugin: CrawlPlugin,
+    client: HttpClient,
+) -> CrawlPlan:
+    """Run Phase 1 (tree traversal) synchronously and return a CrawlPlan.
+
+    Traverses all expanders in order and collects every leaf ref.  Does not
+    call the sink.  Branch failures are recorded in ``CrawlPlan.errors``.
+
+    Raises:
+        ExpansionNotReadyError:     Any expander raised this — run is globally
+                                    premature; caller should retry later.
+        PartialExpansionError:      Raised only from the first expander.
+        ChildListUnavailableError:  Raised only from the first expander.
+        ValueError:                 Plugin has no expanders configured.
+    """
+    if not plugin.expanders:
+        raise ValueError(
+            f"CrawlPlugin '{plugin.name}' has no expanders configured"
+        )
+
+    errors: list[str] = []
+
+    first_expansion = plugin.expanders[0].expand(top_ref, client)
+    top_record: object = first_expansion.record
+    current_refs: list[object] = list(first_expansion.child_refs)
+
+    for expander in plugin.expanders[1:]:
+        next_refs: list[object] = []
+        for ref in current_refs:
+            try:
+                expansion = expander.expand(ref, client)
+            except ExpansionNotReadyError:
+                raise
+            except (PartialExpansionError, ChildListUnavailableError) as exc:
+                errors.append(f"expander branch '{ref}': {exc}")
+                logger.warning(
+                    "expander branch failed",
+                    extra={
+                        "ref": str(ref),
+                        "error": str(exc),
+                        "error_type": type(exc).__name__,
+                    },
+                )
+                continue
+            next_refs.extend(expansion.child_refs)
+        current_refs = next_refs
+
+    logger.info(
+        "plan_crawl_sync finished",
+        extra={"plugin": plugin.name, "leaf_count": len(current_refs)},
+    )
+    return CrawlPlan(
+        record=top_record,
+        leaves=tuple(current_refs),
+        errors=tuple(errors),
+    )
+
+
+def execute_plan_sync(
+    plan: CrawlPlan,
+    plugin: CrawlPlugin,
+    client: HttpClient,
+    config: RunConfig,
+    on_leaf: Callable[[object, object], None] | None = None,
+    on_progress: Callable[[int, int], None] | None = None,
+) -> RunResult:
+    """Run Phase 3 (leaf fetching) against an existing CrawlPlan.
+
+    Args:
+        plan:        Plan produced by ``plan_crawl_sync()``.
+        plugin:      Crawl plugin whose sink consumes each leaf.
+        client:      Configured HttpClient instance.
+        config:      Run-level configuration (leaf_limit; async_concurrency ignored).
+        on_leaf:     Optional callback receiving ``(leaf_record, leaf_ref)``
+                     after each successful consume.  Note: second argument is the
+                     **leaf ref**, not a parent record (see ADR-011).
+        on_progress: Optional callback receiving ``(leaves_done, total_leaves)``
+                     after each leaf attempt (success or failure).
+
+    Returns:
+        RunResult with counts and any per-leaf error messages.  Phase 1
+        errors from the plan are carried forward into ``RunResult.errors``.
+    """
+    leaves = plan.leaves
+    if config.leaf_limit > 0:
+        leaves = leaves[: config.leaf_limit]
+
+    total = len(leaves)
+    leaves_consumed = 0
+    leaves_persisted = 0
+    leaves_failed = 0
+    errors: list[str] = list(plan.errors)
+
+    for i, leaf_ref in enumerate(leaves):
+        try:
+            leaf_record = plugin.sink.consume(leaf_ref, client)
+        except LeafUnavailableError as exc:
+            leaves_failed += 1
+            errors.append(f"ref[{i}] consume failed: {exc}")
+            logger.warning(
+                "leaf unavailable — ref[%d] error=%s",
+                i,
+                exc,
+                extra={"ref_index": i, "error": str(exc)},
+            )
+            if on_progress is not None:
+                on_progress(leaves_consumed + leaves_failed, total)
+            continue
+
+        leaves_consumed += 1
+
+        if on_leaf is not None:
+            try:
+                on_leaf(leaf_record, leaf_ref)
+                leaves_persisted += 1
+            except Exception as exc:
+                errors.append(f"ref[{i}] callback failed: {exc}")
+                logger.warning(
+                    "on_leaf callback failed — ref[%d] error=%s",
+                    i,
+                    exc,
+                    extra={"ref_index": i, "error": str(exc)},
+                )
+        else:
+            leaves_persisted += 1
+
+        if on_progress is not None:
+            on_progress(leaves_consumed + leaves_failed, total)
+
+    logger.info(
+        "execute_plan_sync finished",
+        extra={
+            "leaves_consumed": leaves_consumed,
+            "leaves_persisted": leaves_persisted,
+            "leaves_failed": leaves_failed,
+        },
+    )
+    return RunResult(
+        record=plan.record,
         leaves_consumed=leaves_consumed,
         leaves_persisted=leaves_persisted,
         leaves_failed=leaves_failed,
