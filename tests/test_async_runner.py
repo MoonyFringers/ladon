@@ -1,7 +1,6 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 # pyright: reportUnknownArgumentType=false, reportArgumentType=false
 # pyright: reportUnknownParameterType=false, reportMissingParameterType=false
-# pyright: reportArgumentType=false
 """Contract tests for async_run_crawl().
 
 Async mocks are plain classes with async methods — no inheritance from

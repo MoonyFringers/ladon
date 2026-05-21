@@ -394,7 +394,8 @@ def execute_plan_sync(
                      after each successful consume.  Note: second argument is the
                      **leaf ref**, not a parent record (see ADR-011).
         on_progress: Optional callback receiving ``(leaves_done, total_leaves)``
-                     after each leaf attempt (success or failure).
+                     after each leaf attempt (success or failure).  Exceptions
+                     raised by this callback are logged and swallowed.
 
     Returns:
         RunResult with counts and any per-leaf error messages.  Phase 1
@@ -408,7 +409,7 @@ def execute_plan_sync(
 
     logger.info(
         "execute_plan_sync started",
-        extra={"plugin": plugin.name, "total_leaves": total},
+        extra={"plugin": plugin.name, "leaf_count": total},
     )
 
     leaves_consumed = 0
@@ -433,7 +434,15 @@ def execute_plan_sync(
                 },
             )
             if on_progress is not None:
-                on_progress(leaves_consumed + leaves_failed, total)
+                try:
+                    on_progress(leaves_consumed + leaves_failed, total)
+                except Exception as _exc:
+                    logger.warning(
+                        "on_progress callback raised — ref[%d]: %s",
+                        i,
+                        _exc,
+                        extra={"plugin": plugin.name, "ref_index": i},
+                    )
             continue
 
         leaves_consumed += 1
@@ -458,7 +467,15 @@ def execute_plan_sync(
             leaves_persisted += 1
 
         if on_progress is not None:
-            on_progress(leaves_consumed + leaves_failed, total)
+            try:
+                on_progress(leaves_consumed + leaves_failed, total)
+            except Exception as _exc:
+                logger.warning(
+                    "on_progress callback raised — ref[%d]: %s",
+                    i,
+                    _exc,
+                    extra={"plugin": plugin.name, "ref_index": i},
+                )
 
     logger.info(
         "execute_plan_sync finished",

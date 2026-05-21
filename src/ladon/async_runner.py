@@ -323,7 +323,8 @@ async def execute_plan(
                      (success or failure).  Called from inside concurrent leaf
                      tasks — order matches completion order, not input order.
                      Async callables are not supported; passing an ``async def``
-                     will silently discard the coroutine.
+                     will silently discard the coroutine.  Exceptions raised
+                     by this callback are logged and swallowed.
 
     Returns:
         RunResult with counts and any per-leaf error messages.  Phase 1
@@ -337,7 +338,7 @@ async def execute_plan(
 
     logger.info(
         "execute_plan started",
-        extra={"plugin": plugin.name, "total_leaves": total},
+        extra={"plugin": plugin.name, "leaf_count": total},
     )
 
     errors: list[str] = list(plan.errors)
@@ -354,6 +355,19 @@ async def execute_plan(
         leaf_errors    holds at most one error string.
         """
         nonlocal done_count
+
+        def _fire_progress() -> None:
+            if on_progress is not None:
+                try:
+                    on_progress(done_count, total)
+                except Exception as _exc:
+                    logger.warning(
+                        "on_progress callback raised — ref[%d]: %s",
+                        i,
+                        _exc,
+                        extra={"plugin": plugin.name, "ref_index": i},
+                    )
+
         async with semaphore:
             try:
                 leaf_record = await plugin.sink.consume(leaf_ref, client)
@@ -369,16 +383,14 @@ async def execute_plan(
                     },
                 )
                 done_count += 1
-                if on_progress is not None:
-                    on_progress(done_count, total)
+                _fire_progress()
                 return (False, False, [f"ref[{i}] consume failed: {exc}"])
 
             if on_leaf is not None:
                 try:
                     await on_leaf(leaf_record, leaf_ref)
                     done_count += 1
-                    if on_progress is not None:
-                        on_progress(done_count, total)
+                    _fire_progress()
                     return (True, True, [])
                 except Exception as exc:
                     logger.warning(
@@ -392,13 +404,11 @@ async def execute_plan(
                         },
                     )
                     done_count += 1
-                    if on_progress is not None:
-                        on_progress(done_count, total)
+                    _fire_progress()
                     return (True, False, [f"ref[{i}] callback failed: {exc}"])
 
             done_count += 1
-            if on_progress is not None:
-                on_progress(done_count, total)
+            _fire_progress()
             return (True, True, [])
 
     outcomes = await asyncio.gather(
@@ -422,7 +432,15 @@ async def execute_plan(
             )
             if on_progress is not None:
                 done_count += 1
-                on_progress(done_count, total)
+                try:
+                    on_progress(done_count, total)
+                except Exception as _exc:
+                    logger.warning(
+                        "on_progress callback raised — ref[%d]: %s",
+                        i,
+                        _exc,
+                        extra={"plugin": plugin.name, "ref_index": i},
+                    )
         else:
             consumed, persisted, leaf_errors = outcome
             if consumed:

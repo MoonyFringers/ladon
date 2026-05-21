@@ -9,6 +9,7 @@ never use it; the runner passes it through without inspecting it.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
@@ -507,3 +508,95 @@ class TestExecutePlanSync:
             on_progress=lambda d, t: calls.append((d, t)),
         )
         assert calls == []
+
+    def test_on_progress_called_after_on_leaf_failure(
+        self, top_ref: Ref
+    ) -> None:
+        refs = [Ref(url="https://x.example.com/leaf/1")]
+        p = _MockPlugin(refs)
+        plan = plan_crawl_sync(top_ref, p, None)  # type: ignore[arg-type]
+        progress_calls: list[tuple[int, int]] = []
+
+        def failing_callback(record: object, ref: object) -> None:
+            raise RuntimeError("db fail")
+
+        execute_plan_sync(
+            plan,
+            p,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_leaf=failing_callback,
+            on_progress=lambda d, t: progress_calls.append((d, t)),
+        )
+        assert progress_calls == [(1, 1)]
+
+    def test_on_progress_exception_is_swallowed(
+        self, top_ref: Ref, plugin: _MockPlugin
+    ) -> None:
+        plan = plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
+
+        def exploding_progress(done: int, total: int) -> None:
+            raise RuntimeError("progress bar closed")
+
+        result = execute_plan_sync(
+            plan, plugin, None, RunConfig(), on_progress=exploding_progress  # type: ignore[arg-type]
+        )
+        assert result.leaves_consumed == 3
+
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+
+
+class TestRunnerLogging:
+    def test_plan_crawl_sync_start_and_finish_logged(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
+        messages = [r.message for r in caplog.records]
+        assert any("plan_crawl_sync started" in m for m in messages)
+        assert any("plan_crawl_sync finished" in m for m in messages)
+
+    def test_plan_crawl_sync_start_has_plugin_and_ref(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
+        start = next(r for r in caplog.records if "started" in r.message)
+        assert start.plugin == "mock_plugin"  # type: ignore[attr-defined]
+        assert start.ref == str(top_ref)  # type: ignore[attr-defined]
+
+    def test_execute_plan_sync_start_and_finish_logged(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        plan = plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            execute_plan_sync(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        messages = [r.message for r in caplog.records]
+        assert any("execute_plan_sync started" in m for m in messages)
+        assert any("execute_plan_sync finished" in m for m in messages)
+
+    def test_execute_plan_sync_finish_has_counts(
+        self,
+        top_ref: Ref,
+        plugin: _MockPlugin,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        plan = plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
+        with caplog.at_level(logging.INFO, logger="ladon.runner"):
+            execute_plan_sync(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        finish = next(r for r in caplog.records if "finished" in r.message)
+        assert finish.leaves_consumed == 3  # type: ignore[attr-defined]
+        assert finish.leaves_persisted == 3  # type: ignore[attr-defined]
+        assert finish.leaves_failed == 0  # type: ignore[attr-defined]
