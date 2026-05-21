@@ -21,7 +21,7 @@ from typing import Any
 
 import pytest
 
-from ladon.async_runner import async_run_crawl
+from ladon.async_runner import async_run_crawl, execute_plan, plan_crawl
 from ladon.plugins.errors import (
     ChildListUnavailableError,
     ExpansionNotReadyError,
@@ -29,7 +29,7 @@ from ladon.plugins.errors import (
     PartialExpansionError,
 )
 from ladon.plugins.models import Expansion, Ref
-from ladon.runner import RunConfig, RunResult
+from ladon.runner import CrawlPlan, RunConfig, RunResult
 
 # ---------------------------------------------------------------------------
 # Domain-neutral test types
@@ -741,49 +741,36 @@ class TestPlanCrawl:
     async def test_returns_crawl_plan(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import plan_crawl
-        from ladon.runner import CrawlPlan
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         assert isinstance(plan, CrawlPlan)
 
     async def test_leaf_count_matches_expander_output(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         assert len(plan.leaves) == 3
 
     async def test_record_set_from_first_expander(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         assert isinstance(plan.record, _DemoRecord)
 
     async def test_no_errors_on_clean_run(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         assert plan.errors == ()
 
     async def test_empty_plugin_raises_value_error(
         self, top_ref: Ref, child_refs: list[Ref]
     ) -> None:
-        from ladon.async_runner import plan_crawl
-
         p = _MockAsyncPlugin(child_refs)
         p.expanders = []
         with pytest.raises(ValueError, match="no expanders configured"):
             await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
 
     async def test_expansion_not_ready_propagates(self, top_ref: Ref) -> None:
-        from ladon.async_runner import plan_crawl
-
         class _NotReadyExpander:
             async def expand(self, ref: object, client: object) -> Expansion:
                 raise ExpansionNotReadyError("not ready")
@@ -796,8 +783,6 @@ class TestPlanCrawl:
     async def test_branch_error_on_non_first_expander_is_isolated(
         self, top_ref: Ref
     ) -> None:
-        from ladon.async_runner import plan_crawl
-
         parent_refs = [
             Ref(url="https://demo.example.com/parent/1"),
             Ref(url="https://demo.example.com/parent/2"),
@@ -821,8 +806,6 @@ class TestPlanCrawl:
         assert "branch" in plan.errors[0]
 
     async def test_multi_expander_chain_leaf_count(self, top_ref: Ref) -> None:
-        from ladon.async_runner import plan_crawl
-
         parent_refs = [
             Ref(url="https://demo.example.com/parent/1"),
             Ref(url="https://demo.example.com/parent/2"),
@@ -850,8 +833,6 @@ class TestExecutePlan:
     async def test_returns_run_result(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert isinstance(result, RunResult)
@@ -859,8 +840,6 @@ class TestExecutePlan:
     async def test_all_leaves_consumed(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.leaves_consumed == 3
@@ -870,8 +849,6 @@ class TestExecutePlan:
     async def test_record_carried_from_plan(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.record is plan.record
@@ -879,8 +856,6 @@ class TestExecutePlan:
     async def test_on_leaf_receives_leaf_record_and_leaf_ref(
         self, top_ref: Ref, plugin: _MockAsyncPlugin, child_refs: list[Ref]
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         calls: list[tuple[object, object]] = []
 
@@ -898,8 +873,6 @@ class TestExecutePlan:
     async def test_leaf_unavailable_counted_as_failed(
         self, top_ref: Ref
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         refs = [
             Ref(url="https://demo.example.com/leaf/1"),
             Ref(url="https://demo.example.com/leaf/2"),
@@ -924,8 +897,6 @@ class TestExecutePlan:
     async def test_on_leaf_callback_failure_counted(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
 
         async def bad_callback(record: object, ref: object) -> None:
@@ -942,8 +913,6 @@ class TestExecutePlan:
     async def test_leaf_limit_applied(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         result = await execute_plan(plan, plugin, None, RunConfig(leaf_limit=2))  # type: ignore[arg-type]
         assert result.leaves_consumed == 2
@@ -951,9 +920,6 @@ class TestExecutePlan:
     async def test_plan_errors_carried_into_result(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan
-        from ladon.runner import CrawlPlan
-
         plan = CrawlPlan(
             record=_make_record(),
             leaves=(Ref(url="https://demo.example.com/leaf/1"),),
@@ -965,8 +931,6 @@ class TestExecutePlan:
     async def test_on_progress_called_after_each_leaf(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         progress_calls: list[tuple[int, int]] = []
 
@@ -984,8 +948,6 @@ class TestExecutePlan:
     async def test_no_on_leaf_leaves_persisted_equals_consumed(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.leaves_persisted == result.leaves_consumed
@@ -993,9 +955,6 @@ class TestExecutePlan:
     async def test_empty_plan_returns_zero_result(
         self, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan
-        from ladon.runner import CrawlPlan
-
         plan = CrawlPlan(
             record=_make_record(),
             leaves=(),
@@ -1010,9 +969,6 @@ class TestExecutePlan:
     async def test_empty_plan_on_progress_never_called(
         self, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan
-        from ladon.runner import CrawlPlan
-
         plan = CrawlPlan(record=_make_record(), leaves=(), errors=())
         calls: list[object] = []
         await execute_plan(
@@ -1027,8 +983,6 @@ class TestExecutePlan:
     async def test_plan_crawl_then_execute_plan_roundtrip(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
-        from ladon.async_runner import execute_plan, plan_crawl
-
         plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
         filtered = plan.excluding(lambda r: r.url.endswith("/2"))  # type: ignore[union-attr]
         result = await execute_plan(filtered, plugin, None, RunConfig())  # type: ignore[arg-type]
@@ -1038,8 +992,6 @@ class TestExecutePlan:
         self, top_ref: Ref
     ) -> None:
         """BaseException escaping _process_leaf must still trigger on_progress."""
-        from ladon.async_runner import execute_plan
-        from ladon.runner import CrawlPlan
 
         class _ExplodingSink:
             async def consume(self, ref: object, client: object) -> object:
@@ -1067,10 +1019,22 @@ class TestExecutePlan:
         assert len(progress_calls) == 1
         assert progress_calls[0] == (1, 1)
 
+    async def test_on_progress_exception_is_swallowed(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+
+        def exploding_progress(done: int, total: int) -> None:
+            raise RuntimeError("progress bar closed")
+
+        result = await execute_plan(
+            plan, plugin, None, RunConfig(), on_progress=exploding_progress  # type: ignore[arg-type]
+        )
+        assert result.leaves_consumed == 3
+
     async def test_plan_importable_from_ladon(self) -> None:
         from ladon import execute_plan as _ep
         from ladon import plan_crawl as _pc
-        from ladon.async_runner import execute_plan, plan_crawl
 
         assert _pc is plan_crawl
         assert _ep is execute_plan
