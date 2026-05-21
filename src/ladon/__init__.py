@@ -61,7 +61,7 @@ try:
     __version__ = version("ladon-crawl")
 except PackageNotFoundError:
     __version__ = (
-        "0.3.1"  # editable install without metadata — bump with every release
+        "0.3.2"  # editable install without metadata — bump with every release
     )
 
 

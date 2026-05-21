@@ -108,7 +108,7 @@ class RunConfig:
 
 @dataclass(frozen=True)
 class RunResult:
-    """Outcome of a single run_crawl() call.
+    """Outcome of a crawl run — returned by run_crawl(), execute_plan_sync(), and execute_plan().
 
     ``leaves_consumed`` counts leaves for which ``sink.consume()`` succeeded,
     regardless of whether the ``on_leaf`` callback also succeeded.
@@ -315,6 +315,9 @@ def plan_crawl_sync(
 
     Traverses all expanders in order and collects every leaf ref.  Does not
     call the sink.  Branch failures are recorded in ``CrawlPlan.errors``.
+
+    Note: unlike ``run_crawl``, this function does not accept a ``config``
+    argument — Phase 1 (tree traversal) has no configurable parameters.
 
     Raises:
         ExpansionNotReadyError:     Any expander raised this — run is globally

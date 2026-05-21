@@ -991,6 +991,40 @@ class TestExecutePlan:
         result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.leaves_persisted == result.leaves_consumed
 
+    async def test_empty_plan_returns_zero_result(
+        self, plugin: _MockAsyncPlugin
+    ) -> None:
+        from ladon.async_runner import execute_plan
+        from ladon.runner import CrawlPlan
+
+        plan = CrawlPlan(
+            record=_make_record(),
+            leaves=(),
+            errors=("branch err",),
+        )
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 0
+        assert result.leaves_persisted == 0
+        assert result.leaves_failed == 0
+        assert result.errors == ("branch err",)
+
+    async def test_empty_plan_on_progress_never_called(
+        self, plugin: _MockAsyncPlugin
+    ) -> None:
+        from ladon.async_runner import execute_plan
+        from ladon.runner import CrawlPlan
+
+        plan = CrawlPlan(record=_make_record(), leaves=(), errors=())
+        calls: list[object] = []
+        await execute_plan(
+            plan,
+            plugin,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: calls.append((d, t)),
+        )
+        assert calls == []
+
     async def test_plan_crawl_then_execute_plan_roundtrip(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:

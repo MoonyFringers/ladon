@@ -481,3 +481,29 @@ class TestExecutePlanSync:
         plan = plan_crawl_sync(top_ref, plugin, None)  # type: ignore[arg-type]
         result = execute_plan_sync(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.leaves_persisted == result.leaves_consumed
+
+    def test_empty_plan_returns_zero_result(self, plugin: _MockPlugin) -> None:
+        plan = CrawlPlan(
+            record=_DemoRecord(),
+            leaves=(),
+            errors=("branch err",),
+        )
+        result = execute_plan_sync(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 0
+        assert result.leaves_persisted == 0
+        assert result.leaves_failed == 0
+        assert result.errors == ("branch err",)
+
+    def test_empty_plan_on_progress_never_called(
+        self, plugin: _MockPlugin
+    ) -> None:
+        plan = CrawlPlan(record=_DemoRecord(), leaves=(), errors=())
+        calls: list[object] = []
+        execute_plan_sync(
+            plan,
+            plugin,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: calls.append((d, t)),
+        )
+        assert calls == []

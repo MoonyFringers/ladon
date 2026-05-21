@@ -240,6 +240,10 @@ async def plan_crawl(
     Traverses all expanders in order and collects every leaf ref.  Does not
     call the sink.  Branch failures are recorded in ``CrawlPlan.errors``.
 
+    Note: unlike ``async_run_crawl``, this function does not accept a
+    ``config`` argument — Phase 1 (tree traversal) has no configurable
+    parameters.
+
     Raises:
         ExpansionNotReadyError:     Any expander raised this — run is globally
                                     premature; caller should retry later.
@@ -417,7 +421,8 @@ async def execute_plan(
                 extra={"plugin": plugin.name, "ref_index": i},
             )
             if on_progress is not None:
-                on_progress(leaves_consumed + leaves_failed, total)
+                done_count += 1
+                on_progress(done_count, total)
         else:
             consumed, persisted, leaf_errors = outcome
             if consumed:
