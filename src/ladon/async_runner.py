@@ -252,6 +252,11 @@ async def plan_crawl(
             f"AsyncCrawlPlugin '{plugin.name}' has no expanders configured"
         )
 
+    logger.info(
+        "plan_crawl started",
+        extra={"plugin": plugin.name, "ref": str(top_ref)},
+    )
+
     errors: list[str] = []
 
     first_expansion = await plugin.expanders[0].expand(top_ref, client)
@@ -270,6 +275,7 @@ async def plan_crawl(
                 logger.warning(
                     "expander branch failed",
                     extra={
+                        "plugin": plugin.name,
                         "ref": str(ref),
                         "error": str(exc),
                         "error_type": type(exc).__name__,
@@ -308,10 +314,12 @@ async def execute_plan(
         on_leaf:     Optional async callback receiving ``(leaf_record, leaf_ref)``
                      after each successful consume.  Note: second argument is the
                      **leaf ref**, not a parent record (see ADR-011).
-        on_progress: Optional callback receiving ``(leaves_done, total_leaves)``
-                     after each leaf attempt (success or failure).  Called from
-                     inside the concurrent leaf tasks — order matches completion
-                     order, not input order.
+        on_progress: Optional **synchronous** callback receiving
+                     ``(leaves_done, total_leaves)`` after each leaf attempt
+                     (success or failure).  Called from inside concurrent leaf
+                     tasks — order matches completion order, not input order.
+                     Async callables are not supported; passing an ``async def``
+                     will silently discard the coroutine.
 
     Returns:
         RunResult with counts and any per-leaf error messages.  Phase 1
@@ -322,6 +330,12 @@ async def execute_plan(
         leaves = leaves[: config.leaf_limit]
 
     total = len(leaves)
+
+    logger.info(
+        "execute_plan started",
+        extra={"plugin": plugin.name, "total_leaves": total},
+    )
+
     errors: list[str] = list(plan.errors)
     semaphore = asyncio.Semaphore(config.async_concurrency)
     done_count = 0
@@ -344,7 +358,11 @@ async def execute_plan(
                     "leaf unavailable — ref[%d] error=%s",
                     i,
                     exc,
-                    extra={"ref_index": i, "error": str(exc)},
+                    extra={
+                        "plugin": plugin.name,
+                        "ref_index": i,
+                        "error": str(exc),
+                    },
                 )
                 done_count += 1
                 if on_progress is not None:
@@ -363,7 +381,11 @@ async def execute_plan(
                         "on_leaf callback failed — ref[%d] error=%s",
                         i,
                         exc,
-                        extra={"ref_index": i, "error": str(exc)},
+                        extra={
+                            "plugin": plugin.name,
+                            "ref_index": i,
+                            "error": str(exc),
+                        },
                     )
                     done_count += 1
                     if on_progress is not None:
@@ -392,8 +414,10 @@ async def execute_plan(
                 "unexpected leaf error — ref[%d]: %s",
                 i,
                 outcome,
-                extra={"ref_index": i},
+                extra={"plugin": plugin.name, "ref_index": i},
             )
+            if on_progress is not None:
+                on_progress(leaves_consumed + leaves_failed, total)
         else:
             consumed, persisted, leaf_errors = outcome
             if consumed:
@@ -407,6 +431,7 @@ async def execute_plan(
     logger.info(
         "execute_plan finished",
         extra={
+            "plugin": plugin.name,
             "leaves_consumed": leaves_consumed,
             "leaves_persisted": leaves_persisted,
             "leaves_failed": leaves_failed,

@@ -67,7 +67,17 @@ class CrawlPlan:
         )
 
     def limited_to(self, n: int) -> CrawlPlan:
-        """Return a new plan capped at the first n leaves."""
+        """Return a new plan capped at the first n leaves.
+
+        ``n`` must be a positive integer.  ``0`` is not equivalent to
+        "no limit" — it produces an empty plan.  To apply no cap, simply
+        do not call ``limited_to()``.
+        """
+        if n <= 0:
+            raise ValueError(
+                f"limited_to() requires a positive integer; got {n}. "
+                "To apply no cap, don't call limited_to()."
+            )
         return CrawlPlan(
             record=self.record,
             leaves=self.leaves[:n],
@@ -318,6 +328,11 @@ def plan_crawl_sync(
             f"CrawlPlugin '{plugin.name}' has no expanders configured"
         )
 
+    logger.info(
+        "plan_crawl_sync started",
+        extra={"plugin": plugin.name, "ref": str(top_ref)},
+    )
+
     errors: list[str] = []
 
     first_expansion = plugin.expanders[0].expand(top_ref, client)
@@ -336,6 +351,7 @@ def plan_crawl_sync(
                 logger.warning(
                     "expander branch failed",
                     extra={
+                        "plugin": plugin.name,
                         "ref": str(ref),
                         "error": str(exc),
                         "error_type": type(exc).__name__,
@@ -386,6 +402,12 @@ def execute_plan_sync(
         leaves = leaves[: config.leaf_limit]
 
     total = len(leaves)
+
+    logger.info(
+        "execute_plan_sync started",
+        extra={"plugin": plugin.name, "total_leaves": total},
+    )
+
     leaves_consumed = 0
     leaves_persisted = 0
     leaves_failed = 0
@@ -401,7 +423,11 @@ def execute_plan_sync(
                 "leaf unavailable — ref[%d] error=%s",
                 i,
                 exc,
-                extra={"ref_index": i, "error": str(exc)},
+                extra={
+                    "plugin": plugin.name,
+                    "ref_index": i,
+                    "error": str(exc),
+                },
             )
             if on_progress is not None:
                 on_progress(leaves_consumed + leaves_failed, total)
@@ -419,7 +445,11 @@ def execute_plan_sync(
                     "on_leaf callback failed — ref[%d] error=%s",
                     i,
                     exc,
-                    extra={"ref_index": i, "error": str(exc)},
+                    extra={
+                        "plugin": plugin.name,
+                        "ref_index": i,
+                        "error": str(exc),
+                    },
                 )
         else:
             leaves_persisted += 1
@@ -430,6 +460,7 @@ def execute_plan_sync(
     logger.info(
         "execute_plan_sync finished",
         extra={
+            "plugin": plugin.name,
             "leaves_consumed": leaves_consumed,
             "leaves_persisted": leaves_persisted,
             "leaves_failed": leaves_failed,

@@ -170,6 +170,16 @@ class TestCrawlPlan:
         filtered = plan.excluding(lambda _: True)
         assert filtered.record is original_record
 
+    def test_limited_to_zero_raises(self) -> None:
+        plan = CrawlPlan(record=_DemoRecord(), leaves=(), errors=())
+        with pytest.raises(ValueError, match="positive integer"):
+            plan.limited_to(0)
+
+    def test_limited_to_negative_raises(self) -> None:
+        plan = CrawlPlan(record=_DemoRecord(), leaves=(), errors=())
+        with pytest.raises(ValueError, match="positive integer"):
+            plan.limited_to(-1)
+
 
 # ---------------------------------------------------------------------------
 # plan_crawl_sync — happy path

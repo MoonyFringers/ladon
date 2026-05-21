@@ -1001,6 +1001,39 @@ class TestExecutePlan:
         result = await execute_plan(filtered, plugin, None, RunConfig())  # type: ignore[arg-type]
         assert result.leaves_consumed == 2
 
+    async def test_on_progress_fired_for_base_exception_leaves(
+        self, top_ref: Ref
+    ) -> None:
+        """BaseException escaping _process_leaf must still trigger on_progress."""
+        from ladon.async_runner import execute_plan
+        from ladon.runner import CrawlPlan
+
+        class _ExplodingSink:
+            async def consume(self, ref: object, client: object) -> object:
+                raise RuntimeError("unexpected kaboom")
+
+        p = _MockAsyncPlugin([Ref(url="https://demo.example.com/leaf/1")])
+        p.sink = _ExplodingSink()
+        plan = CrawlPlan(
+            record=_make_record(),
+            leaves=(Ref(url="https://demo.example.com/leaf/1"),),
+            errors=(),
+        )
+        progress_calls: list[tuple[int, int]] = []
+        result = await execute_plan(
+            plan,
+            p,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: progress_calls.append((d, t)),
+        )
+        # The RuntimeError is not LeafUnavailableError, so it escapes
+        # _process_leaf and is caught by gather(return_exceptions=True).
+        # on_progress must still fire so callers can reach total.
+        assert result.leaves_failed == 1
+        assert len(progress_calls) == 1
+        assert progress_calls[0] == (1, 1)
+
     async def test_plan_importable_from_ladon(self) -> None:
         from ladon import execute_plan as _ep
         from ladon import plan_crawl as _pc
