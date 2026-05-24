@@ -342,6 +342,19 @@ class TestMultiSourceSinkContract:
         sink.resolve_multi(_ref(), MagicMock())
         assert s_late.calls == 0  # never tried — mutation happened after copy
 
+    def test_sources_property_returns_copy(self) -> None:
+        """sources property reflects the configured list; mutations don't affect the sink."""
+        s1 = _SimpleSource("a", b"DATA_A")
+        s2 = _SimpleSource("b", b"DATA_B")
+        sink = _SimpleSink(sources=[s1, s2])
+
+        exposed = sink.sources
+        assert exposed == [s1, s2]
+
+        # Mutating the returned list must not affect the sink's internal list.
+        exposed.clear()
+        assert sink.sources == [s1, s2]
+
 
 # ---------------------------------------------------------------------------
 # FetchPredicate — structural subtyping and runtime check
