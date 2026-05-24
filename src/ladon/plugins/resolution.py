@@ -38,7 +38,7 @@ ADR: ADR-013
 from __future__ import annotations
 
 import logging
-from typing import Any, Protocol, Sequence
+from typing import Any, Protocol, Sequence, runtime_checkable
 
 from ..networking.client import HttpClient
 from .models import Ref
@@ -51,6 +51,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
+@runtime_checkable
 class FetchPredicate(Protocol):
     """Acceptance criterion on a raw fetch result.
 
@@ -88,7 +89,7 @@ class MultiSourceSink:
         Calls the source's native interface. Must be overridden; there is no
         default implementation because source interfaces vary per adapter.
 
-    The main entry point is :meth:`_resolve_multi`, which runs the loop and
+    The main entry point is :meth:`resolve_multi`, which runs the loop and
     returns ``(data, source)`` for the best accepted result, or the best
     fallback if no result passed all predicates.
     """

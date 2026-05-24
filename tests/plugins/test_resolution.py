@@ -1,9 +1,13 @@
+# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
+# pyright: reportUnknownArgumentType=false, reportArgumentType=false
 """Tests for ladon.plugins.resolution — MultiSourceSink and FetchPredicate."""
 
 from __future__ import annotations
 
 import struct
 from unittest.mock import MagicMock
+
+import pytest
 
 from ladon.plugins.models import Ref
 from ladon.plugins.resolution import (
@@ -270,18 +274,32 @@ class TestMultiSourceSinkPredicates:
         assert s2.calls == 0
 
     def test_multiple_predicates_all_must_pass(self) -> None:
-        class _AlwaysFail:
-            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
-                return False
+        """Loop continues to next source until ALL predicates pass.
 
-        s = _SimpleSource("a", _make_jpeg(600, 800))
+        Source A passes MinWidthPredicate but fails _PassOnlyB.
+        Source B passes both — it must be the accepted result, proving that
+        a partial predicate pass is not enough to stop the loop.
+        """
+
+        class _PassOnlyB:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return data == b"source_b"
+
+        s1 = _SimpleSource("a", b"source_a")
+        s2 = _SimpleSource("b", b"source_b")
         sink = _SimpleSink(
-            sources=[s],
-            predicates=[MinWidthPredicate(300), _AlwaysFail()],
+            sources=[s1, s2],
+            predicates=[_PassOnlyB()],
         )
-        # MinWidthPredicate passes but _AlwaysFail blocks — result kept as fallback
-        _, src = sink.resolve_multi(_ref(), MagicMock())
-        assert src is s
+        data, src = sink.resolve_multi(_ref(), MagicMock())
+        assert src is s2
+        assert data == b"source_b"
+        assert (
+            s1.calls == 1
+        )  # source A was tried (predicate failed — loop continued)
+        assert (
+            s2.calls == 1
+        )  # source B accepted (predicate passed — loop stopped)
 
     def test_no_predicates_stops_at_first_result(self) -> None:
         s1 = _SimpleSource("a", _make_jpeg(100, 150))
@@ -293,7 +311,40 @@ class TestMultiSourceSinkPredicates:
 
 
 # ---------------------------------------------------------------------------
-# FetchPredicate — structural subtyping check
+# MultiSourceSink — abstract method contract
+# ---------------------------------------------------------------------------
+
+
+class TestMultiSourceSinkContract:
+    def test_fetch_from_source_raises_not_implemented(self) -> None:
+        """Bare MultiSourceSink raises NotImplementedError — subclasses must override."""
+        sink = MultiSourceSink(sources=[_SimpleSource("a", b"DATA")])
+        with pytest.raises(
+            NotImplementedError, match="must implement _fetch_from_source"
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+    def test_default_no_predicates_stops_at_first_result(self) -> None:
+        """When no predicates are configured the loop stops at the first result."""
+        s1 = _SimpleSource("a", b"DATA_A")
+        s2 = _SimpleSource("b", b"DATA_B")
+        sink = _SimpleSink(sources=[s1, s2])  # no predicates= arg
+        _, src = sink.resolve_multi(_ref(), MagicMock())
+        assert src is s1
+        assert s2.calls == 0
+
+    def test_sources_copied_not_aliased(self) -> None:
+        """Mutating the source list after construction must not affect the sink."""
+        s_late = _SimpleSource("late", b"X")
+        src_list: list[_SimpleSource] = []
+        sink = _SimpleSink(sources=src_list)
+        src_list.append(s_late)
+        sink.resolve_multi(_ref(), MagicMock())
+        assert s_late.calls == 0  # never tried — mutation happened after copy
+
+
+# ---------------------------------------------------------------------------
+# FetchPredicate — structural subtyping and runtime check
 # ---------------------------------------------------------------------------
 
 
@@ -309,3 +360,12 @@ class TestFetchPredicateProtocol:
 
         p: FetchPredicate = _Always()
         assert p.accepts(b"anything", _ref()) is True
+
+    def test_runtime_checkable_isinstance(self) -> None:
+        """FetchPredicate is @runtime_checkable — isinstance works on instances."""
+        p = MinWidthPredicate(300)
+        assert isinstance(p, FetchPredicate)
+
+    def test_runtime_checkable_rejects_non_protocol(self) -> None:
+        assert not isinstance("not a predicate", FetchPredicate)
+        assert not isinstance(42, FetchPredicate)
