@@ -22,6 +22,7 @@ from .errors import (
 )
 from .models import Expansion, Ref
 from .protocol import CrawlPlugin, Expander, Sink, Source
+from .resolution import FetchPredicate, MinWidthPredicate, MultiSourceSink
 
 __all__ = [
     # Sync protocols
@@ -37,6 +38,10 @@ __all__ = [
     # Models
     "Ref",
     "Expansion",
+    # Resolution
+    "FetchPredicate",
+    "MultiSourceSink",
+    "MinWidthPredicate",
     # Errors
     "PluginError",
     "ExpansionNotReadyError",
