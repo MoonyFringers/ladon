@@ -103,6 +103,15 @@ class MultiSourceSink:
         self._ms_predicates: list[FetchPredicate] = list(predicates)
 
     # ------------------------------------------------------------------
+    # Public accessors
+    # ------------------------------------------------------------------
+
+    @property
+    def sources(self) -> list[Any]:
+        """Priority-ordered source list (read-only copy)."""
+        return list(self._ms_sources)
+
+    # ------------------------------------------------------------------
     # Hooks — override in subclasses
     # ------------------------------------------------------------------
 
@@ -175,6 +184,10 @@ class MultiSourceSink:
                 )
                 continue
 
+            # Update the best-seen fallback before checking predicates.
+            # If predicates pass we return data/source directly (not best_data),
+            # so the update is a no-op in that path. If predicates fail, the
+            # updated best_data becomes the last-resort fallback after the loop.
             if self._is_better_candidate(
                 data, source, best_data, best_source, ref
             ):
