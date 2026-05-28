@@ -24,9 +24,7 @@ from .models import Expansion, Ref
 from .protocol import CrawlPlugin, Expander, Sink, Source
 from .resolution import (
     FetchPredicate,
-    MinWidthPredicate,
     MultiSourceSink,
-    image_width,
 )
 
 __all__ = [
@@ -46,8 +44,6 @@ __all__ = [
     # Resolution
     "FetchPredicate",
     "MultiSourceSink",
-    "MinWidthPredicate",
-    "image_width",
     # Errors
     "PluginError",
     "ExpansionNotReadyError",

@@ -25,13 +25,6 @@ The loop pattern
 acceptance criteria (image width, placeholder detection, price tolerance …)
 without modifying the loop mechanics.
 
-Built-in predicates
--------------------
-
-``MinWidthPredicate``
-    Accepts a JPEG or PNG only if its pixel width meets a minimum.
-    Uses header-only parsing — no external library required.
-
 ADR: ADR-013
 """
 
@@ -214,59 +207,3 @@ class MultiSourceSink:
             )
 
         return best_data, best_source
-
-
-# ---------------------------------------------------------------------------
-# Built-in predicates
-# ---------------------------------------------------------------------------
-
-
-class MinWidthPredicate:
-    """Accept a JPEG or PNG image only if its pixel width meets a minimum.
-
-    Uses header-only parsing (JPEG SOF / PNG IHDR) — no external library
-    required. Returns ``True`` (acceptable) when the measured width is >=
-    *min_px*. A *min_px* of 0 always returns ``True`` (disables the check).
-    """
-
-    def __init__(self, min_px: int) -> None:
-        self._min_px = min_px
-
-    def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
-        if not self._min_px:
-            return True
-        return image_width(data) >= self._min_px
-
-
-# ---------------------------------------------------------------------------
-# Image header parsing
-# ---------------------------------------------------------------------------
-
-
-def image_width(data: bytes) -> int:
-    """Return the pixel width of a JPEG or PNG from its header bytes.
-
-    Reads only the first few hundred bytes — no external library required.
-    Returns 0 if the format is unrecognised or the header is truncated.
-
-    Supports:
-    - PNG: reads width from the IHDR chunk (bytes 16–19).
-    - JPEG: scans forward for a SOF0 / SOF1 / SOF2 marker, skipping
-      variable-length APP segments (including multi-segment EXIF headers).
-    """
-    if len(data) >= 24 and data[:8] == b"\x89PNG\r\n\x1a\n":
-        # PNG: IHDR chunk starts at byte 8; width is at bytes 16–19.
-        return int.from_bytes(data[16:20], "big")
-    if len(data) >= 4 and data[:2] == b"\xff\xd8":
-        # JPEG: scan forward for a SOF0 / SOF1 / SOF2 marker.
-        i = 2
-        while i + 8 < len(data):
-            if data[i] != 0xFF:
-                break
-            marker = data[i + 1]
-            seg_len = int.from_bytes(data[i + 2 : i + 4], "big")
-            if marker in (0xC0, 0xC1, 0xC2):  # SOF0 / SOF1 / SOF2
-                # Segment layout: FF Cx LL LL PP HH HH WW WW …
-                return int.from_bytes(data[i + 7 : i + 9], "big")
-            i += 2 + seg_len
-    return 0
