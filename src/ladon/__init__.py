@@ -33,7 +33,13 @@ from .plugins import (
     Expander,
     Expansion,
     ExpansionNotReadyError,
+)
+from .plugins import FetchPredicate as FetchPredicate
+from .plugins import (
     LeafUnavailableError,
+)
+from .plugins import MultiSourceSink as MultiSourceSink
+from .plugins import (
     PartialExpansionError,
     PluginError,
     Ref,
@@ -77,6 +83,9 @@ __all__ = [
     # Plugin models
     "Ref",
     "Expansion",
+    # Multi-source resolution
+    "FetchPredicate",
+    "MultiSourceSink",
     # Plugin errors
     "PluginError",
     "ExpansionNotReadyError",

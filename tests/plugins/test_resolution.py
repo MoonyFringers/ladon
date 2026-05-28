@@ -121,6 +121,24 @@ class TestMultiSourceSinkLoop:
         assert data == b"DATA_B"
         assert src is s2
 
+    def test_skips_empty_bytes_and_tries_next(self) -> None:
+        """b'' is treated identically to None — not a valid result."""
+        s1 = _SimpleSource("a", b"")
+        s2 = _SimpleSource("b", b"DATA_B")
+        sink = _SimpleSink(sources=[s1, s2])
+        data, src = sink.resolve_multi(_ref(), MagicMock())
+        assert data == b"DATA_B"
+        assert src is s2
+
+    def test_all_empty_bytes_returns_none_none(self) -> None:
+        """All sources returning b'' is equivalent to all returning None."""
+        s1 = _SimpleSource("a", b"")
+        s2 = _SimpleSource("b", b"")
+        sink = _SimpleSink(sources=[s1, s2])
+        data, src = sink.resolve_multi(_ref(), MagicMock())
+        assert data is None
+        assert src is None
+
     def test_should_try_source_false_skips_source(self) -> None:
         class _SkippingSink(_SimpleSink):
             def _should_try_source(
@@ -182,32 +200,35 @@ class TestMultiSourceSinkPredicates:
         assert s2.calls == 0
 
     def test_multiple_predicates_all_must_pass(self) -> None:
-        """Loop continues to next source until ALL predicates pass.
+        """Loop continues until BOTH predicates pass — partial pass is not enough.
 
-        Source A passes _MinLengthPredicate but fails _PassOnlyB.
-        Source B passes both — it must be the accepted result, proving that
-        a partial predicate pass is not enough to stop the loop.
+        Source A: 8 bytes — passes _MinLengthPredicate(5) but fails _PassOnlyB.
+        Source B: 8 bytes — passes both predicates.
+
+        If the loop stopped on the first predicate passing, source A would be
+        accepted (MinLength passes).  The correct behaviour is to continue to
+        source B where ALL predicates pass.
         """
 
         class _PassOnlyB:
             def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
                 return data == b"source_b"
 
-        s1 = _SimpleSource("a", b"source_a")
-        s2 = _SimpleSource("b", b"source_b")
+        s1 = _SimpleSource(
+            "a", b"source_a"
+        )  # 8 bytes — passes MinLength, fails PassOnlyB
+        s2 = _SimpleSource("b", b"source_b")  # 8 bytes — passes both
         sink = _SimpleSink(
             sources=[s1, s2],
-            predicates=[_PassOnlyB()],
+            predicates=[_MinLengthPredicate(5), _PassOnlyB()],
         )
         data, src = sink.resolve_multi(_ref(), MagicMock())
         assert src is s2
         assert data == b"source_b"
         assert (
             s1.calls == 1
-        )  # source A was tried (predicate failed — loop continued)
-        assert (
-            s2.calls == 1
-        )  # source B accepted (predicate passed — loop stopped)
+        )  # tried — MinLength passed, PassOnlyB failed → continued
+        assert s2.calls == 1  # tried — both predicates passed → accepted
 
     def test_no_predicates_stops_at_first_result(self) -> None:
         s1 = _SimpleSource("a", b"DATA_A")

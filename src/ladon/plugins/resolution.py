@@ -13,13 +13,13 @@ The loop pattern
         if not _should_try_source(source, ref):   # tier-skip, guards
             continue
         data = _fetch_from_source(source, ref, client)
-        if data is None:
-            continue                               # source returned nothing
+        if not data:
+            continue                               # source returned nothing / empty bytes
         if _is_better_candidate(data, ...):        # update best-seen fallback
             best = (data, source)
-        if all predicates pass:
+        if not predicates or all predicates pass:
             return (data, source)                  # accepted — stop
-    return best                                    # best-seen fallback
+    return best                                    # best-seen fallback (may be None)
 
 ``FetchPredicate`` is the extension point: adapters inject domain-specific
 acceptance criteria (image width, placeholder detection, price tolerance …)
@@ -51,6 +51,12 @@ class FetchPredicate(Protocol):
     Returns ``True`` if *data* is good enough to stop the resolution loop.
     Returns ``False`` to keep *data* as a fallback candidate and continue to
     the next source in search of a better result.
+
+    .. note::
+        ``isinstance(obj, FetchPredicate)`` only checks that an ``accepts``
+        attribute *exists* — it does not verify callability or signature.
+        Passing a mis-shaped object will raise ``TypeError`` at call time
+        inside :meth:`MultiSourceSink.resolve_multi`, not at construction.
     """
 
     def accepts(self, data: bytes, ref: Ref) -> bool:
@@ -136,6 +142,13 @@ class MultiSourceSink:
 
         Default: first non-None result wins (``best_source is None``).
         Override for domain-specific fallback ranking.
+
+        .. warning::
+            If a subclass overrides this to always return ``False`` (e.g. due
+            to a bug in the ranking logic), ``best_data`` is never updated and
+            :meth:`resolve_multi` returns ``(None, None)`` even when sources
+            produce data.  The caller cannot distinguish this from "no sources
+            returned data" without inspecting logs.
         """
         return best_source is None
 
@@ -169,7 +182,7 @@ class MultiSourceSink:
                 continue
 
             data = self._fetch_from_source(source, ref, client)
-            if data is None:
+            if not data:
                 logger.debug(
                     "resolution: %r returned no data for %s",
                     getattr(source, "name", source),
