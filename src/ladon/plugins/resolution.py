@@ -13,13 +13,13 @@ The loop pattern
         if not _should_try_source(source, ref):   # tier-skip, guards
             continue
         data = _fetch_from_source(source, ref, client)
-        if data is None:
-            continue                               # source returned nothing
+        if not data:
+            continue                               # source returned nothing / empty bytes
         if _is_better_candidate(data, ...):        # update best-seen fallback
             best = (data, source)
-        if all predicates pass:
+        if not predicates or all predicates pass:
             return (data, source)                  # accepted — stop
-    return best                                    # best-seen fallback
+    return best                                    # best-seen fallback (may be None)
 
 ``FetchPredicate`` is the extension point: adapters inject domain-specific
 acceptance criteria (image width, placeholder detection, price tolerance …)
@@ -51,6 +51,12 @@ class FetchPredicate(Protocol):
     Returns ``True`` if *data* is good enough to stop the resolution loop.
     Returns ``False`` to keep *data* as a fallback candidate and continue to
     the next source in search of a better result.
+
+    .. note::
+        ``isinstance(obj, FetchPredicate)`` only checks that an ``accepts``
+        attribute *exists* — it does not verify callability or signature.
+        Passing a mis-shaped object will raise ``TypeError`` at call time
+        inside :meth:`MultiSourceSink.resolve_multi`, not at construction.
     """
 
     def accepts(self, data: bytes, ref: Ref) -> bool:
@@ -74,7 +80,7 @@ class MultiSourceSink:
         tier cannot improve on the existing record, or to enforce rate limits.
 
     ``_is_better_candidate(data, source, best_data, best_source, ref) → bool``
-        Fallback selection. Default: first non-None result wins. Override for
+        Fallback selection. Default: first non-empty result wins. Override for
         domain-specific ranking (e.g., prefer wider images when multiple
         below-threshold results exist).
 
@@ -111,13 +117,13 @@ class MultiSourceSink:
     def _fetch_from_source(
         self, _source: Any, _ref: Ref, _client: HttpClient
     ) -> bytes | None:
-        """Fetch raw bytes from *_source* for *_ref*. Must be overridden."""
+        """Fetch raw bytes from *source* for *ref*. Must be overridden."""
         raise NotImplementedError(
             f"{type(self).__name__} must implement _fetch_from_source"
         )
 
     def _should_try_source(self, _source: Any, _ref: Ref) -> bool:
-        """Return True if *_source* should be attempted for *_ref*.
+        """Return True if *source* should be attempted for *ref*.
 
         Default: always try. Override to implement tier-skip, cooldown
         guards, or any other pre-fetch filtering.
@@ -132,10 +138,17 @@ class MultiSourceSink:
         best_source: Any | None,
         _ref: Ref,
     ) -> bool:
-        """Return True if *(_data, _source)* should replace the current best.
+        """Return True if *(data, source)* should replace the current best.
 
-        Default: first non-None result wins (``best_source is None``).
+        Default: first non-empty result wins (``best_source is None``).
         Override for domain-specific fallback ranking.
+
+        .. warning::
+            If a subclass overrides this to always return ``False`` (e.g. due
+            to a bug in the ranking logic), ``best_data`` is never updated and
+            :meth:`resolve_multi` returns ``(None, None)`` even when sources
+            produce data.  The caller cannot distinguish this from "no sources
+            returned data" without inspecting logs.
         """
         return best_source is None
 
@@ -169,7 +182,7 @@ class MultiSourceSink:
                 continue
 
             data = self._fetch_from_source(source, ref, client)
-            if data is None:
+            if not data:
                 logger.debug(
                     "resolution: %r returned no data for %s",
                     getattr(source, "name", source),
