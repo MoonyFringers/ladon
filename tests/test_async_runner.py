@@ -980,6 +980,67 @@ class TestExecutePlan:
         )
         assert calls == []
 
+    async def test_warns_when_on_progress_is_async(
+        self, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = CrawlPlan(record=_make_record(), leaves=(), errors=())
+
+        async def async_callback(done: int, total: int) -> None:
+            pass
+
+        with pytest.warns(
+            UserWarning, match="on_progress must be a synchronous callable"
+        ):
+            await execute_plan(
+                plan,
+                plugin,
+                None,  # type: ignore[arg-type]
+                RunConfig(),
+                on_progress=async_callback,
+            )
+
+    async def test_on_progress_called_after_sink_failure(
+        self, top_ref: Ref
+    ) -> None:
+        class _FailingSink:
+            async def consume(self, ref: object, client: object) -> object:
+                raise LeafUnavailableError("gone")
+
+        refs = [Ref(url="https://demo.example.com/leaf/1")]
+        p = _MockAsyncPlugin(refs)
+        p.sink = _FailingSink()
+        plan = await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+        progress_calls: list[tuple[int, int]] = []
+        await execute_plan(
+            plan,
+            p,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: progress_calls.append((d, t)),
+        )
+        assert progress_calls == [(1, 1)]
+
+    async def test_on_progress_called_after_on_leaf_failure(
+        self, top_ref: Ref
+    ) -> None:
+        refs = [Ref(url="https://demo.example.com/leaf/1")]
+        p = _MockAsyncPlugin(refs)
+        plan = await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+        progress_calls: list[tuple[int, int]] = []
+
+        async def failing_callback(record: object, ref: object) -> None:
+            raise RuntimeError("db fail")
+
+        await execute_plan(
+            plan,
+            p,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_leaf=failing_callback,
+            on_progress=lambda d, t: progress_calls.append((d, t)),
+        )
+        assert progress_calls == [(1, 1)]
+
     async def test_plan_crawl_then_execute_plan_roundtrip(
         self, top_ref: Ref, plugin: _MockAsyncPlugin
     ) -> None:
