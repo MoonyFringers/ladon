@@ -69,9 +69,13 @@ class CrawlPlan:
     def limited_to(self, n: int) -> CrawlPlan:
         """Return a new plan capped at the first n leaves.
 
-        ``n`` must be a positive integer.  ``0`` is not equivalent to
-        "no limit" — it produces an empty plan.  To apply no cap, simply
-        do not call ``limited_to()``.
+        ``n`` must be a positive integer; ``0`` and negative values raise
+        ``ValueError``.  To apply no cap, simply do not call
+        ``limited_to()``.
+
+        Note: if you also pass ``RunConfig(leaf_limit=k)`` to
+        ``execute_plan_sync()`` / ``execute_plan()``, both caps are applied
+        independently — the tighter of the two wins.
         """
         if n <= 0:
             raise ValueError(
@@ -390,6 +394,8 @@ def execute_plan_sync(
         plugin:      Crawl plugin whose sink consumes each leaf.
         client:      Configured HttpClient instance.
         config:      Run-level configuration (leaf_limit; async_concurrency ignored).
+                     If the plan was already narrowed with ``CrawlPlan.limited_to()``,
+                     both caps apply independently — the tighter of the two wins.
         on_leaf:     Optional callback receiving ``(leaf_record, leaf_ref)``
                      after each successful consume.  Note: second argument is the
                      **leaf ref**, not a parent record (see ADR-011).

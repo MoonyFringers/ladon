@@ -30,7 +30,9 @@ exceptions are recorded in ``RunResult.errors`` as leaf failures.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
+import warnings
 from collections.abc import Awaitable, Callable
 
 from ladon.networking.async_client import AsyncHttpClient
@@ -315,6 +317,9 @@ async def execute_plan(
         plugin:      Async crawl plugin whose sink consumes each leaf.
         client:      Configured AsyncHttpClient instance.
         config:      Run-level configuration (leaf_limit, async_concurrency).
+                     If the plan was already narrowed with ``CrawlPlan.limited_to()``,
+                     both that cap and ``config.leaf_limit`` apply independently —
+                     the tighter of the two wins.
         on_leaf:     Optional async callback receiving ``(leaf_record, leaf_ref)``
                      after each successful consume.  Note: second argument is the
                      **leaf ref**, not a parent record (see ADR-011).
@@ -323,13 +328,20 @@ async def execute_plan(
                      (success or failure).  Called from inside concurrent leaf
                      tasks — order matches completion order, not input order.
                      Async callables are not supported; passing an ``async def``
-                     will silently discard the coroutine.  Exceptions raised
-                     by this callback are logged and swallowed.
+                     raises ``TypeError`` at call time because the coroutine
+                     object is not awaited.  Exceptions raised by this callback
+                     are logged and swallowed.
 
     Returns:
         RunResult with counts and any per-leaf error messages.  Phase 1
         errors from the plan are carried forward into ``RunResult.errors``.
     """
+    if on_progress is not None and inspect.iscoroutinefunction(on_progress):
+        warnings.warn(
+            "on_progress must be a synchronous callable; async callables are "
+            "not supported and the coroutine will not be awaited.",
+            stacklevel=2,
+        )
     leaves = plan.leaves
     if config.leaf_limit > 0:
         leaves = leaves[: config.leaf_limit]
