@@ -11,6 +11,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`CrawlPlan`** — immutable Phase 1 output carrying `record`, `leaves`,
+  and `errors`.  Filter with `excluding(predicate)` or `limited_to(n)`
+  before passing to `execute_plan_sync` / `execute_plan`.
+- **`plan_crawl_sync` / `plan_crawl`** — Phase 1 only: traverse all
+  expanders and return a `CrawlPlan` without calling the sink.
+- **`execute_plan_sync` / `execute_plan`** — Phase 3 only: consume an
+  existing plan against the sink.  `on_leaf` receives
+  `(leaf_record, leaf_ref)` — the leaf ref, **not** a parent record
+  (ADR-011).  Optional `on_progress(done, total)` callback for real-time
+  progress reporting.
+
 ### Fixed
 
 ### Changed

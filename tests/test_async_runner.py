@@ -1,7 +1,6 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 # pyright: reportUnknownArgumentType=false, reportArgumentType=false
 # pyright: reportUnknownParameterType=false, reportMissingParameterType=false
-# pyright: reportArgumentType=false
 """Contract tests for async_run_crawl().
 
 Async mocks are plain classes with async methods — no inheritance from
@@ -22,7 +21,7 @@ from typing import Any
 
 import pytest
 
-from ladon.async_runner import async_run_crawl
+from ladon.async_runner import async_run_crawl, execute_plan, plan_crawl
 from ladon.plugins.errors import (
     ChildListUnavailableError,
     ExpansionNotReadyError,
@@ -30,7 +29,7 @@ from ladon.plugins.errors import (
     PartialExpansionError,
 )
 from ladon.plugins.models import Expansion, Ref
-from ladon.runner import RunConfig, RunResult
+from ladon.runner import CrawlPlan, RunConfig, RunResult
 
 # ---------------------------------------------------------------------------
 # Domain-neutral test types
@@ -731,3 +730,311 @@ class TestTopLevelExports:
         from ladon.networking.async_client import AsyncHttpClient as _AHC
 
         assert AsyncHttpClient is _AHC
+
+
+# ---------------------------------------------------------------------------
+# plan_crawl — Phase 1 only (async)
+# ---------------------------------------------------------------------------
+
+
+class TestPlanCrawl:
+    async def test_returns_crawl_plan(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        assert isinstance(plan, CrawlPlan)
+
+    async def test_leaf_count_matches_expander_output(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        assert len(plan.leaves) == 3
+
+    async def test_record_set_from_first_expander(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        assert isinstance(plan.record, _DemoRecord)
+
+    async def test_no_errors_on_clean_run(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        assert plan.errors == ()
+
+    async def test_empty_plugin_raises_value_error(
+        self, top_ref: Ref, child_refs: list[Ref]
+    ) -> None:
+        p = _MockAsyncPlugin(child_refs)
+        p.expanders = []
+        with pytest.raises(ValueError, match="no expanders configured"):
+            await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+
+    async def test_expansion_not_ready_propagates(self, top_ref: Ref) -> None:
+        class _NotReadyExpander:
+            async def expand(self, ref: object, client: object) -> Expansion:
+                raise ExpansionNotReadyError("not ready")
+
+        p = _MockAsyncPlugin([])
+        p.expanders = [_NotReadyExpander()]
+        with pytest.raises(ExpansionNotReadyError):
+            await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+
+    async def test_branch_error_on_non_first_expander_is_isolated(
+        self, top_ref: Ref
+    ) -> None:
+        parent_refs = [
+            Ref(url="https://demo.example.com/parent/1"),
+            Ref(url="https://demo.example.com/parent/2"),
+        ]
+        first_expander = _MockAsyncExpander(parent_refs)
+
+        class _BranchErrorExpander:
+            async def expand(self, ref: object, client: object) -> Expansion:
+                if "parent/1" in str(ref):
+                    raise PartialExpansionError("branch failed")
+                return Expansion(
+                    record=_make_record(),
+                    child_refs=[Ref(url="https://demo.example.com/leaf/ok")],
+                )
+
+        p = _MockAsyncPlugin([])
+        p.expanders = [first_expander, _BranchErrorExpander()]
+        plan = await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+        assert len(plan.leaves) == 1
+        assert len(plan.errors) == 1
+        assert "branch" in plan.errors[0]
+
+    async def test_multi_expander_chain_leaf_count(self, top_ref: Ref) -> None:
+        parent_refs = [
+            Ref(url="https://demo.example.com/parent/1"),
+            Ref(url="https://demo.example.com/parent/2"),
+        ]
+        child_refs = [
+            Ref(url="https://demo.example.com/child/a"),
+            Ref(url="https://demo.example.com/child/b"),
+        ]
+        p = _MockAsyncPlugin([])
+        p.expanders = [
+            _MockAsyncExpander(parent_refs),
+            _MockAsyncExpander(child_refs),
+        ]
+        plan = await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+        # 2 parents × 2 children each = 4 total leaves
+        assert len(plan.leaves) == 4
+
+
+# ---------------------------------------------------------------------------
+# execute_plan — Phase 3 only (async)
+# ---------------------------------------------------------------------------
+
+
+class TestExecutePlan:
+    async def test_returns_run_result(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert isinstance(result, RunResult)
+
+    async def test_all_leaves_consumed(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 3
+        assert result.leaves_persisted == 3
+        assert result.leaves_failed == 0
+
+    async def test_record_carried_from_plan(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.record is plan.record
+
+    async def test_on_leaf_receives_leaf_record_and_leaf_ref(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin, child_refs: list[Ref]
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        calls: list[tuple[object, object]] = []
+
+        async def on_leaf(record: object, ref: object) -> None:
+            calls.append((record, ref))
+
+        await execute_plan(plan, plugin, None, RunConfig(), on_leaf=on_leaf)  # type: ignore[arg-type]
+        assert len(calls) == 3
+        for _, ref in calls:
+            assert isinstance(ref, Ref)
+        received_urls = {ref.url for _, ref in calls}  # type: ignore[union-attr]
+        expected_urls = {r.url for r in child_refs}
+        assert received_urls == expected_urls
+
+    async def test_leaf_unavailable_counted_as_failed(
+        self, top_ref: Ref
+    ) -> None:
+        refs = [
+            Ref(url="https://demo.example.com/leaf/1"),
+            Ref(url="https://demo.example.com/leaf/2"),
+            Ref(url="https://demo.example.com/leaf/3"),
+        ]
+
+        class _PartialAsyncSink:
+            async def consume(self, ref: object, client: object) -> object:
+                r = ref if isinstance(ref, Ref) else Ref(url=str(ref))
+                if r.url.endswith("/2"):
+                    raise LeafUnavailableError("missing")
+                return _make_leaf(leaf_id=r.url.split("/")[-1], url=r.url)
+
+        p = _MockAsyncPlugin(refs)
+        p.sink = _PartialAsyncSink()
+        plan = await plan_crawl(top_ref, p, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, p, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 2
+        assert result.leaves_failed == 1
+        assert result.leaves_consumed + result.leaves_failed == 3
+
+    async def test_on_leaf_callback_failure_counted(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+
+        async def bad_callback(record: object, ref: object) -> None:
+            raise RuntimeError("db exploded")
+
+        result = await execute_plan(
+            plan, plugin, None, RunConfig(), on_leaf=bad_callback  # type: ignore[arg-type]
+        )
+        assert result.leaves_consumed == 3
+        assert result.leaves_persisted == 0
+        assert result.leaves_failed == 0
+        assert len(result.errors) == 3
+
+    async def test_leaf_limit_applied(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, plugin, None, RunConfig(leaf_limit=2))  # type: ignore[arg-type]
+        assert result.leaves_consumed == 2
+
+    async def test_plan_errors_carried_into_result(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = CrawlPlan(
+            record=_make_record(),
+            leaves=(Ref(url="https://demo.example.com/leaf/1"),),
+            errors=("expander branch 'x': failed",),
+        )
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert any("expander branch" in e for e in result.errors)
+
+    async def test_on_progress_called_after_each_leaf(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        progress_calls: list[tuple[int, int]] = []
+
+        def on_progress(done: int, total: int) -> None:
+            progress_calls.append((done, total))
+
+        await execute_plan(
+            plan, plugin, None, RunConfig(), on_progress=on_progress  # type: ignore[arg-type]
+        )
+        assert len(progress_calls) == 3
+        # Each call increments done; final total is always 3
+        assert all(t == 3 for _, t in progress_calls)
+        assert sorted(d for d, _ in progress_calls) == [1, 2, 3]
+
+    async def test_no_on_leaf_leaves_persisted_equals_consumed(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_persisted == result.leaves_consumed
+
+    async def test_empty_plan_returns_zero_result(
+        self, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = CrawlPlan(
+            record=_make_record(),
+            leaves=(),
+            errors=("branch err",),
+        )
+        result = await execute_plan(plan, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 0
+        assert result.leaves_persisted == 0
+        assert result.leaves_failed == 0
+        assert result.errors == ("branch err",)
+
+    async def test_empty_plan_on_progress_never_called(
+        self, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = CrawlPlan(record=_make_record(), leaves=(), errors=())
+        calls: list[object] = []
+        await execute_plan(
+            plan,
+            plugin,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: calls.append((d, t)),
+        )
+        assert calls == []
+
+    async def test_plan_crawl_then_execute_plan_roundtrip(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+        filtered = plan.excluding(lambda r: r.url.endswith("/2"))  # type: ignore[union-attr]
+        result = await execute_plan(filtered, plugin, None, RunConfig())  # type: ignore[arg-type]
+        assert result.leaves_consumed == 2
+
+    async def test_on_progress_fired_for_base_exception_leaves(
+        self, top_ref: Ref
+    ) -> None:
+        """BaseException escaping _process_leaf must still trigger on_progress."""
+
+        class _ExplodingSink:
+            async def consume(self, ref: object, client: object) -> object:
+                raise RuntimeError("unexpected kaboom")
+
+        p = _MockAsyncPlugin([Ref(url="https://demo.example.com/leaf/1")])
+        p.sink = _ExplodingSink()
+        plan = CrawlPlan(
+            record=_make_record(),
+            leaves=(Ref(url="https://demo.example.com/leaf/1"),),
+            errors=(),
+        )
+        progress_calls: list[tuple[int, int]] = []
+        result = await execute_plan(
+            plan,
+            p,
+            None,  # type: ignore[arg-type]
+            RunConfig(),
+            on_progress=lambda d, t: progress_calls.append((d, t)),
+        )
+        # The RuntimeError is not LeafUnavailableError, so it escapes
+        # _process_leaf and is caught by gather(return_exceptions=True).
+        # on_progress must still fire so callers can reach total.
+        assert result.leaves_failed == 1
+        assert len(progress_calls) == 1
+        assert progress_calls[0] == (1, 1)
+
+    async def test_on_progress_exception_is_swallowed(
+        self, top_ref: Ref, plugin: _MockAsyncPlugin
+    ) -> None:
+        plan = await plan_crawl(top_ref, plugin, None)  # type: ignore[arg-type]
+
+        def exploding_progress(done: int, total: int) -> None:
+            raise RuntimeError("progress bar closed")
+
+        result = await execute_plan(
+            plan, plugin, None, RunConfig(), on_progress=exploding_progress  # type: ignore[arg-type]
+        )
+        assert result.leaves_consumed == 3
+
+    async def test_plan_importable_from_ladon(self) -> None:
+        from ladon import execute_plan as _ep
+        from ladon import plan_crawl as _pc
+
+        assert _pc is plan_crawl
+        assert _ep is execute_plan
