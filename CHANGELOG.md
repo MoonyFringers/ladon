@@ -9,6 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.3.2] — 2026-06-08
+
 ### Added
 
 - **`CrawlPlan`** — immutable Phase 1 output carrying `record`, `leaves`,
