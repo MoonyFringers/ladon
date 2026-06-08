@@ -95,3 +95,20 @@ pre-commit run --all-files    # run all hooks at once
   reference the tracking issue
 - External contributors must sign the CLA (enforced automatically by the
   CLA Assistant bot on every PR)
+
+## Fork workflow
+
+**All development happens on personal forks first** — never commit
+directly to the upstream `MoonyFringers/ladon` repository.
+
+| Developer  | Fork remote                                              |
+|------------|----------------------------------------------------------|
+| feed3r     | `git@github.com:feed3r/ladon.git`                        |
+| *(others)* | *(register your fork — see issue #130)*                  |
+
+Workflow:
+
+1. Push the feature branch to **your fork** (`fork` remote).
+2. Open a PR from your fork's branch to `MoonyFringers/ladon:main`
+   (the upstream).
+3. CI runs on the upstream PR; merge only after it passes.
