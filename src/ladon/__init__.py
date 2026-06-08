@@ -21,6 +21,7 @@ from .networking.errors import (
 )
 from .networking.proxy_pool import ProxyPool, RoundRobinProxyPool
 from .networking.types import Result
+from .observability import DecisionEvent, DecisionTracker, NullDecisionTracker
 from .persistence import NullRepository, Repository, RunAudit, RunRecord
 from .plugins import (
     AssetDownloadError,
@@ -127,6 +128,10 @@ __all__ = [
     "StorageKeyNotFoundError",
     "StorageReadError",
     "StorageWriteError",
+    # Observability
+    "DecisionEvent",
+    "DecisionTracker",
+    "NullDecisionTracker",
     # MCP adapter protocol
     "LadonMCPAdapter",
     "__version__",

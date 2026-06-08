@@ -21,8 +21,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `(leaf_record, leaf_ref)` — the leaf ref, **not** a parent record
   (ADR-011).  Optional `on_progress(done, total)` callback for real-time
   progress reporting.
+- **`ladon.observability`** — `DecisionEvent` dataclass, `DecisionTracker`
+  Protocol, and `NullDecisionTracker` no-op default (same pattern as
+  `MetricsBackend` / `NullMetrics` from ADR-009).  All three re-exported
+  from the top-level `ladon` namespace.
+- **`MultiSourceSink.resolve_multi(run_id=)`** — optional correlation key
+  (auto-UUID if omitted) shared across all events from one resolution call.
+  Eight event types emitted at five hook points: `source_skipped`,
+  `source_failed`, `candidate_accepted`, `candidate_rejected`,
+  `predicate_rejected`, `resolved` (`via_fallback=True/False`), `no_result`.
+- **`ladon.contrib.sqlite_tracker.SqliteDecisionTracker`** — append-only
+  SQLite backend with three indexes (run_id, ref, event), `query()` method
+  for post-run SQL analysis, and context-manager support.
 
 ### Fixed
+
+- **`MultiSourceSink`** — non-`NotImplementedError` exceptions from
+  `_fetch_from_source` are now caught, recorded as `source_failed`, and
+  the loop continues instead of propagating.  `NotImplementedError` is
+  re-raised to preserve the subclass contract.
 
 ### Changed
 
