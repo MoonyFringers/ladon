@@ -31,12 +31,17 @@ ADR: ADR-013
 from __future__ import annotations
 
 import logging
+import uuid
+from datetime import datetime, timezone
 from typing import Any, Protocol, Sequence, runtime_checkable
 
 from ..networking.client import HttpClient
+from ..observability import DecisionEvent, DecisionTracker, NullDecisionTracker
 from .models import Ref
 
 logger = logging.getLogger(__name__)
+
+_NULL_TRACKER = NullDecisionTracker()
 
 
 # ---------------------------------------------------------------------------
@@ -91,15 +96,22 @@ class MultiSourceSink:
     The main entry point is :meth:`resolve_multi`, which runs the loop and
     returns ``(data, source)`` for the best accepted result, or the best
     fallback if no result passed all predicates.
+
+    A ``tracker`` may be injected at construction time to persist a structured
+    decision trail. If omitted, :class:`NullDecisionTracker` is used (no-op,
+    zero overhead). See :mod:`ladon.observability` for the protocol and
+    :mod:`ladon.contrib.sqlite_tracker` for a ready-made SQLite backend.
     """
 
     def __init__(
         self,
         sources: list[Any],
         predicates: Sequence[FetchPredicate] = (),
+        tracker: DecisionTracker = _NULL_TRACKER,
     ) -> None:
         self._ms_sources: list[Any] = list(sources)
         self._ms_predicates: list[FetchPredicate] = list(predicates)
+        self._tracker = tracker
 
     # ------------------------------------------------------------------
     # Public accessors
@@ -161,31 +173,83 @@ class MultiSourceSink:
         return all(p.accepts(data, ref) for p in self._ms_predicates)
 
     def resolve_multi(
-        self, ref: Ref, client: HttpClient
+        self, ref: Ref, client: HttpClient, *, run_id: str = ""
     ) -> tuple[bytes | None, Any | None]:
         """Try sources in priority order; return the best accepted result.
 
         Returns ``(data, source)`` for the first result that passes all
         predicates, or the best fallback seen if no result was accepted.
         Returns ``(None, None)`` if no source produced any result.
+
+        ``run_id`` is forwarded to every :class:`~ladon.observability.DecisionEvent`
+        emitted during this call. Pass the runner's ``run_id`` for cross-item
+        correlation; omit it to get a fresh UUID scoped to this resolution.
+
+        .. note::
+            Exceptions raised by :meth:`_fetch_from_source` (other than
+            :exc:`NotImplementedError`) are caught, recorded as a
+            ``source_failed`` event, and the loop continues to the next
+            source. :exc:`NotImplementedError` is re-raised immediately so
+            the "subclass must override" contract is preserved. This differs
+            from the pre-tracker behaviour, where all exceptions propagated
+            to the caller.
         """
+        _run_id = run_id or str(uuid.uuid4())
         best_data: bytes | None = None
         best_source: Any | None = None
 
         for source in self._ms_sources:
+            source_name: str = getattr(source, "name", str(source))
+
             if not self._should_try_source(source, ref):
+                self._tracker.record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref.url,
+                        source=source_name,
+                        event="source_skipped",
+                        reason="source guard returned False",
+                    )
+                )
                 logger.debug(
                     "resolution: skipping source %r for %s",
-                    getattr(source, "name", source),
+                    source_name,
                     ref.url,
                 )
                 continue
 
-            data = self._fetch_from_source(source, ref, client)
+            try:
+                data = self._fetch_from_source(source, ref, client)
+            except NotImplementedError:
+                raise
+            except Exception as exc:
+                self._tracker.record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref.url,
+                        source=source_name,
+                        event="source_failed",
+                        reason=str(exc),
+                        metadata={
+                            "exception_type": type(exc).__name__,
+                            "status_code": getattr(exc, "status_code", None),
+                        },
+                    )
+                )
+                logger.warning(
+                    "resolution: source %r raised %s for %s; trying next",
+                    source_name,
+                    type(exc).__name__,
+                    ref.url,
+                )
+                continue
+
             if not data:
                 logger.debug(
                     "resolution: %r returned no data for %s",
-                    getattr(source, "name", source),
+                    source_name,
                     ref.url,
                 )
                 continue
@@ -199,24 +263,108 @@ class MultiSourceSink:
             ):
                 best_data = data
                 best_source = source
+                self._tracker.record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref.url,
+                        source=source_name,
+                        event="candidate_accepted",
+                        reason="new best candidate",
+                    )
+                )
                 logger.debug(
                     "resolution: %r is new best candidate for %s",
-                    getattr(source, "name", source),
+                    source_name,
                     ref.url,
+                )
+            else:
+                self._tracker.record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref.url,
+                        source=source_name,
+                        event="candidate_rejected",
+                        reason="not stored as best-seen fallback; may still be resolved if predicates pass",
+                    )
                 )
 
             if not self._ms_predicates or self._all_predicates_pass(data, ref):
+                self._tracker.record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref.url,
+                        source=source_name,
+                        event="resolved",
+                        reason="accepted from active source",
+                        metadata={"via_fallback": False},
+                    )
+                )
                 logger.debug(
                     "resolution: accepted result from %r for %s",
-                    getattr(source, "name", source),
+                    source_name,
                     ref.url,
                 )
                 return data, source
 
+            # Find the first registered predicate that rejects the data.
+            # If none is found (failing is None), the rejection came from a
+            # _all_predicates_pass override rather than a registered predicate.
+            failing = next(
+                (p for p in self._ms_predicates if not p.accepts(data, ref)),
+                None,
+            )
+            self._tracker.record(
+                DecisionEvent(
+                    run_id=_run_id,
+                    timestamp=datetime.now(timezone.utc),
+                    ref=ref.url,
+                    source=source_name,
+                    event="predicate_rejected",
+                    reason="one or more predicates rejected the result",
+                    metadata={
+                        "predicate_name": (
+                            type(failing).__name__
+                            if failing is not None
+                            else "<subclass-override>"
+                        ),
+                    },
+                )
+            )
             logger.debug(
                 "resolution: %r did not pass all predicates for %s; trying next",
-                getattr(source, "name", source),
+                source_name,
                 ref.url,
+            )
+
+        if best_data is not None:
+            self._tracker.record(
+                DecisionEvent(
+                    run_id=_run_id,
+                    timestamp=datetime.now(timezone.utc),
+                    ref=ref.url,
+                    source=(
+                        getattr(best_source, "name", str(best_source))
+                        if best_source is not None
+                        else None
+                    ),
+                    event="resolved",
+                    reason="best-seen fallback returned after loop exhausted",
+                    metadata={"via_fallback": True},
+                )
+            )
+        else:
+            self._tracker.record(
+                DecisionEvent(
+                    run_id=_run_id,
+                    timestamp=datetime.now(timezone.utc),
+                    ref=ref.url,
+                    source=None,
+                    event="no_result",
+                    reason="no source produced a usable result",
+                )
             )
 
         return best_data, best_source
