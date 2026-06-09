@@ -9,6 +9,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`rejection_info()`** — optional duck-typed extension point on
+  `FetchPredicate` implementations for adding predicate-specific diagnostics
+  to `predicate_rejected` decision-event metadata.
+
 ---
 
 ## [0.3.2] — 2026-06-08
