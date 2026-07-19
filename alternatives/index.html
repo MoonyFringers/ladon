@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-007-circuit-breaker/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/alternatives/">
       
       
-        <link rel="prev" href="../adr-006-persistence-layer/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../adr-008-robots-txt/">
+        <link rel="next" href="../changelog/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>ADR-007 Circuit Breaker - Ladon</title>
+        <title>Alternatives - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#adr-007-per-host-circuit-breaker" class="md-skip">
+        <a href="#alternatives-ecosystem" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-007 Circuit Breaker
+              Alternatives
             
           </span>
         </div>
@@ -225,7 +225,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -242,9 +242,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../../alternatives/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -263,7 +265,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../changelog/" class="md-tabs__link">
+      <a href="../changelog/" class="md-tabs__link">
         
   
   
@@ -282,7 +284,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../getting-started/" class="md-tabs__link">
+      <a href="../getting-started/" class="md-tabs__link">
         
   
   
@@ -303,7 +305,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -323,7 +325,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../api/networking/" class="md-tabs__link">
+        <a href="../api/networking/" class="md-tabs__link">
           
   
   
@@ -339,13 +341,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../decisions/" class="md-tabs__link">
           
   
   
@@ -379,7 +379,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -409,7 +409,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -433,10 +433,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../alternatives/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alternatives
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -452,6 +479,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#firecrawl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firecrawl
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scrapy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scrapy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plain-requests-or-httpx-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plain requests or httpx scripts
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -463,7 +543,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/" class="md-nav__link">
+      <a href="../changelog/" class="md-nav__link">
         
   
   
@@ -490,7 +570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -569,7 +649,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -597,7 +677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/cookbook/" class="md-nav__link">
+      <a href="../guides/cookbook/" class="md-nav__link">
         
   
   
@@ -625,7 +705,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -653,7 +733,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/cloudflare-bypass/" class="md-nav__link">
+      <a href="../guides/cloudflare-bypass/" class="md-nav__link">
         
   
   
@@ -740,7 +820,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/networking/" class="md-nav__link">
+      <a href="../api/networking/" class="md-nav__link">
         
   
   
@@ -768,7 +848,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/runner/" class="md-nav__link">
+      <a href="../api/runner/" class="md-nav__link">
         
   
   
@@ -796,7 +876,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/plugins/" class="md-nav__link">
+      <a href="../api/plugins/" class="md-nav__link">
         
   
   
@@ -828,31 +908,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -870,7 +945,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -888,7 +963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../decisions/" class="md-nav__link">
         
   
   
@@ -916,7 +991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../decisions/adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -951,7 +1026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../decisions/adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -986,7 +1061,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../decisions/adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -1021,7 +1096,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../decisions/adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -1056,7 +1131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-005-asset-storage/" class="md-nav__link">
+      <a href="../decisions/adr-005-asset-storage/" class="md-nav__link">
         
   
   
@@ -1091,7 +1166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../decisions/adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1123,37 +1198,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ADR-007 Circuit Breaker
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../decisions/adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1169,120 +1217,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#context-and-problem-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Context and Problem Statement
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Drivers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#considered-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Considered Options
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Outcome
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decision Outcome">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#state-machine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State machine
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#consequences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consequences
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rejected-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rejected options
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1295,7 +1229,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-008-robots-txt/" class="md-nav__link">
+      <a href="../decisions/adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1323,7 +1257,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-009-observability/" class="md-nav__link">
+      <a href="../decisions/adr-009-observability/" class="md-nav__link">
         
   
   
@@ -1358,7 +1292,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-010-dual-license-model/" class="md-nav__link">
+      <a href="../decisions/adr-010-dual-license-model/" class="md-nav__link">
         
   
   
@@ -1386,7 +1320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-011-curl-cffi-cloudflare-bypass/" class="md-nav__link">
+      <a href="../decisions/adr-011-curl-cffi-cloudflare-bypass/" class="md-nav__link">
         
   
   
@@ -1414,7 +1348,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-012-session-contract-boundary/" class="md-nav__link">
+      <a href="../decisions/adr-012-session-contract-boundary/" class="md-nav__link">
         
   
   
@@ -1469,10 +1403,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#context-and-problem-statement" class="md-nav__link">
+  <a href="#firecrawl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Context and Problem Statement
+        Firecrawl
       
     </span>
   </a>
@@ -1480,10 +1414,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#decision-drivers" class="md-nav__link">
+  <a href="#scrapy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decision Drivers
+        Scrapy
       
     </span>
   </a>
@@ -1491,71 +1425,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#considered-options" class="md-nav__link">
+  <a href="#plain-requests-or-httpx-scripts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Considered Options
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Outcome
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decision Outcome">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#state-machine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        State machine
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#consequences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consequences
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rejected-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rejected options
+        Plain requests or httpx scripts
       
     </span>
   </a>
@@ -1582,84 +1455,86 @@
   
 
 
-<hr />
-<p>status: accepted
-date: 2026-03-18
-decision-makers: [Maintainers]
-informed: [Contributors]
-refs: [ADR-001, Issue #38]</p>
-<hr />
-<h1 id="adr-007-per-host-circuit-breaker">ADR-007 — Per-Host Circuit Breaker</h1>
-<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
-<p>ADR-001 mandated a circuit breaker at the <code>HttpClient</code> layer to prevent
-cascading failures when a target host becomes unavailable or starts
-rejecting connections.  <code>CircuitOpenError</code> was reserved as a placeholder
-but never raised.  Without a circuit breaker <code>HttpClient</code> hammers a
-failing host indefinitely, consuming retry budget and delaying detection
-of systematic outages.</p>
-<h2 id="decision-drivers">Decision Drivers</h2>
-<ul>
-<li>Prevent thundering-herd retries against a host that is already down.</li>
-<li>Keep per-host state so one failing domain does not affect others.</li>
-<li>Remain disabled by default to avoid breaking existing callers.</li>
-<li>Fit cleanly into the existing sync <code>_request()</code> pipeline.</li>
-</ul>
-<h2 id="considered-options">Considered Options</h2>
-<ul>
-<li><strong>A — Count-based per-host state machine (chosen)</strong></li>
-<li><strong>B — Rate-based (failure ratio over a sliding window)</strong></li>
-<li><strong>C — External circuit breaker (e.g. <code>pybreaker</code> library)</strong></li>
-</ul>
-<h2 id="decision-outcome">Decision Outcome</h2>
-<p><strong>Chosen: Option A.</strong></p>
-<p>A count-based, per-host state machine is simple, deterministic, and
-requires no additional dependencies.</p>
-<h3 id="state-machine">State machine</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CLOSED ─(failures &gt;= threshold)─► OPEN ─(recovery elapsed)─► HALF_OPEN
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  ▲                                  ▲                              │
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  └───────── success ────────────────┼──────────────────────────────┘
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                                     └──────── failure ─────────────┘
-</code></pre></div>
-<ul>
-<li><strong>CLOSED</strong> — normal operation; consecutive failure counter tracked.</li>
-<li><strong>OPEN</strong> — all requests to this host blocked with <code>CircuitOpenError</code>;
-  timer running toward <code>recovery_seconds</code>.</li>
-<li><strong>HALF_OPEN</strong> — one probe allowed; success → CLOSED, failure → OPEN.</li>
-</ul>
-<h3 id="implementation">Implementation</h3>
-<ul>
-<li>New class <code>CircuitBreaker</code> in <code>ladon.networking.circuit_breaker</code>.</li>
-<li><code>HttpClientConfig</code> fields (both off by default):</li>
-<li><code>circuit_breaker_failure_threshold: int | None = None</code></li>
-<li><code>circuit_breaker_recovery_seconds: float = 60.0</code></li>
-<li><code>HttpClient._circuit_breakers: dict[str, CircuitBreaker]</code> keyed by
-  <code>netloc</code>; created lazily on first request to a host.</li>
-<li>Check at start of <code>_request()</code> before <code>_enforce_rate_limit()</code>; raise
-  <code>CircuitOpenError</code> if blocked.</li>
-<li>Record success/failure on every <code>_request()</code> completion.</li>
-</ul>
-<h2 id="consequences">Consequences</h2>
-<ul>
-<li><strong>Good</strong>: cascading failures to a dead host are cut off quickly.</li>
-<li><strong>Good</strong>: per-host tracking means unrelated domains are unaffected.</li>
-<li><strong>Good</strong>: disabled by default — zero behaviour change for existing callers.</li>
-<li><strong>Neutral</strong>: <code>threshold</code> counts <em>call sequences</em> (one <code>HttpClient.get()</code>
-  invocation), not individual HTTP attempts.  With <code>retries=2</code> and
-  <code>threshold=3</code>, the circuit opens after 3 exhausted call sequences (up to
-  9 underlying HTTP attempts).  Operators should size <code>threshold</code> with this
-  in mind — a value of 3 is more tolerant than it first appears.  During
-  HALF_OPEN, the single probe may itself involve up to <code>retries + 1</code> raw
-  HTTP attempts; observers watching traffic may see more than one request.</li>
-<li><strong>Bad</strong>: no persistence across <code>HttpClient</code> instances — circuit state
-  resets on every new client construction (acceptable for sync/single-run).</li>
-</ul>
-<h2 id="rejected-options">Rejected options</h2>
-<p><strong>B (rate-based):</strong> Requires a sliding window, timestamps per request,
-and is harder to reason about in tests.  Count-based is sufficient for
-the single-threaded, single-run crawler model.</p>
-<p><strong>C (pybreaker):</strong> Adds a runtime dependency for functionality that is
-straightforward to implement cleanly.  Keeping it in-house means the
-behaviour is explicit, testable, and auditable.</p>
+<h1 id="alternatives-ecosystem">Alternatives &amp; Ecosystem</h1>
+<p>Ladon is one way to collect web data, not a replacement for every scraping
+tool. It is designed for Python developers building typed, resumable crawler
+pipelines around a well-defined domain model. The right choice depends on
+whether you need managed extraction, a broad crawling ecosystem, or direct
+control over a small script.</p>
+<table>
+<thead>
+<tr>
+<th>If you need…</th>
+<th>Consider…</th>
+<th>Ladon's tradeoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clean, LLM-ready data quickly, without crawling code</td>
+<td><a href="https://www.firecrawl.dev/">Firecrawl</a></td>
+<td>Ladon has no managed service, browser rendering, or AI extraction; it provides typed adapters and local control instead.</td>
+</tr>
+<tr>
+<td>A mature, general-purpose Python crawling framework and middleware ecosystem</td>
+<td><a href="https://scrapy.org/">Scrapy</a></td>
+<td>Ladon is intentionally narrower, enforcing a typed domain model at collection time.</td>
+</tr>
+<tr>
+<td>A one-off request or a very small script</td>
+<td><code>requests</code> or <code>httpx</code> directly</td>
+<td>Ladon adds reusable policies and a crawler pipeline when copying that plumbing between projects stops being worthwhile.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="firecrawl">Firecrawl</h2>
+<p>Firecrawl is an API-first managed scraping service from Mendable.ai, available
+under AGPL-3.0 with a Python SDK. It targets teams that want to ask for clean,
+LLM-ready data quickly rather than build crawling code: it renders JavaScript
+with Chromium/Playwright and can use an LLM to extract structured data from a
+JSON schema or natural-language prompt. Its cloud service uses queued jobs and
+credit-based pricing, while its stack can also be self-hosted with Docker
+Compose.</p>
+<p>Ladon has no browser automation or AI-powered extraction. It uses
+<code>requests</code>/<code>httpx</code>, and site-specific parsing belongs in hand-written typed
+<code>Source</code>, <code>Expander</code>, and <code>Sink</code> adapters. That makes it a poor fit for
+JavaScript-only targets or for a team that needs data without maintaining a
+crawler.</p>
+<p>In return, Ladon has no required cloud dependency or per-page service cost. It
+keeps crawling policies in the application: configurable per-host rate limits,
+circuit breaking, and opt-in <code>robots.txt</code> enforcement are first-class client
+configuration. When <code>ExpansionNotReadyError</code> or <code>PartialExpansionError</code>
+occurs, Ladon's runner can be safely re-called by a caller's cron job or retry
+loop; make persistence idempotent because a retry may revisit successful
+leaves. Firecrawl jobs are ephemeral rather than a durable local crawl runner.</p>
+<p>These tools are often complementary. Firecrawl suits AI and RAG teams that
+need clean data fast; Ladon suits Python developers who need a typed,
+resumable pipeline with control over its domain model and runtime policies.</p>
+<h2 id="scrapy">Scrapy</h2>
+<p>Ladon and Scrapy both address structured web crawling in Python, but they make
+opposite assumptions about when data quality is enforced. Scrapy delivers a
+raw dict to your pipeline and leaves validation, type coercion, and
+deduplication to downstream code — a cleaning layer that is often as complex
+as the scraper itself, maintained separately from it. Ladon inverts this: the
+domain record — a typed, frozen dataclass — is defined at collection time and
+flows through the Source/Expander/Sink stages fully typed, reducing the
+cleaning work between the crawler and the database.</p>
+<p>The tradeoff is scope. Scrapy is mature, battle-tested, and has a richer
+middleware ecosystem suited to broad, general-purpose crawling. Ladon is
+intentionally narrow, for domains where the collected data's structure cannot
+be an afterthought. Enforcing a schema at collection does not remove every
+downstream normalisation or deduplication need. And unlike browser-enabled
+Scrapy setups, Ladon itself does not provide browser automation.</p>
+<h2 id="plain-requests-or-httpx-scripts">Plain <code>requests</code> or <code>httpx</code> scripts</h2>
+<p>For a single request or a small, disposable script, using <code>requests</code> or
+<code>httpx</code> directly is usually the clearest choice. Ladon itself builds on those
+libraries; it is not a different transport layer.</p>
+<p>The boundary changes when scripts become long-lived crawlers. Ad-hoc retry
+loops, rate-limiting sleeps, and error-handling one-liners tend to be copied
+across projects. Ladon centralises those concerns behind its HTTP clients and
+Source → Expander → Sink runner, while leaving site parsing and persistence in
+your adapter. That structure adds concepts and setup, so it is worthwhile only
+when the crawl needs the policies, repeatability, and typed pipeline it brings.</p>
 
 
 
@@ -1715,10 +1590,10 @@ behaviour is explicit, testable, and auditable.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
