@@ -7,6 +7,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   palette:
     - scheme: default
       primary: indigo
@@ -34,6 +36,7 @@ exclude_docs: |
 
 plugins:
   - search
+  - social
   - mkdocstrings:
       handlers:
         python:
@@ -42,6 +45,17 @@ plugins:
             show_source: true
             members_order: source
             filters: ["!^_"]
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MoonyFringers/ladon
+      name: Ladon on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ladon-crawl/
+      name: Ladon on PyPI
+
+copyright: Copyright &copy; 2026 MoonyFringers
 
 markdown_extensions:
   - admonition
