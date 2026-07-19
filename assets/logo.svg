@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Ladon dragon and golden apple</title>
+  <rect width="64" height="64" rx="14" fill="#3f51b5"/>
+  <circle cx="42" cy="24" r="11" fill="#ffca28"/>
+  <path d="M43 13c-4 1-7 4-8 8" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3"/>
+  <path d="M17 18c-8 7-8 21 1 28 8 6 20 4 25-4 4-6 2-14-4-17-5-2-10 0-12 4-2 4 0 8 4 9 4 1 7-2 7-5" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="m16 18 8 1-5 6z" fill="#fff"/>
+  <circle cx="22" cy="22" r="1.5" fill="#3f51b5"/>
+</svg>
