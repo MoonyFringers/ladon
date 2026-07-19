@@ -117,10 +117,13 @@ ignore = [
 # ----------------------------------------
 [tool.pyright]
 typeCheckingMode = "strict"
-include = ["src", "tests"]
+include = ["src", "tests", "examples"]
 extraPaths = ["src"]
 reportMissingImports = "none"
 reportUntypedFunctionDecorator = "none"
+executionEnvironments = [
+    { root = "examples", reportUnknownVariableType = "none", reportUnknownMemberType = "none", reportUnknownArgumentType = "none" },
+]
 
 # ----------------------------------------
 # PYTEST
