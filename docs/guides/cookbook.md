@@ -13,6 +13,10 @@ Have your `Source.discover()` return one `Ref` per page, then call
 `run_crawl()` for each returned ref. This example uses a public GitHub API
 listing page; the `page` value is context you can use in logs or persistence.
 
+This example and the Hacker News tree crawl below use live external services,
+so they are verified by a weekly scheduled GitHub Actions check rather than
+the offline pytest suite.
+
 ```python
 --8<-- "examples/cookbook/flat_crawl.py:example"
 ```
