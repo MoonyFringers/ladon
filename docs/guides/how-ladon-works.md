@@ -143,6 +143,7 @@ gets these automatically:
 
 ## Next steps
 
+- [Cookbook](cookbook.md) — runnable patterns for flat, tree, async, and public-web crawls
 - [Authoring Plugins](authoring-plugins.md) — implement your first plugin
 - [ADR-004: SES Protocol Design](../decisions/adr-004-ses-protocol-design.md) — the full rationale behind this architecture
 - [API Reference: Runner](../api/runner.md) — `run_crawl`, `RunConfig`, `RunResult`

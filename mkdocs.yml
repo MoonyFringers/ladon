@@ -60,6 +60,7 @@ nav:
   - Getting Started: getting-started.md
   - Guides:
     - How Ladon Works: guides/how-ladon-works.md
+    - Cookbook: guides/cookbook.md
     - Authoring Plugins: guides/authoring-plugins.md
     - Cloudflare-Protected Targets: guides/cloudflare-bypass.md
   - API Reference:
