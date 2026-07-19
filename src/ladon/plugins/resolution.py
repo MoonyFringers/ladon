@@ -62,6 +62,15 @@ class FetchPredicate(Protocol):
         attribute *exists* — it does not verify callability or signature.
         Passing a mis-shaped object will raise ``TypeError`` at call time
         inside :meth:`MultiSourceSink.resolve_multi`, not at construction.
+
+    Predicates may optionally expose a duck-typed, zero-argument
+    ``rejection_info() -> dict[str, Any]`` method; it is deliberately not a
+    Protocol member, so existing predicates without it continue to work.
+    When a predicate rejects a result, :meth:`MultiSourceSink.resolve_multi`
+    merges the returned mapping into that ``predicate_rejected`` event's
+    metadata. Exceptions from this method are swallowed and logged at DEBUG
+    level. Its ``predicate_name`` value, if any, is always overwritten by the
+    authoritative rejecting predicate name.
     """
 
     def accepts(self, data: bytes, ref: Ref) -> bool:
@@ -316,6 +325,26 @@ class MultiSourceSink:
                 (p for p in self._ms_predicates if not p.accepts(data, ref)),
                 None,
             )
+            predicate_name = (
+                type(failing).__name__
+                if failing is not None
+                else "<subclass-override>"
+            )
+            rejection_meta: dict[str, Any] = {}
+            if failing is not None:
+                _get_info = getattr(failing, "rejection_info", None)
+                if callable(_get_info):
+                    try:
+                        rejection_meta.update(_get_info())  # type: ignore[arg-type]
+                    except Exception as _info_exc:
+                        logger.debug(
+                            "rejection_info() on %r raised %s — ignoring",
+                            predicate_name,
+                            _info_exc,
+                        )
+            # predicate_name is written last so a badly-behaved rejection_info()
+            # cannot overwrite it.
+            rejection_meta["predicate_name"] = predicate_name
             self._tracker.record(
                 DecisionEvent(
                     run_id=_run_id,
@@ -324,13 +353,7 @@ class MultiSourceSink:
                     source=source_name,
                     event="predicate_rejected",
                     reason="one or more predicates rejected the result",
-                    metadata={
-                        "predicate_name": (
-                            type(failing).__name__
-                            if failing is not None
-                            else "<subclass-override>"
-                        ),
-                    },
+                    metadata=rejection_meta,
                 )
             )
             logger.debug(

@@ -8,6 +8,7 @@ point, and that metadata fields carry the expected values.
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock
 
 from ladon.observability import DecisionEvent
@@ -402,3 +403,90 @@ class TestNullTrackerDefault:
         data, src = sink.resolve_multi(_ref(), MagicMock())
         assert data == b"DATA"
         assert src.name == "a"  # type: ignore[union-attr]
+
+
+# ---------------------------------------------------------------------------
+# rejection_info() integration — predicate_rejected metadata
+# ---------------------------------------------------------------------------
+
+
+class TestRejectionInfoMetadata:
+    def test_rejection_info_merged_into_predicate_rejected_metadata(
+        self,
+    ) -> None:
+        """When a predicate has rejection_info(), its output is merged into
+        the predicate_rejected event metadata alongside predicate_name."""
+
+        class _DiagnosticPredicate:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return False
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {"detail": "too_short", "threshold": 5}
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_DiagnosticPredicate()],
+            tracker=tracker,
+        )
+        sink.resolve_multi(_ref(), MagicMock())
+        ev = tracker.by_event("predicate_rejected")[0]
+        assert ev.metadata["predicate_name"] == "_DiagnosticPredicate"
+        assert ev.metadata["detail"] == "too_short"
+        assert ev.metadata["threshold"] == 5
+
+    def test_predicate_without_rejection_info_still_works(self) -> None:
+        """Predicates without rejection_info() continue to work unchanged."""
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_MinLengthPredicate(10)],
+            tracker=tracker,
+        )
+        sink.resolve_multi(_ref(), MagicMock())
+        ev = tracker.by_event("predicate_rejected")[0]
+        assert "predicate_name" in ev.metadata
+        assert ev.metadata["predicate_name"] == "_MinLengthPredicate"
+
+    def test_rejection_info_raising_does_not_propagate(self) -> None:
+        """An exception from rejection_info() is swallowed; the event still fires."""
+
+        class _BrokenInfoPredicate:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return False
+
+            def rejection_info(self) -> dict[str, Any]:
+                raise RuntimeError("info unavailable")
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_BrokenInfoPredicate()],
+            tracker=tracker,
+        )
+        sink.resolve_multi(_ref(), MagicMock())  # must not raise
+        ev = tracker.by_event("predicate_rejected")[0]
+        assert ev.metadata["predicate_name"] == "_BrokenInfoPredicate"
+
+    def test_rejection_info_cannot_overwrite_predicate_name(self) -> None:
+        """predicate_name in metadata is always authoritative; rejection_info()
+        returning a dict with the same key must not clobber it."""
+
+        class _OverwritingPredicate:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return False
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {"predicate_name": "INJECTED", "extra": 42}
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_OverwritingPredicate()],
+            tracker=tracker,
+        )
+        sink.resolve_multi(_ref(), MagicMock())
+        ev = tracker.by_event("predicate_rejected")[0]
+        assert ev.metadata["predicate_name"] == "_OverwritingPredicate"
+        assert ev.metadata["extra"] == 42
