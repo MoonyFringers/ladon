@@ -1,0 +1,68 @@
+name: Cookbook Live Check
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Ladon and the Hacker News adapter
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install ladon-hackernews
+
+      - name: Run and verify live cookbook examples
+        run: |
+          python - <<'PY'
+          import runpy
+          import sys
+
+          def fail(message: str) -> None:
+              print(f"Live cookbook check failed: {message}", file=sys.stderr)
+              sys.exit(1)
+
+          flat_results = runpy.run_path(
+              "examples/cookbook/flat_crawl.py"
+          )["run_example"]()
+          if len(flat_results) != 2:
+              fail(f"GitHub example returned {len(flat_results)} runs, expected 2")
+          for index, result in enumerate(flat_results, start=1):
+              if result.leaves_consumed <= 0 or result.errors:
+                  fail(
+                      "GitHub run "
+                      f"{index} was not clean: consumed={result.leaves_consumed}, "
+                      f"errors={result.errors}"
+                  )
+
+          hn_results = runpy.run_path(
+              "examples/cookbook/tree_crawl_hackernews.py"
+          )["run_example"]()
+          if not hn_results:
+              fail("Hacker News example found no ready stories to crawl")
+          if sum(result.leaves_consumed for result in hn_results) <= 0:
+              fail("Hacker News example consumed no comments")
+
+          unexpected_errors = [
+              error
+              for result in hn_results
+              for error in result.errors
+              if "is null, dead, or deleted" not in error
+          ]
+          if unexpected_errors:
+              fail(f"Hacker News returned unexpected errors: {unexpected_errors}")
+          PY
