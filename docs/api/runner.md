@@ -7,6 +7,11 @@ Ladon ships two runners: a synchronous `run_crawl()` and an async
 `async_run_crawl()`.  Both use the same `RunConfig` and return the same
 `RunResult`.
 
+## See also
+
+[Concepts](../guides/concepts.md) explains the `RunResult` counters and the
+typed plugin errors that determine runner recovery behaviour.
+
 ## run_crawl
 
 ::: ladon.runner.run_crawl
