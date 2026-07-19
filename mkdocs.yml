@@ -58,6 +58,7 @@ nav:
   - Guides:
     - How Ladon Works: guides/how-ladon-works.md
     - Authoring Plugins: guides/authoring-plugins.md
+    - Cloudflare-Protected Targets: guides/cloudflare-bypass.md
   - API Reference:
     - Networking: api/networking.md
     - Runner: api/runner.md
@@ -71,3 +72,7 @@ nav:
     - ADR-006 Persistence Layer: decisions/adr-006-persistence-layer.md
     - ADR-007 Circuit Breaker: decisions/adr-007-circuit-breaker.md
     - ADR-008 robots.txt: decisions/adr-008-robots-txt.md
+    - ADR-009 Observability (Structured Logging, Metrics, Alerting): decisions/adr-009-observability.md
+    - ADR-010 Dual-License Model (AGPL-3.0-only + Commercial): decisions/adr-010-dual-license-model.md
+    - ADR-011 curl-cffi as the Cloudflare-Bypass HTTP Backend: decisions/adr-011-curl-cffi-cloudflare-bypass.md
+    - ADR-012 Session Contract Boundary in `SyncPolicyBase`: decisions/adr-012-session-contract-boundary.md
