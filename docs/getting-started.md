@@ -154,6 +154,7 @@ do not cause unbounded parallelism.
 
 ## Next steps
 
+- [Concepts](guides/concepts.md) — understand refs, results, and typed crawl errors
 - [Cookbook](guides/cookbook.md) — runnable patterns for common real-world crawls
 - [Authoring Plugins](guides/authoring-plugins.md) — build a site adapter
 - [API Reference → Networking](api/networking.md) — `HttpClient`, `AsyncHttpClient`, and config
