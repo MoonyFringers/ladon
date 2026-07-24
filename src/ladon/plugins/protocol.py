@@ -70,7 +70,7 @@ class CrawlPlugin(Protocol):
     """Bundle of all adapters for one crawl domain.
 
     ``name`` is a short identifier used in log lines and error messages
-    (e.g. ``"christies_online"``, ``"sothebys"``). ``source`` produces
+    (e.g. ``"acme_shop"``, ``"widgetco"``). ``source`` produces
     top-level refs. ``expanders`` is an ordered list of expansion steps
     (one per tree level above the leaves). ``sink`` consumes the leaf
     refs produced by the last expander.

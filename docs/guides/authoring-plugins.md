@@ -48,7 +48,7 @@ class MyPlugin:
 ### Expander
 
 An `Expander` turns one ref into an `Expansion` — the current node's record
-plus the child refs to process next (e.g. catalogue record + lot URLs):
+plus the child refs to process next (e.g. catalog record + product URLs):
 
 ```python
 from ladon.plugins.models import Expansion
@@ -75,7 +75,7 @@ Exceptions that halt expansion:
 
 ### Sink
 
-A `Sink` processes each leaf ref (e.g. downloads a lot page):
+A `Sink` processes each leaf ref (e.g. downloads a product page):
 
 ```python
 class MySink:
@@ -94,12 +94,12 @@ Combine expanders and sink into a plugin:
 ```python
 from ladon.networking.client import HttpClient
 
-class AuctionPlugin:
+class ShopPlugin:
     def __init__(self, client: HttpClient) -> None:
-        self.name = "auction_example"
-        self.source = CatalogueSource()
-        self.expanders = [CategoryExpander(), AuctionExpander()]
-        self.sink = LotSink()
+        self.name = "shop_example"
+        self.source = CatalogSource()
+        self.expanders = [CategoryExpander(), ProductExpander()]
+        self.sink = ProductSink()
 ```
 
 ## Running from code
@@ -111,24 +111,24 @@ from ladon.runner import RunConfig, run_crawl
 
 config = HttpClientConfig(retries=2, min_request_interval_seconds=1.0)
 client = HttpClient(config)
-plugin = AuctionPlugin(client=client)
+plugin = ShopPlugin(client=client)
 
 result = run_crawl(
-    top_ref="https://example-auction.com/catalogue/2026",
+    top_ref="https://example-shop.com/categories/2026",
     plugin=plugin,
     client=client,
     config=RunConfig(leaf_limit=100),
     on_leaf=lambda leaf_record, parent_record: db.save(leaf_record),
 )
-print(f"fetched {result.leaves_fetched}, failed {result.leaves_failed}")
+print(f"fetched {result.leaves_consumed}, failed {result.leaves_failed}")
 client.close()
 ```
 
 ## Running from the CLI
 
 ```bash
-ladon run --plugin mypackage.adapters:AuctionPlugin \
-          --ref https://example-auction.com/catalogue/2026
+ladon run --plugin mypackage.adapters:ShopPlugin \
+          --ref https://example-shop.com/categories/2026
 ```
 
 The CLI uses default `RunConfig` settings (no leaf limit, no `on_leaf`
@@ -145,21 +145,21 @@ For high-concurrency crawls implement `AsyncCrawlPlugin` and call
 from ladon.plugins.async_protocol import AsyncCrawlPlugin, AsyncExpander, AsyncSink, AsyncSource
 from ladon.networking.async_client import AsyncHttpClient
 
-class AsyncAuctionPlugin:
+class AsyncShopPlugin:
     def __init__(self) -> None:
-        self.name = "async_auction_example"
-        self.source = AsyncCatalogueSource()
-        self.expanders = [AsyncCategoryExpander(), AsyncAuctionExpander()]
-        self.sink = AsyncLotSink()
+        self.name = "async_shop_example"
+        self.source = AsyncCatalogSource()
+        self.expanders = [AsyncCategoryExpander(), AsyncProductExpander()]
+        self.sink = AsyncProductSink()
 
 
-class AsyncLotSink:
+class AsyncProductSink:
     async def consume(self, ref: object, client: AsyncHttpClient) -> object:
         result = await client.get(str(ref))
         if not result.ok:
             from ladon.plugins.errors import LeafUnavailableError
             raise LeafUnavailableError(f"fetch failed: {result.error}")
-        return parse_lot(result.value)
+        return parse_product(result.value)
 ```
 
 Run it:
@@ -174,8 +174,8 @@ async def main() -> None:
     config = HttpClientConfig(retries=2, min_request_interval_seconds=0.5)
     async with AsyncHttpClient(config) as client:
         result = await async_run_crawl(
-            top_ref="https://example-auction.com/catalogue/2026",
-            plugin=AsyncAuctionPlugin(),
+            top_ref="https://example-shop.com/categories/2026",
+            plugin=AsyncShopPlugin(),
             client=client,
             config=RunConfig(leaf_limit=100, async_concurrency=20),
             on_leaf=my_async_persist,
