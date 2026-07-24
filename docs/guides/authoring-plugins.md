@@ -114,7 +114,7 @@ client = HttpClient(config)
 plugin = ShopPlugin(client=client)
 
 result = run_crawl(
-    top_ref="https://example-shop.com/categories/2026",
+    top_ref="https://example-shop.com/categories/electronics",
     plugin=plugin,
     client=client,
     config=RunConfig(leaf_limit=100),
@@ -128,7 +128,7 @@ client.close()
 
 ```bash
 ladon run --plugin mypackage.adapters:ShopPlugin \
-          --ref https://example-shop.com/categories/2026
+          --ref https://example-shop.com/categories/electronics
 ```
 
 The CLI uses default `RunConfig` settings (no leaf limit, no `on_leaf`
@@ -174,7 +174,7 @@ async def main() -> None:
     config = HttpClientConfig(retries=2, min_request_interval_seconds=0.5)
     async with AsyncHttpClient(config) as client:
         result = await async_run_crawl(
-            top_ref="https://example-shop.com/categories/2026",
+            top_ref="https://example-shop.com/categories/electronics",
             plugin=AsyncShopPlugin(),
             client=client,
             config=RunConfig(leaf_limit=100, async_concurrency=20),
