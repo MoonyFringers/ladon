@@ -1730,7 +1730,7 @@ the runner records the failure and moves on.</p>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">plugin</span> <span class="o">=</span> <span class="n">ShopPlugin</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">result</span> <span class="o">=</span> <span class="n">run_crawl</span><span class="p">(</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/2026&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/electronics&quot;</span><span class="p">,</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">plugin</span><span class="o">=</span><span class="n">plugin</span><span class="p">,</span>
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
@@ -1741,7 +1741,7 @@ the runner records the failure and moves on.</p>
 </code></pre></div>
 <h2 id="running-from-the-cli">Running from the CLI</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ladon<span class="w"> </span>run<span class="w"> </span>--plugin<span class="w"> </span>mypackage.adapters:ShopPlugin<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">          </span>--ref<span class="w"> </span>https://example-shop.com/categories/2026
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">          </span>--ref<span class="w"> </span>https://example-shop.com/categories/electronics
 </code></pre></div>
 <p>The CLI uses default <code>RunConfig</code> settings (no leaf limit, no <code>on_leaf</code>
 callback).  For production use write a Python script that calls <code>run_crawl</code>
@@ -1779,7 +1779,7 @@ directly.</p>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_request_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_crawl</span><span class="p">(</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/2026&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/electronics&quot;</span><span class="p">,</span>
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">AsyncShopPlugin</span><span class="p">(),</span>
 <a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
