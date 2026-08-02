@@ -556,6 +556,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -585,7 +596,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1450,6 +1461,13 @@
   </span>
   
   
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
 
       </a>
     </li>
@@ -1660,6 +1678,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1689,7 +1718,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1901,6 +1930,13 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
   <code>FetchPredicate</code> implementations for adding predicate-specific diagnostics
   to <code>predicate_rejected</code> decision-event metadata.</li>
 </ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li><strong>Async politeness under concurrency</strong> — same-host requests now reserve
+  rate-limit slots instead of waking in a batch, and HALF_OPEN circuit
+  breakers admit exactly one probe. Both guards are cancellation-safe and
+  remain independent across hosts.</li>
+</ul>
 <hr />
 <h2 id="032-2026-06-08">[0.3.2] — 2026-06-08</h2>
 <h3 id="added_1">Added</h3>
@@ -1928,7 +1964,7 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
   SQLite backend with three indexes (run_id, ref, event), <code>query()</code> method
   for post-run SQL analysis, and context-manager support.</li>
 </ul>
-<h3 id="fixed">Fixed</h3>
+<h3 id="fixed_1">Fixed</h3>
 <ul>
 <li><strong><code>MultiSourceSink</code></strong> — non-<code>NotImplementedError</code> exceptions from
   <code>_fetch_from_source</code> are now caught, recorded as <code>source_failed</code>, and

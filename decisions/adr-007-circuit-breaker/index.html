@@ -1188,6 +1188,13 @@
   </span>
   
   
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
 
           <span class="md-nav__icon md-icon"></span>
         </label>
@@ -1205,6 +1212,13 @@
     
   </span>
   
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
   
 
       </a>
@@ -1285,6 +1299,17 @@
     <span class="md-ellipsis">
       
         Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-concurrency-amendment-2026-08-02-issue-160" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async concurrency amendment (2026-08-02, Issue #160)
       
     </span>
   </a>
@@ -1574,6 +1599,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#async-concurrency-amendment-2026-08-02-issue-160" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async concurrency amendment (2026-08-02, Issue #160)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1621,13 +1657,6 @@
   
 
 
-<hr />
-<p>status: accepted
-date: 2026-03-18
-decision-makers: [Maintainers]
-informed: [Contributors]
-refs: [ADR-001, Issue #38]</p>
-<hr />
 <h1 id="adr-007-per-host-circuit-breaker">ADR-007 — Per-Host Circuit Breaker</h1>
 <h2 id="context-and-problem-statement">Context and Problem Statement</h2>
 <p>ADR-001 mandated a circuit breaker at the <code>HttpClient</code> layer to prevent
@@ -1677,6 +1706,28 @@ requires no additional dependencies.</p>
   <code>CircuitOpenError</code> if blocked.</li>
 <li>Record success/failure on every <code>_request()</code> completion.</li>
 </ul>
+<h3 id="async-concurrency-amendment-2026-08-02-issue-160">Async concurrency amendment (2026-08-02, Issue #160)</h3>
+<p>The original caller-enforced single-probe assumption is insufficient for
+<code>AsyncHttpClient</code> and <code>AsyncCurlHttpClient</code>: several tasks can be admitted
+before any one of them records an outcome. The shared async policy therefore
+uses an event-loop-local admission guard with these semantics:</p>
+<ul>
+<li>CLOSED requests remain concurrent. Outcome updates are synchronous between
+  await points, so failure counts cannot be partially mutated.</li>
+<li>The first request after OPEN recovery reserves the HALF_OPEN probe. Other
+  requests to that host receive <code>CircuitOpenError</code> until the probe records an
+  outcome or is cancelled.</li>
+<li>Every admission carries a circuit generation. A slow CLOSED request from an
+  earlier generation cannot close or re-open a newer HALF_OPEN probe.</li>
+<li>Cancellation releases a HALF_OPEN reservation without counting as host
+  success or failure.</li>
+</ul>
+<p>Async rate limiting uses a separate per-host <code>asyncio.Lock</code>. A caller waits
+and commits its next eligible start time while holding that host's lock, so
+concurrent callers cannot wake as a batch. Locks are not shared across hosts,
+and all event-loop-bound guard state is discarded when the client closes.
+Async client instances remain single-event-loop objects and must not be shared
+across threads or loops.</p>
 <h2 id="consequences">Consequences</h2>
 <ul>
 <li><strong>Good</strong>: cascading failures to a dead host are cut off quickly.</li>
@@ -1689,13 +1740,14 @@ requires no additional dependencies.</p>
   in mind — a value of 3 is more tolerant than it first appears.  During
   HALF_OPEN, the single probe may itself involve up to <code>retries + 1</code> raw
   HTTP attempts; observers watching traffic may see more than one request.</li>
-<li><strong>Bad</strong>: no persistence across <code>HttpClient</code> instances — circuit state
-  resets on every new client construction (acceptable for sync/single-run).</li>
+<li><strong>Bad</strong>: no persistence across client instances — circuit state resets on
+  every new client construction.</li>
 </ul>
 <h2 id="rejected-options">Rejected options</h2>
 <p><strong>B (rate-based):</strong> Requires a sliding window, timestamps per request,
-and is harder to reason about in tests.  Count-based is sufficient for
-the single-threaded, single-run crawler model.</p>
+and is harder to reason about in tests. Count-based state plus explicit async
+admission generations provides deterministic semantics without that extra
+model.</p>
 <p><strong>C (pybreaker):</strong> Adds a runtime dependency for functionality that is
 straightforward to implement cleanly.  Keeping it in-house means the
 behaviour is explicit, testable, and auditable.</p>
@@ -1705,6 +1757,9 @@ behaviour is explicit, testable, and auditable.</p>
 
 
 
+
+  
+  
 
 
 
