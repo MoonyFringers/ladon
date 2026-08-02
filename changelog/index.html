@@ -1932,6 +1932,9 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
+<li><strong>Circuit-breaker HTTP 5xx accounting</strong> — returned 5xx responses now count
+  as origin-health failures without changing their <code>Ok(...)</code> result contract;
+  non-retryable 4xx responses remain successful breaker outcomes.</li>
 <li><strong>Async politeness under concurrency</strong> — same-host requests now reserve
   rate-limit slots instead of waking in a batch, and HALF_OPEN circuit
   breakers admit exactly one probe. Both guards are cancellation-safe and

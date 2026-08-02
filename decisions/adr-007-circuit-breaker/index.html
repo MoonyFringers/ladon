@@ -1316,6 +1316,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#http-5xx-health-accounting-amendment-2026-08-02-issue-165" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP 5xx health-accounting amendment (2026-08-02, Issue #165)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1610,6 +1621,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#http-5xx-health-accounting-amendment-2026-08-02-issue-165" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP 5xx health-accounting amendment (2026-08-02, Issue #165)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1728,6 +1750,14 @@ concurrent callers cannot wake as a batch. Locks are not shared across hosts,
 and all event-loop-bound guard state is discarded when the client closes.
 Async client instances remain single-event-loop objects and must not be shared
 across threads or loops.</p>
+<h3 id="http-5xx-health-accounting-amendment-2026-08-02-issue-165">HTTP 5xx health-accounting amendment (2026-08-02, Issue #165)</h3>
+<p>HTTP responses with <code>status_code &gt;= 500</code> count as circuit-breaker failures;
+responses below 500 that are not configured in <code>retry_on_status</code>, including
+ordinary 4xx responses, count as successes. This origin-health accounting is
+independent of ADR-002's result contract: a 5xx response can remain <code>Ok(...)</code>
+for caller-owned status interpretation while still contributing one failure
+for the logical call sequence. Statuses handled by <code>retry_on_status</code>, including
+4xx statuses such as 429, record one failure only after retries are exhausted.</p>
 <h2 id="consequences">Consequences</h2>
 <ul>
 <li><strong>Good</strong>: cascading failures to a dead host are cut off quickly.</li>
