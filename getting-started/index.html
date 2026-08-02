@@ -594,6 +594,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#running-a-complete-plugin-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a complete plugin from Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1519,6 +1530,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#running-a-complete-plugin-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a complete plugin from Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1622,7 +1644,16 @@ install from the repo root: <code>pip install -e .</code></p>
 given reference URL.  Exit codes: 0 = success, 1 = error, 2 = partial
 failures, 3 = data not ready (retry later).  Uses default <code>HttpClientConfig</code>
 settings (30 s timeout, no retries, no rate limiting).  For fine-grained
-control call <code>run_crawl()</code> directly from Python.</p>
+control, call <code>run_plugin()</code> directly from Python; use <code>run_crawl()</code> only when
+your application already owns one top-level ref.</p>
+<h2 id="running-a-complete-plugin-from-python">Running a complete plugin from Python</h2>
+<p><code>run_plugin()</code> is the normal library entry point. It calls the plugin's
+<code>Source.discover()</code> once and returns aggregate counts plus one <code>RunResult</code> per
+discovered root. <code>RunConfig(leaf_limit=...)</code> applies to each root. If a later
+root raises a globally fatal error, earlier roots may already have persisted
+records through <code>on_leaf</code>, so make that callback idempotent before retrying.</p>
+<p>See <a href="../guides/authoring-plugins/">Authoring Plugins</a> for a complete sync and
+async example.</p>
 <h2 id="configuration-reference">Configuration reference</h2>
 <p><code>HttpClientConfig</code> controls all client behaviour.  All fields have defaults and
 the config is immutable after construction.</p>
@@ -1739,9 +1770,10 @@ work under an explicit institutional policy.</p>
   <code>scheme + hostname</code> pair).</li>
 </ul>
 <h2 id="async-crawling">Async crawling</h2>
-<p>For high-throughput crawls use <code>async_run_crawl()</code> with <code>AsyncHttpClient</code>:</p>
+<p>For high-throughput whole-plugin crawls use <code>async_run_plugin()</code> with
+<code>AsyncHttpClient</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_crawl</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_plugin</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
@@ -1749,29 +1781,28 @@ work under an explicit institutional policy.</p>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_crawl</span><span class="p">(</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="n">my_ref</span><span class="p">,</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">my_async_plugin</span><span class="p">,</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="p">)</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;consumed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_plugin</span><span class="p">(</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">my_async_plugin</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>        <span class="p">)</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;consumed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
 <p>Phase 1 (expander traversal) runs sequentially; Phase 3 (sink) issues leaf
 fetches concurrently behind <code>asyncio.Semaphore(async_concurrency)</code>.  Each
 slot covers the full <code>sink.consume()</code> + <code>on_leaf</code> pair so slow callbacks
 do not cause unbounded parallelism.</p>
-<p><code>on_leaf</code> must be an <code>async def</code> function when used with <code>async_run_crawl</code>.</p>
+<p><code>on_leaf</code> must be an <code>async def</code> function when used with <code>async_run_plugin</code>.</p>
 <h2 id="next-steps">Next steps</h2>
 <ul>
 <li><a href="../guides/concepts/">Concepts</a> — understand refs, results, and typed crawl errors</li>
 <li><a href="../guides/cookbook/">Cookbook</a> — runnable patterns for common real-world crawls</li>
 <li><a href="../guides/authoring-plugins/">Authoring Plugins</a> — build a site adapter</li>
 <li><a href="../api/networking/">API Reference → Networking</a> — <code>HttpClient</code>, <code>AsyncHttpClient</code>, and config</li>
-<li><a href="../api/runner/">API Reference → Runner</a> — <code>run_crawl</code>, <code>async_run_crawl</code>, and result types</li>
+<li><a href="../api/runner/">API Reference → Runner</a> — whole-plugin and single-root runners, plus result types</li>
 </ul>
 
 

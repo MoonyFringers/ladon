@@ -1723,32 +1723,38 @@ the runner records the failure and moves on.</p>
 <h2 id="running-from-code">Running from code</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClient</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span><span class="p">,</span> <span class="n">run_crawl</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span><span class="p">,</span> <span class="n">run_plugin</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_request_interval_seconds</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">plugin</span> <span class="o">=</span> <span class="n">ShopPlugin</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">result</span> <span class="o">=</span> <span class="n">run_crawl</span><span class="p">(</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/electronics&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">plugin</span><span class="o">=</span><span class="n">plugin</span><span class="p">,</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">on_leaf</span><span class="o">=</span><span class="k">lambda</span> <span class="n">leaf_record</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">leaf_record</span><span class="p">),</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">)</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetched </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">result</span> <span class="o">=</span> <span class="n">run_plugin</span><span class="p">(</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">plugin</span><span class="o">=</span><span class="n">plugin</span><span class="p">,</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">on_leaf</span><span class="o">=</span><span class="k">lambda</span> <span class="n">leaf_record</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">leaf_record</span><span class="p">),</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="p">)</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetched </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div>
+<p><code>run_plugin()</code> calls <code>plugin.source.discover(client)</code> once and processes each
+returned root in source order. Its <code>PluginRunResult.results</code> preserves each
+root's <code>RunResult</code>; <code>leaf_limit</code> applies per root. Use <code>run_crawl(top_ref, ...)</code>
+when your application deliberately owns discovery or has one known root.
+If a later root raises a globally fatal error, earlier roots may already have
+called <code>on_leaf</code>; make persistence callbacks idempotent before retrying a
+whole-plugin run.</p>
 <h2 id="running-from-the-cli">Running from the CLI</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ladon<span class="w"> </span>run<span class="w"> </span>--plugin<span class="w"> </span>mypackage.adapters:ShopPlugin<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">          </span>--ref<span class="w"> </span>https://example-shop.com/categories/electronics
 </code></pre></div>
 <p>The CLI uses default <code>RunConfig</code> settings (no leaf limit, no <code>on_leaf</code>
-callback).  For production use write a Python script that calls <code>run_crawl</code>
-directly.</p>
+callback). For production use write a Python script that usually calls
+<code>run_plugin()</code>; use <code>run_crawl()</code> when you need explicit per-root dispatch.</p>
 <h2 id="async-plugins">Async plugins</h2>
 <p>For high-concurrency crawls implement <code>AsyncCrawlPlugin</code> and call
-<code>async_run_crawl()</code> instead.  The async protocols mirror the sync ones with
+<code>async_run_plugin()</code> instead. The async protocols mirror the sync ones with
 <code>async def</code> methods and <code>AsyncHttpClient</code> as the client parameter.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.plugins.async_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncCrawlPlugin</span><span class="p">,</span> <span class="n">AsyncExpander</span><span class="p">,</span> <span class="n">AsyncSink</span><span class="p">,</span> <span class="n">AsyncSource</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.async_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span>
@@ -1771,27 +1777,26 @@ directly.</p>
 </code></pre></div>
 <p>Run it:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_crawl</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncHttpClient</span><span class="p">,</span> <span class="n">async_run_plugin</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunConfig</span>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_request_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_crawl</span><span class="p">(</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">top_ref</span><span class="o">=</span><span class="s2">&quot;https://example-shop.com/categories/electronics&quot;</span><span class="p">,</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">AsyncShopPlugin</span><span class="p">(),</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="p">)</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetched </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_run_plugin</span><span class="p">(</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">plugin</span><span class="o">=</span><span class="n">AsyncShopPlugin</span><span class="p">(),</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="n">config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">leaf_limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">async_concurrency</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="n">on_leaf</span><span class="o">=</span><span class="n">my_async_persist</span><span class="p">,</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="p">)</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fetched </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_failed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
-<p><code>async_run_crawl</code> accepts the same <code>RunConfig</code> as <code>run_crawl</code>.  The
+<p><code>async_run_plugin</code> accepts the same <code>RunConfig</code> as <code>run_plugin</code>. The
 <code>async_concurrency</code> field controls how many leaf fetches run simultaneously
-(default 10).  The sync runner ignores it.</p>
+(within each discovered root; default 10). The sync runner ignores it.</p>
 <h2 id="error-taxonomy">Error taxonomy</h2>
 <p>All errors are in <code>ladon.plugins.errors</code> and <code>ladon.networking.errors</code>.</p>
 <table>

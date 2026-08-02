@@ -1645,16 +1645,25 @@ and how the three pipeline roles map to a real crawl.</p>
 </tr>
 </tbody>
 </table>
-<p>The runner drives the pipeline:</p>
+<p>For the normal whole-plugin path, call <code>run_plugin()</code> (or
+<code>async_run_plugin()</code>). Ladon calls <code>Source.discover()</code> once, dispatches the
+discovered roots in source order, and then:</p>
 <ol>
-<li>Call <code>Source.discover()</code> to get the top-level ref list.</li>
-<li>For each ref, call the first <code>Expander.expand()</code> to get its record and children.</li>
-<li>Repeat with subsequent Expanders for deeper levels.</li>
-<li>Call <code>Sink.consume()</code> on every leaf ref.</li>
-<li>Fire the <code>on_leaf</code> callback (your persistence hook) after each success.</li>
+<li>Calls the first <code>Expander.expand()</code> for each root to get its record and children.</li>
+<li>Repeats with subsequent Expanders for deeper levels.</li>
+<li>Calls <code>Sink.consume()</code> on every leaf ref.</li>
+<li>Fires the <code>on_leaf</code> callback (your persistence hook) after each success.</li>
 </ol>
-<p>You never write the loop. Ladon owns traversal, error counting, rate limiting,
-and the leaf limit. Your code owns the parsing.</p>
+<p>Ladon owns discovery, traversal, error counting, rate limiting, and the leaf
+limit. Your code owns the parsing. Use <code>run_crawl(top_ref, ...)</code> or
+<code>async_run_crawl(top_ref, ...)</code> only when your application deliberately owns
+root discovery or must process one known root. For that lower-level path, call
+<code>Source.discover(client)</code> and loop over its refs, calling <code>run_crawl()</code> once
+per ref. With the async API, discovery must be awaited: call
+<code>await AsyncSource.discover(client)</code> and loop over its refs, calling
+<code>async_run_crawl()</code> once per ref. See the <a href="../cookbook/#multi-level-tree-crawl-hacker-news">Hacker News tree-crawl cookbook
+example</a> for the complete
+pattern.</p>
 <h2 id="a-concrete-example-hacker-news">A concrete example: Hacker News</h2>
 <p>Hacker News has a two-level structure: a <strong>front page</strong> (list of stories) and
 individual <strong>story pages</strong> (comments). Here's how that maps:</p>

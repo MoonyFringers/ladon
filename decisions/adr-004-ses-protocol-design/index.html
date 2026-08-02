@@ -1888,7 +1888,7 @@ layer?</strong></p>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="nd">@property</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sink</span><span class="p">:</span> <span class="o">...</span>
 </code></pre></div>
-<p>The runner drives the pipeline for a single <code>top_ref</code>:</p>
+<p><code>run_crawl()</code> drives the pipeline for a single <code>top_ref</code>:</p>
 <ol>
 <li><strong>Phase 1 — Expand</strong>: traverse <code>expanders</code> in order; each level produces
    refs for the next.</li>
@@ -1896,6 +1896,18 @@ layer?</strong></p>
 <li><strong>Phase 3 — Sink</strong>: consume each leaf ref; fire <code>on_leaf</code> callback after
    each success.</li>
 </ol>
+<p>For the normal whole-plugin path, <code>run_plugin()</code> calls <code>Source.discover()</code>
+once and delegates each discovered root to <code>run_crawl()</code> in source order.
+It returns a <code>PluginRunResult</code> with the individual root outcomes and aggregate
+counts. <code>async_run_plugin()</code> provides the corresponding async entry point;
+root dispatch stays ordered while each root retains <code>async_concurrency</code> for
+its leaves. This keeps <code>Source</code> an executable part of the plugin contract
+without changing the lower-level single-root API.</p>
+<p><code>RunConfig.leaf_limit</code> remains a per-root cap: <code>run_plugin()</code> forwards the
+same configuration to every discovered root. A globally fatal error still
+propagates rather than producing a partial aggregate. Consequently, roots
+completed before a later failure may already have called <code>on_leaf</code>; persistence
+callbacks used with the whole-plugin API must be idempotent across retries.</p>
 <h3 id="the-three-roles">The three roles</h3>
 <p><strong>Source</strong> discovers top-level refs. It takes an <code>HttpClient</code> and returns
 <code>Sequence[object]</code> — top-level reference objects whose type is defined by the

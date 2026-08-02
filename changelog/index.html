@@ -1894,6 +1894,9 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 <h2 id="unreleased"><a href="https://github.com/MoonyFringers/ladon/compare/v0.3.1...HEAD">Unreleased</a></h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong><code>run_plugin()</code> / <code>async_run_plugin()</code></strong> — source-driven whole-plugin
+  entry points. They discover roots once, preserve one <code>RunResult</code> per root,
+  and return aggregate counts and source-indexed errors in <code>PluginRunResult</code>.</li>
 <li><strong><code>rejection_info()</code></strong> — optional duck-typed extension point on
   <code>FetchPredicate</code> implementations for adding predicate-specific diagnostics
   to <code>predicate_rejected</code> decision-event metadata.</li>

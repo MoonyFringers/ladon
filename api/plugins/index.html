@@ -900,6 +900,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#running-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sync-protocols" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1797,6 +1808,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#running-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sync-protocols" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2205,6 +2227,19 @@
 URL tree), and a <code>Sink</code> (fetches each leaf and returns a record).  All
 protocols are structural (PEP 544) — no inheritance from Ladon is required.</p>
 <p>Ladon ships two parallel protocol hierarchies: sync and async.</p>
+<h2 id="running-a-plugin">Running a plugin</h2>
+<p>Use <code>run_plugin()</code> for the normal whole-plugin path: it calls
+<code>plugin.source.discover(client)</code> once, runs every discovered root in source
+order, and returns a <code>PluginRunResult</code>. The aggregate exposes total leaf
+counts and errors while retaining a <code>RunResult</code> per root in <code>results</code>.
+<code>RunConfig.leaf_limit</code> applies separately to every discovered root. If a
+later root raises a globally fatal error, earlier roots may already have run
+their <code>on_leaf</code> callback; make that callback idempotent when retrying a whole
+plugin run.</p>
+<p><code>run_crawl(top_ref, ...)</code> remains available when the caller intentionally
+owns root discovery or needs to process one known root. The async equivalents
+are <code>async_run_plugin()</code> and <code>async_run_crawl()</code>; async whole-plugin runs keep
+root processing ordered, while each root's leaf work uses <code>async_concurrency</code>.</p>
 <h2 id="sync-protocols">Sync protocols</h2>
 
 
@@ -2774,8 +2809,7 @@ check — it is a CLI convention only and not part of this protocol.</p>
 
 </div><h2 id="async-protocols">Async protocols</h2>
 <p>The async protocols mirror the sync ones exactly but use <code>async def</code>
-methods and accept <code>AsyncHttpClient</code> instead of <code>HttpClient</code>.  Use them
-with <code>async_run_crawl()</code>.</p>
+methods and accept <code>AsyncHttpClient</code> instead of <code>HttpClient</code>.</p>
 
 
 <div class="doc doc-object doc-module">

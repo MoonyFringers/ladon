@@ -1569,13 +1569,14 @@
 <p>These patterns are small, complete crawl building blocks. They use Ladon's
 current Source → Expander → Sink contracts: a source discovers root <code>Ref</code>s,
 each expander returns an <code>Expansion</code>, and the sink turns leaf refs into
-records. Replace the parsing and URLs with those for the site you are allowed
-to crawl.</p>
+records. <code>run_plugin()</code> drives the source and each discovered root; use the
+single-root <code>run_crawl()</code> only when your caller deliberately owns dispatch.
+Replace the parsing and URLs with those for the site you are allowed to crawl.</p>
 <h2 id="flat-crawl-one-listing-page-to-item-records">Flat crawl: one listing page to item records</h2>
 <p>Use one expander when every page in a paginated listing contains the leaves.
 Have your <code>Source.discover()</code> return one <code>Ref</code> per page, then call
-<code>run_crawl()</code> for each returned ref. This example uses a public GitHub API
-listing page; the <code>page</code> value is context you can use in logs or persistence.</p>
+<code>run_plugin()</code> once. This example uses a public GitHub API listing page; the
+<code>page</code> value is context you can use in logs or persistence.</p>
 <p>This example and the Hacker News tree crawl below use live external services,
 so they are verified by a weekly scheduled GitHub Actions check rather than
 the offline pytest suite.</p>
@@ -1591,10 +1592,10 @@ the offline pytest suite.</p>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">HttpClient</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">HttpClientConfig</span><span class="p">,</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">LeafUnavailableError</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">Ref</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">RunConfig</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">RunResult</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">run_crawl</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">PluginRunResult</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">Ref</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">RunConfig</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">run_plugin</span><span class="p">,</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">)</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
@@ -1638,23 +1639,18 @@ the offline pytest suite.</p>
 <a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>    <span class="n">sink</span><span class="p">:</span> <span class="n">IssueSink</span> <span class="o">=</span> <span class="n">IssueSink</span><span class="p">()</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>
 <a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_example</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]:</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_example</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">PluginRunResult</span><span class="p">:</span>
 <a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>    <span class="n">plugin</span> <span class="o">=</span> <span class="n">GitHubIssuesPlugin</span><span class="p">()</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>    <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>    <span class="k">with</span> <span class="n">HttpClient</span><span class="p">(</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>        <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;example-crawler/1.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>        <span class="k">for</span> <span class="n">page_ref</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
-<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">run_crawl</span><span class="p">(</span>
-<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>                <span class="n">page_ref</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="s2">&quot;CrawlPlugin&quot;</span><span class="p">,</span> <span class="n">plugin</span><span class="p">),</span> <span class="n">client</span><span class="p">,</span> <span class="n">RunConfig</span><span class="p">()</span>
-<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>            <span class="p">)</span>
-<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>            <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>    <span class="k">return</span> <span class="n">results</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>
-<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>
-<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>    <span class="n">run_example</span><span class="p">()</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>    <span class="k">with</span> <span class="n">HttpClient</span><span class="p">(</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>        <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;example-crawler/1.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">run_plugin</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;CrawlPlugin&quot;</span><span class="p">,</span> <span class="n">plugin</span><span class="p">),</span> <span class="n">client</span><span class="p">,</span> <span class="n">RunConfig</span><span class="p">())</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">leaves_consumed</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>        <span class="k">return</span> <span class="n">result</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>    <span class="n">run_example</span><span class="p">()</span>
 </code></pre></div>
 <h2 id="multi-level-tree-crawl-hacker-news">Multi-level tree crawl: Hacker News</h2>
 <p>The <a href="https://github.com/MoonyFringers/ladon-hackernews">ladon-hackernews</a>
