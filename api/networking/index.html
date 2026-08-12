@@ -2566,7 +2566,14 @@ invalid value will raise <code>ValueError</code> at client construction time
 <span class="normal"><a href="#__codelineno-0-246">246</a></span>
 <span class="normal"><a href="#__codelineno-0-247">247</a></span>
 <span class="normal"><a href="#__codelineno-0-248">248</a></span>
-<span class="normal"><a href="#__codelineno-0-249">249</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span>
+<span class="normal"><a href="#__codelineno-0-250">250</a></span>
+<span class="normal"><a href="#__codelineno-0-251">251</a></span>
+<span class="normal"><a href="#__codelineno-0-252">252</a></span>
+<span class="normal"><a href="#__codelineno-0-253">253</a></span>
+<span class="normal"><a href="#__codelineno-0-254">254</a></span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span>
+<span class="normal"><a href="#__codelineno-0-256">256</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="k">class</span><span class="w"> </span><span class="nc">HttpClientConfig</span><span class="p">:</span>
 <a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for HttpClient behavior.</span>
 <a id="__codelineno-0-45" name="__codelineno-0-45"></a>
@@ -2642,7 +2649,7 @@ invalid value will raise <code>ValueError</code> at client construction time
 <a id="__codelineno-0-115" name="__codelineno-0-115"></a>    <span class="n">verify_tls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <a id="__codelineno-0-116" name="__codelineno-0-116"></a>    <span class="n">connect_timeout_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <a id="__codelineno-0-117" name="__codelineno-0-117"></a>    <span class="n">read_timeout_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-118" name="__codelineno-0-118"></a>    <span class="n">backoff_base_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a>    <span class="n">backoff_base_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
 <a id="__codelineno-0-119" name="__codelineno-0-119"></a>    <span class="n">timeout_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span>
 <a id="__codelineno-0-120" name="__codelineno-0-120"></a>    <span class="n">min_request_interval_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 <a id="__codelineno-0-121" name="__codelineno-0-121"></a>    <span class="c1"># Threshold counts *call sequences*, not individual HTTP attempts.</span>
@@ -2688,92 +2695,99 @@ invalid value will raise <code>ValueError</code> at client construction time
 <a id="__codelineno-0-161" name="__codelineno-0-161"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;retries must be &gt;= 0&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-162" name="__codelineno-0-162"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backoff_base_seconds</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
 <a id="__codelineno-0-163" name="__codelineno-0-163"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;backoff_base_seconds must be &gt;= 0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_request_interval_seconds</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;min_request_interval_seconds must be &gt;= 0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-166" name="__codelineno-0-166"></a>        <span class="k">if</span> <span class="p">(</span>
-<a id="__codelineno-0-167" name="__codelineno-0-167"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_failure_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-168" name="__codelineno-0-168"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_failure_threshold</span> <span class="o">&lt;=</span> <span class="mi">0</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169"></a>        <span class="p">):</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-171" name="__codelineno-0-171"></a>                <span class="s2">&quot;circuit_breaker_failure_threshold must be &gt; 0 when provided&quot;</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172"></a>            <span class="p">)</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_recovery_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;circuit_breaker_recovery_seconds must be &gt; 0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_retry_after_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_retry_after_seconds must be &gt; 0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">s</span> <span class="o">&lt;=</span> <span class="mi">599</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry_on_status</span><span class="p">):</span>
-<a id="__codelineno-0-178" name="__codelineno-0-178"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a>                <span class="s2">&quot;retry_on_status must contain only valid HTTP status codes (100-599)&quot;</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a>            <span class="p">)</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="n">has_connect_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a>        <span class="n">has_read_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a>        <span class="k">if</span> <span class="n">has_connect_timeout</span> <span class="o">!=</span> <span class="n">has_read_timeout</span><span class="p">:</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backoff_base_seconds</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">retries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a>                <span class="s2">&quot;backoff_base_seconds=0.0 disables retry pacing and is an &quot;</span>
+<a id="__codelineno-0-167" name="__codelineno-0-167"></a>                <span class="s2">&quot;explicit opt-out&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a>                <span class="ne">UserWarning</span><span class="p">,</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a>                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a>            <span class="p">)</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_request_interval_seconds</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;min_request_interval_seconds must be &gt;= 0&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a>        <span class="k">if</span> <span class="p">(</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_failure_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_failure_threshold</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a>        <span class="p">):</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a>                <span class="s2">&quot;circuit_breaker_failure_threshold must be &gt; 0 when provided&quot;</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a>            <span class="p">)</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit_breaker_recovery_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;circuit_breaker_recovery_seconds must be &gt; 0&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_retry_after_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_retry_after_seconds must be &gt; 0&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">s</span> <span class="o">&lt;=</span> <span class="mi">599</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry_on_status</span><span class="p">):</span>
 <a id="__codelineno-0-185" name="__codelineno-0-185"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>                <span class="s2">&quot;connect_timeout_seconds and read_timeout_seconds &quot;</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>                <span class="s2">&quot;must be set together&quot;</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="p">)</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;timeout_seconds must be &gt; 0&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>        <span class="k">if</span> <span class="p">(</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>        <span class="p">):</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>                <span class="s2">&quot;connect_timeout_seconds must be &gt; 0 when provided&quot;</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>            <span class="p">)</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>                <span class="s2">&quot;retry_on_status must contain only valid HTTP status codes (100-599)&quot;</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a>            <span class="p">)</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>        <span class="n">has_connect_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>        <span class="n">has_read_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>        <span class="k">if</span> <span class="n">has_connect_timeout</span> <span class="o">!=</span> <span class="n">has_read_timeout</span><span class="p">:</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>                <span class="s2">&quot;connect_timeout_seconds and read_timeout_seconds &quot;</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>                <span class="s2">&quot;must be set together&quot;</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>            <span class="p">)</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;timeout_seconds must be &gt; 0&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-198" name="__codelineno-0-198"></a>        <span class="k">if</span> <span class="p">(</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span>
 <a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="p">):</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_timeout_seconds must be &gt; 0 when provided&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>        <span class="c1"># Freeze copied mappings to avoid post-init mutation side effects.</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>            <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>            <span class="s2">&quot;default_headers&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>            <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_headers</span><span class="p">)),</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="p">)</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                <span class="s2">&quot;proxies and proxy_pool are mutually exclusive; set only one&quot;</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="p">)</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>            <span class="n">validate_proxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">)</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>                <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>                <span class="s2">&quot;proxies&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>                <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">)),</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>                <span class="s2">&quot;connect_timeout_seconds must be &gt; 0 when provided&quot;</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>            <span class="p">)</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>        <span class="k">if</span> <span class="p">(</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout_seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>        <span class="p">):</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_timeout_seconds must be &gt; 0 when provided&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="c1"># Freeze copied mappings to avoid post-init mutation side effects.</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>            <span class="s2">&quot;default_headers&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>            <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_headers</span><span class="p">)),</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>        <span class="p">)</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>                <span class="s2">&quot;proxies and proxy_pool are mutually exclusive; set only one&quot;</span>
 <a id="__codelineno-0-220" name="__codelineno-0-220"></a>            <span class="p">)</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;requests&quot;</span><span class="p">,</span> <span class="s2">&quot;curl-cffi&quot;</span><span class="p">}:</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>                <span class="sa">f</span><span class="s2">&quot;backend must be &#39;requests&#39; or &#39;curl-cffi&#39;, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="si">!r}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="p">)</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;curl-cffi&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>                <span class="s2">&quot;impersonate is required when backend=&#39;curl-cffi&#39;; &quot;</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>                <span class="s2">&quot;e.g. HttpClientConfig(backend=&#39;curl-cffi&#39;, impersonate=&#39;chrome136&#39;)&quot;</span>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>            <span class="p">)</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;curl-cffi&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="n">valid</span> <span class="o">=</span> <span class="n">_get_cffi_valid_impersonate</span><span class="p">()</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>            <span class="k">if</span> <span class="n">valid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid</span><span class="p">:</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown impersonate target </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span><span class="si">!r}</span><span class="s2">; &quot;</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                    <span class="s2">&quot;it will be rejected at client construction time. &quot;</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                    <span class="s1">&#39;Run `python -c &quot;from curl_cffi.requests import &#39;</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                    <span class="s1">&#39;BrowserType; print([b.value for b in BrowserType])&quot;`&#39;</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                    <span class="s2">&quot; for valid values.&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                    <span class="ne">UserWarning</span><span class="p">,</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                <span class="p">)</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;auth tuple must be (username, password)&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                <span class="s2">&quot;default_params&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_params</span><span class="p">)),</span>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>            <span class="p">)</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>            <span class="n">validate_proxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">)</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>                <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>                <span class="s2">&quot;proxies&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>                <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">)),</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>            <span class="p">)</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;requests&quot;</span><span class="p">,</span> <span class="s2">&quot;curl-cffi&quot;</span><span class="p">}:</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>                <span class="sa">f</span><span class="s2">&quot;backend must be &#39;requests&#39; or &#39;curl-cffi&#39;, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="si">!r}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="p">)</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;curl-cffi&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                <span class="s2">&quot;impersonate is required when backend=&#39;curl-cffi&#39;; &quot;</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="s2">&quot;e.g. HttpClientConfig(backend=&#39;curl-cffi&#39;, impersonate=&#39;chrome136&#39;)&quot;</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>            <span class="p">)</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;curl-cffi&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>            <span class="n">valid</span> <span class="o">=</span> <span class="n">_get_cffi_valid_impersonate</span><span class="p">()</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>            <span class="k">if</span> <span class="n">valid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid</span><span class="p">:</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown impersonate target </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">impersonate</span><span class="si">!r}</span><span class="s2">; &quot;</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                    <span class="s2">&quot;it will be rejected at client construction time. &quot;</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                    <span class="s1">&#39;Run `python -c &quot;from curl_cffi.requests import &#39;</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                    <span class="s1">&#39;BrowserType; print([b.value for b in BrowserType])&quot;`&#39;</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                    <span class="s2">&quot; for valid values.&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                    <span class="ne">UserWarning</span><span class="p">,</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                <span class="p">)</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;auth tuple must be (username, password)&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a>                <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                <span class="s2">&quot;default_params&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a>                <span class="n">MappingProxyType</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_params</span><span class="p">)),</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a>            <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
               </details>
 

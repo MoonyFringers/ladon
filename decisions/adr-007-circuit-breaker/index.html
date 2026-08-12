@@ -1327,6 +1327,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#polite-retry-pacing-amendment-2026-08-12-issue-167" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polite retry pacing amendment (2026-08-12, Issue #167)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1632,6 +1643,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#polite-retry-pacing-amendment-2026-08-12-issue-167" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polite retry pacing amendment (2026-08-12, Issue #167)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1758,6 +1780,17 @@ independent of ADR-002's result contract: a 5xx response can remain <code>Ok(...
 for caller-owned status interpretation while still contributing one failure
 for the logical call sequence. Statuses handled by <code>retry_on_status</code>, including
 4xx statuses such as 429, record one failure only after retries are exhausted.</p>
+<h3 id="polite-retry-pacing-amendment-2026-08-12-issue-167">Polite retry pacing amendment (2026-08-12, Issue #167)</h3>
+<p>The default exponential-backoff base is <code>0.5</code> seconds so a retryable response
+without a <code>Retry-After</code> header cannot immediately re-fire under default
+configuration. Setting <code>backoff_base_seconds=0.0</code> remains supported as an
+explicit opt-out and emits <code>UserWarning</code> when retries are enabled.</p>
+<p>Every retry attempt re-evaluates its host's politeness interval, including any
+robots.txt <code>Crawl-delay</code> override. Retry-After or exponential backoff and the
+remaining per-host interval are merged by taking their maximum, producing one
+sleep between attempts. Async clients perform this merged wait and timestamp
+reservation while holding the existing per-host lock, preserving staggered
+starts for concurrent callers.</p>
 <h2 id="consequences">Consequences</h2>
 <ul>
 <li><strong>Good</strong>: cascading failures to a dead host are cut off quickly.</li>

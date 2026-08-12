@@ -1932,6 +1932,10 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
+<li><strong>Polite retry pacing</strong> — retries now enforce per-host rate limits, including
+  robots.txt <code>Crawl-delay</code> overrides, on every attempt and merge that wait with
+  Retry-After or backoff into one sleep. The default backoff is now a safe
+  <code>0.5</code> seconds; explicitly setting zero with retries enabled emits a warning.</li>
 <li><strong>Consistent runner leaf-exception semantics</strong> — sync crawls now record an
   unexpected non-fatal <code>Sink.consume()</code> exception and continue with remaining
   leaves instead of aborting and losing the partial result. Async crawls now
