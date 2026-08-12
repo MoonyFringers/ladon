@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-003-plugin-adapter-interface/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-014-http-client-protocols/">
       
       
-        <link rel="prev" href="../adr-002-http-status-result-contract/">
-      
-      
-        <link rel="next" href="../adr-004-ses-protocol-design/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>ADR-003 Plugin Interface - Ladon</title>
+        <title>Adr 014 http client protocols - Ladon</title>
       
     
     
@@ -63,17 +59,17 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="ADR-003 Plugin Interface - Ladon" />
+<meta property="og:title" content="Adr 014 http client protocols - Ladon" />
 <meta property="og:description" content="Resilient, extensible web crawling framework." />
-<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-003-plugin-adapter-interface.png" />
+<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-014-http-client-protocols.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/adr-003-plugin-adapter-interface/" />
+<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/adr-014-http-client-protocols/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="ADR-003 Plugin Interface - Ladon" />
+<meta property="twitter:title" content="Adr 014 http client protocols - Ladon" />
 <meta property="twitter:description" content="Resilient, extensible web crawling framework." />
-<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-003-plugin-adapter-interface.png" />
+<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-014-http-client-protocols.png" />
 </head>
   
   
@@ -93,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#adr-003-plugin-adapter-interface" class="md-skip">
+        <a href="#adr-014-structural-http-client-protocols" class="md-skip">
           Skip to content
         </a>
       
@@ -126,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-003 Plugin Interface
+              Adr 014 http client protocols
             
           </span>
         </div>
@@ -351,12 +347,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -867,31 +861,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -909,7 +898,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1022,44 +1011,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ADR-003 Plugin Interface
-  
-
-    
-  </span>
-  
-  
-    
-  
-  
-    <span class="md-status md-status--accepted"></span>
-  
-
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -1082,164 +1037,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#context-and-problem-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Context and Problem Statement
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Drivers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#considered-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Considered Options
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Outcome
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decision Outcome">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#plugin-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Plugin Pipeline
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Models
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-taxonomy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Taxonomy
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#runner-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Runner Contract
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consequences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consequences
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#confirmation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Confirmation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#implementation-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation Sequence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#more-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        More Information
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1611,65 +1408,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#plugin-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Plugin Pipeline
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Models
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-taxonomy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Taxonomy
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#runner-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Runner Contract
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#consequences" class="md-nav__link">
     <span class="md-ellipsis">
       
         Consequences
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#confirmation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Confirmation
       
     </span>
   </a>
@@ -1682,21 +1424,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implementation-sequence" class="md-nav__link">
+  <a href="#rejected-options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implementation Sequence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#more-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        More Information
+        Rejected Options
       
     </span>
   </a>
@@ -1723,231 +1454,83 @@
   
 
 
-<h1 id="adr-003-plugin-adapter-interface">ADR-003 — Plugin / Adapter Interface</h1>
-<blockquote>
-<p><strong>Historical note:</strong> ADR-014 supersedes the concrete <code>HttpClient</code>
-annotations shown in this record. Current sync adapter and runner boundaries
-use <code>SyncHttpClientProtocol</code>.</p>
-</blockquote>
+<hr />
+<p>status: accepted
+date: 2026-08-12
+decision-makers: [Maintainers]
+informed: [Contributors]
+refs: [ADR-004, ADR-011, ADR-012, Issue #161]</p>
+<hr />
+<h1 id="adr-014-structural-http-client-protocols">ADR-014 — Structural HTTP Client Protocols</h1>
 <h2 id="context-and-problem-statement">Context and Problem Statement</h2>
-<p>Ladon's networking core (<code>HttpClient</code>) is implemented and stable. The next
-layer to define is the <strong>plugin/adapter interface</strong> — the contract that
-domain-specific scraping modules must satisfy to integrate with Ladon's
-orchestrator (the runner).</p>
-<p>The interface design is grounded in three reference implementations from
-ScrapAuction (Christie's online, Sotheby's, Phillips), each of which solves
-the same crawl loop with significantly different concrete strategies. The
-divergences across those implementations reveal what the interface must
-abstract, and what must remain domain-specific.</p>
+<p><code>make_http_client()</code> returns <code>HttpClient | CurlHttpClient</code>, and
+<code>make_async_http_client()</code> returns <code>AsyncHttpClient | AsyncCurlHttpClient</code>.
+The plugin adapter protocols and runners previously accepted only the native
+concrete class. Runtime backend substitution worked because each backend has
+the same request-policy surface, but strict Pyright rejected passing a factory
+result to those APIs.</p>
+<p>This is the public-facing analogue of ADR-012's private session boundary. The
+client contract must express the capabilities adapters and runners need without
+coupling them to one transport implementation.</p>
 <h2 id="decision-drivers">Decision Drivers</h2>
 <ul>
-<li>Adapters must use <code>HttpClient</code> only — no direct <code>requests</code> usage.</li>
-<li>Data contracts must be typed and immutable — prevent the mutable
-  side-effect model from ScrapAuction spreading into Ladon.</li>
-<li>Third-party plugins must not need to import abstract base classes from
-  <code>ladon.plugins</code> — structural subtyping (Protocols) enables this.</li>
-<li>Error taxonomy must be explicit — catch-all <code>except Exception</code> in the
-  orchestrator masked real bugs in ScrapAuction.</li>
-<li>The orchestrator (Runner) must be decoupled from DB persistence and file
-  I/O — those are application concerns, injected as callbacks.</li>
-<li>The framework must not bake in auction-domain vocabulary — future use
-  cases (stock data, real-estate, catalogues) must fit the same pipeline
-  without awkward wrapping.</li>
+<li>Adapters and runners must accept either backend without strict-Pyright errors.</li>
+<li>The fix must preserve all four shipped concrete classes and their different
+  constructors.</li>
+<li>The public contract should include only capabilities needed by adapters.</li>
+<li>The design should follow Ladon's existing structural <code>Source</code>, <code>Expander</code>,
+  <code>Sink</code>, and <code>FetchPredicate</code> protocol pattern.</li>
 </ul>
 <h2 id="considered-options">Considered Options</h2>
 <ul>
-<li><strong>Option A: <code>typing.Protocol</code> for structural subtyping</strong> (initially chosen,
-  then superseded by Option C).</li>
-<li><strong>Option B: Abstract Base Classes (<code>abc.ABC</code>)</strong> — requires explicit
-  inheritance, couples third-party plugins to Ladon internals.</li>
-<li><strong>Option C: Domain-agnostic Source/Expander/Sink pipeline</strong> (<strong>current
-  decision</strong>) — composable, depth-independent crawl pipeline using Protocols.</li>
+<li><strong>A — Backend-agnostic structural protocols (chosen)</strong></li>
+<li><strong>B — Retrofit a shared abstract base class across all four clients</strong></li>
+<li><strong>C — Type every consumer against the concrete backend unions</strong></li>
 </ul>
 <h2 id="decision-outcome">Decision Outcome</h2>
-<p><strong>Option C: Domain-agnostic Source → [Expander] → Sink pipeline.</strong></p>
-<p>Ladon is a generic crawling framework; auctions are the first use case, not
-the defining one. The original <code>Discoverer / AuctionLoader / LotParser /
-HousePlugin</code> vocabulary was hardcoded for 2-level auction trees. Replacing it
-with <code>Source / Expander / Sink / CrawlPlugin</code> allows any tree depth and any
-domain to use the same runner without wrapping.</p>
-<p>The plugin interface is defined as three Protocols — <code>Source</code>, <code>Expander</code>,
-<code>Sink</code> — bundled as <code>CrawlPlugin</code>. All data flowing between them uses frozen
-dataclasses. House plugin class names remain domain-descriptive
-(e.g. <code>ChristiesOnlineAuctionExpander</code>) — only the framework-level protocol
-names are generic.</p>
-<h3 id="plugin-pipeline">Plugin Pipeline</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CrawlPlugin
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Source         → discover() → top-level Refs
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── [Expander, …]  → expand(ref) → Expansion(record, child_refs)
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>└── Sink           → consume(ref) → leaf Record
-</code></pre></div>
-<p><strong>Source</strong> takes an <code>HttpClient</code> and returns <code>Sequence[object]</code> (top-level
-refs). Christie's Online returns <code>Sequence[AuctionRef]</code>.</p>
-<p><strong>Expander</strong> takes a ref and <code>HttpClient</code>, returns an <code>Expansion</code> — a frozen
-dataclass pairing the node's record with its child refs. Raises
-<code>PreviewAuctionError</code>, <code>HighlightsOnlyError</code>, or <code>LotListUnavailableError</code>
-when the auction is not fully available.</p>
-<p><strong>Sink</strong> takes a leaf ref and <code>HttpClient</code>, returns a leaf record. Raises
-<code>LotUnavailableError</code> on failure. Context for the leaf (e.g. parent auction
-metadata) flows through <code>ref.raw</code>, avoiding a parent-context parameter.</p>
-<p><strong>CrawlPlugin</strong> bundles <code>source</code>, <code>expanders</code> (ordered list, one per tree
-level above leaves), and <code>sink</code>.</p>
-<h3 id="data-models">Data Models</h3>
-<p>All models are <code>@dataclass(frozen=True)</code>:</p>
-<table>
-<thead>
-<tr>
-<th>Model</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AuctionRef</code></td>
-<td>Minimal auction reference from a Source</td>
-</tr>
-<tr>
-<td><code>AuctionRecord</code></td>
-<td>Full auction metadata (no lot_refs — in Expansion now)</td>
-</tr>
-<tr>
-<td><code>Expansion</code></td>
-<td>Expander output: <code>record</code> + <code>child_refs</code></td>
-</tr>
-<tr>
-<td><code>LotRef</code></td>
-<td>Minimal lot reference; carries <code>raw</code> dict for</td>
-</tr>
-<tr>
-<td></td>
-<td>pre-fetched JSON (e.g. Sotheby's GraphQL pattern)</td>
-</tr>
-<tr>
-<td><code>LotRecord</code></td>
-<td>Fully parsed lot</td>
-</tr>
-<tr>
-<td><code>ImageRecord</code></td>
-<td>Image URL + optional local path + dimensions</td>
-</tr>
-</tbody>
-</table>
-<p><code>AuctionRecord</code> no longer stores <code>lot_refs</code>. Child refs are returned by the
-<code>Expander</code> in the <code>Expansion.child_refs</code> field — cleaner separation of
-concerns, and necessary for the domain-agnostic design.</p>
-<h3 id="error-taxonomy">Error Taxonomy</h3>
-<table>
-<thead>
-<tr>
-<th>Exception</th>
-<th>Meaning</th>
-<th>Runner behaviour</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PreviewAuctionError</code></td>
-<td>Auction not yet live</td>
-<td>Skip; log PREVIEW</td>
-</tr>
-<tr>
-<td><code>HighlightsOnlyError</code></td>
-<td>Partial lot list</td>
-<td>Download, skip DB</td>
-</tr>
-<tr>
-<td><code>LotListUnavailableError</code></td>
-<td>Lot list unreachable</td>
-<td>Fatal for run</td>
-</tr>
-<tr>
-<td><code>LotUnavailableError</code></td>
-<td>Single lot failed</td>
-<td>Non-fatal; continue</td>
-</tr>
-<tr>
-<td><code>ImageDownloadError</code></td>
-<td>Image download failed</td>
-<td>Non-fatal below threshold</td>
-</tr>
-</tbody>
-</table>
-<h3 id="runner-contract">Runner Contract</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_auction</span><span class="p">(</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">auction_ref</span><span class="p">:</span> <span class="n">AuctionRef</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">on_lot</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">LotRecord</span><span class="p">,</span> <span class="n">AuctionRecord</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="o">...</span>
-</code></pre></div>
-<p>The runner calls <code>plugin.expanders[0].expand(auction_ref, client)</code> to get
-the <code>Expansion</code>, then iterates over <code>expansion.child_refs</code> calling
-<code>plugin.sink.consume(ref, client)</code> for each. <code>on_lot</code> is the
-persistence/serialization hook — DB writes, Excel serialization, etc. The
-runner itself has no DB dependency.</p>
+<p><strong>Chosen: Option A — backend-agnostic structural protocols.</strong></p>
+<p>Ladon exposes <code>SyncHttpClientProtocol</code> and <code>AsyncHttpClientProtocol</code> as
+runtime-checkable structural contracts. Both native and curl-cffi clients
+satisfy the corresponding protocol without inheritance. Their surface is
+limited to <code>get</code>, <code>head</code>, <code>post</code>, <code>download</code>, close (<code>close</code> or <code>aclose</code>), and
+sync or async context-manager behavior.</p>
+<p>The explicit <code>Protocol</code> suffix and symmetric names avoid colliding with the
+already-public concrete <code>AsyncHttpClient</code> class.</p>
+<p><code>download()</code> returns <code>Result[Any, Exception]</code> in both protocols. Native sync
+and async backends return response types from <code>requests</code> and <code>httpx</code>, while
+curl-cffi has its own response type and currently exposes it as <code>Any</code>. There is
+no meaningful common response base class, so narrowing this return would make
+one or more existing backends fail the contract.</p>
+<p>Methods such as <code>circuit_state()</code> and <code>set_crawl_delay()</code> are deliberately
+excluded. They are policy implementation capabilities, not part of the minimal
+adapter-facing HTTP contract.</p>
 <h3 id="consequences">Consequences</h3>
 <ul>
-<li><strong>Good</strong>: Domain-agnostic protocol — any tree depth, any subject domain.</li>
-<li><strong>Good</strong>: Third-party plugins satisfy the protocol without importing
-  from <code>ladon.plugins</code>.</li>
-<li><strong>Good</strong>: Frozen dataclasses prevent the mutable side-effect model that
-  caused fragility in ScrapAuction.</li>
-<li><strong>Good</strong>: Explicit error taxonomy allows the runner to handle each case
-  specifically rather than catch-all <code>except Exception</code>.</li>
-<li><strong>Good</strong>: <code>on_lot</code> injection decouples the runner from persistence —
-  easier to test and reuse.</li>
-<li><strong>Good</strong>: <code>Expansion</code> makes child refs an explicit output of <code>expand()</code>,
-  not hidden inside a record field.</li>
-<li><strong>Bad</strong>: Protocols give no runtime enforcement — mypy + tests must cover
-  this.</li>
-<li><strong>Neutral</strong>: <code>LotRef.raw: dict</code> catch-all defers house-specific field
-  normalization; acceptable until third-party plugins exist.</li>
+<li><strong>Good</strong>: Factory results can be passed directly to adapters and runners
+  under strict Pyright.</li>
+<li><strong>Good</strong>: Third-party clients can conform structurally without inheriting
+  from Ladon internals.</li>
+<li><strong>Good</strong>: Concrete classes remain available for construction and
+  backend-specific configuration.</li>
+<li><strong>Neutral</strong>: <code>download()</code> consumers receive an <code>Any</code> response value and must
+  handle backend-specific response behavior themselves.</li>
+<li><strong>Bad</strong>: Runtime protocol checks verify member presence only; strict static
+  checking remains responsible for signature compatibility.</li>
 </ul>
-<h3 id="confirmation">Confirmation</h3>
-<ul>
-<li><code>tests/plugins/test_protocol.py</code> — mock plugin satisfying <code>CrawlPlugin</code>,
-  Source, Expander, Sink; used by runner.</li>
-<li><code>tests/plugins/test_models.py</code> — dataclass field validation, immutability
-  checks including <code>Expansion</code>.</li>
-<li>pyright strict mode on all <code>src/ladon/</code> and <code>tests/</code> files.</li>
-<li><code>tests/houses/christies_online/</code> — tests covering the first house
-  plugin (parsing, expander, sink).</li>
-</ul>
-<h2 id="implementation-sequence">Implementation Sequence</h2>
-<ol>
-<li><code>ladon/plugins/models.py</code> — Data models (AuctionRef, LotRef, AuctionRecord,
-   LotRecord, ImageRecord, Expansion)</li>
-<li><code>ladon/plugins/protocol.py</code> — Protocol definitions (Source, Expander, Sink,
-   CrawlPlugin)</li>
-<li><code>ladon/plugins/errors.py</code> — Error taxonomy</li>
-<li><code>ladon/runner.py</code> — Runner skeleton (<code>RunConfig</code>, <code>RunResult</code>,
-   <code>run_auction()</code>)</li>
-<li><code>tests/plugins/</code> — Contract tests</li>
-<li>First house plugin: Christie's Online (reference implementation)</li>
-<li>Sotheby's plugin</li>
-<li>Phillips plugin</li>
-</ol>
-<h2 id="more-information">More Information</h2>
-<ul>
-<li>ScrapAuction reference: <code>src/scrapauction/auction_facade.py</code></li>
-<li>ScrapAuction reference: <code>src/auctions/christies/online/auctioncrawler.py</code>,
-  <code>sothebys/auctioncrawler.py</code>, <code>phillips/auctioncrawler.py</code></li>
-<li>Planning document:
-  <code>hesperides/01-Projects/Development/ladon_plugin_architecture_plan.md</code></li>
-<li>ADR-001: Core networking layer (HttpClient)</li>
-<li>ADR-002: HTTP status result contract (all HTTP responses are <code>Ok</code>)</li>
-</ul>
+<h2 id="rejected-options">Rejected Options</h2>
+<p><strong>B — Shared abstract base class:</strong> More invasive than structural typing. It
+would retrofit inheritance across four shipped classes with different
+constructors and conflict with the protocol-based extension pattern already
+used for Ladon's plugin boundaries.</p>
+<p><strong>C — Concrete unions at every boundary:</strong> This would fix today's two
+backends, but duplicate transport knowledge across public signatures and
+require every consumer annotation to change whenever another backend is added.</p>
 
 
 
 
 
 
-
-  
-  
 
 
 

@@ -1868,6 +1868,11 @@
 
 
 <h1 id="adr-004-source-expander-sink-protocol-design">ADR-004 — Source / Expander / Sink Protocol Design</h1>
+<blockquote>
+<p><strong>Historical note:</strong> ADR-014 supersedes the concrete <code>HttpClient</code>
+annotations shown in this record. Current sync adapter and runner boundaries
+use <code>SyncHttpClientProtocol</code>.</p>
+</blockquote>
 <h2 id="context-and-problem-statement">Context and Problem Statement</h2>
 <p>Ladon is a generic crawling framework. Its networking core (<code>HttpClient</code>,
 ADR-001) is stable and policy-enforcing. The question this ADR addresses is:

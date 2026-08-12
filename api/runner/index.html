@@ -1859,11 +1859,11 @@ the configured <code>async_concurrency</code>.</p>
                 <code>client</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="ladon.networking.client.HttpClient" href="../networking/#ladon.networking.client.HttpClient">HttpClient</a></code>
+                  <code><span title="ladon.networking.protocols.SyncHttpClientProtocol">SyncHttpClientProtocol</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Configured HttpClient instance.</p>
+                <p>Configured synchronous HTTP client protocol implementation.</p>
               </div>
             </td>
             <td>
@@ -2066,7 +2066,7 @@ plugin error while processing a discovered root.</p>
 <span class="normal"><a href="#__codelineno-0-459">459</a></span>
 <span class="normal"><a href="#__codelineno-0-460">460</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-410" name="__codelineno-0-410"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_plugin</span><span class="p">(</span>
 <a id="__codelineno-0-411" name="__codelineno-0-411"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-0-412" name="__codelineno-0-412"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
+<a id="__codelineno-0-412" name="__codelineno-0-412"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-413" name="__codelineno-0-413"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
 <a id="__codelineno-0-414" name="__codelineno-0-414"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-415" name="__codelineno-0-415"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PluginRunResult</span><span class="p">:</span>
@@ -2083,7 +2083,7 @@ plugin error while processing a discovered root.</p>
 <a id="__codelineno-0-426" name="__codelineno-0-426"></a>
 <a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">    Args:</span>
 <a id="__codelineno-0-428" name="__codelineno-0-428"></a><span class="sd">        plugin:  Crawl plugin providing a source, expanders, and sink.</span>
-<a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">        client:  Configured HttpClient instance.</span>
+<a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">        client:  Configured synchronous HTTP client protocol implementation.</span>
 <a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">        config:  Run configuration forwarded to each discovered root.</span>
 <a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">        on_leaf: Optional callback forwarded to each :func:`run_crawl` call.</span>
 <a id="__codelineno-0-432" name="__codelineno-0-432"></a>
@@ -2255,7 +2255,7 @@ plugin error while processing a discovered root.</p>
 <span class="normal"><a href="#__codelineno-0-324">324</a></span>
 <span class="normal"><a href="#__codelineno-0-325">325</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-284" name="__codelineno-0-284"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_run_plugin</span><span class="p">(</span>
 <a id="__codelineno-0-285" name="__codelineno-0-285"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">AsyncCrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-0-286" name="__codelineno-0-286"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClient</span><span class="p">,</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-287" name="__codelineno-0-287"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
 <a id="__codelineno-0-288" name="__codelineno-0-288"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-289" name="__codelineno-0-289"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PluginRunResult</span><span class="p">:</span>
@@ -2360,11 +2360,11 @@ plugin error while processing a discovered root.</p>
                 <code>client</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="ladon.networking.client.HttpClient" href="../networking/#ladon.networking.client.HttpClient">HttpClient</a></code>
+                  <code><span title="ladon.networking.protocols.SyncHttpClientProtocol">SyncHttpClientProtocol</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Configured HttpClient instance.</p>
+                <p>Configured synchronous HTTP client protocol implementation.</p>
               </div>
             </td>
             <td>
@@ -2700,7 +2700,7 @@ plugin error while processing a discovered root.</p>
 <span class="normal"><a href="#__codelineno-0-407">407</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-227" name="__codelineno-0-227"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_crawl</span><span class="p">(</span>
 <a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="n">top_ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
 <a id="__codelineno-0-229" name="__codelineno-0-229"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">CrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">HttpClient</span><span class="p">,</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-231" name="__codelineno-0-231"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
 <a id="__codelineno-0-232" name="__codelineno-0-232"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-233" name="__codelineno-0-233"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
@@ -2709,7 +2709,7 @@ plugin error while processing a discovered root.</p>
 <a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">    Args:</span>
 <a id="__codelineno-0-237" name="__codelineno-0-237"></a><span class="sd">        top_ref:  Reference to the resource to expand.</span>
 <a id="__codelineno-0-238" name="__codelineno-0-238"></a><span class="sd">        plugin:   Crawl plugin providing source, expanders, and sink.</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a><span class="sd">        client:   Configured HttpClient instance.</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a><span class="sd">        client:   Configured synchronous HTTP client protocol implementation.</span>
 <a id="__codelineno-0-240" name="__codelineno-0-240"></a><span class="sd">        config:   Run-level configuration (limits, flags).</span>
 <a id="__codelineno-0-241" name="__codelineno-0-241"></a><span class="sd">        on_leaf:  Optional callback invoked after each successful leaf</span>
 <a id="__codelineno-0-242" name="__codelineno-0-242"></a><span class="sd">                  consume. Use this hook for DB writes, serialization,</span>
@@ -2943,11 +2943,11 @@ plugin error while processing a discovered root.</p>
                 <code>client</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="ladon.networking.async_client.AsyncHttpClient" href="../networking/#ladon.networking.async_client.AsyncHttpClient">AsyncHttpClient</a></code>
+                  <code><span title="ladon.networking.protocols.AsyncHttpClientProtocol">AsyncHttpClientProtocol</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Configured AsyncHttpClient instance.</p>
+                <p>Configured asynchronous HTTP client protocol implementation.</p>
               </div>
             </td>
             <td>
@@ -3302,7 +3302,7 @@ plugin error while processing a discovered root.</p>
 <span class="normal"><a href="#__codelineno-0-281">281</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_run_crawl</span><span class="p">(</span>
 <a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="n">top_ref</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
 <a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">plugin</span><span class="p">:</span> <span class="n">AsyncCrawlPlugin</span><span class="p">,</span>
-<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClient</span><span class="p">,</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">RunConfig</span><span class="p">,</span>
 <a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="n">on_leaf</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
@@ -3311,7 +3311,7 @@ plugin error while processing a discovered root.</p>
 <a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="sd">    Args:</span>
 <a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="sd">        top_ref:  Reference to the resource to expand.</span>
 <a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        plugin:   Async crawl plugin providing expanders and sink.</span>
-<a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        client:   Configured AsyncHttpClient instance.</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        client:   Configured asynchronous HTTP client protocol implementation.</span>
 <a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">        config:   Run-level configuration (limits, concurrency).</span>
 <a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">        on_leaf:  Optional async callback invoked after each successful leaf</span>
 <a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">                  consume. Receives (leaf_record, parent_record).</span>

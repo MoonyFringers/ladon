@@ -1923,6 +1923,8 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 <h2 id="unreleased"><a href="https://github.com/MoonyFringers/ladon/compare/v0.3.1...HEAD">Unreleased</a></h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong><code>SyncHttpClientProtocol</code> / <code>AsyncHttpClientProtocol</code></strong> — public structural
+  HTTP client contracts implemented by both native and curl-cffi backends.</li>
 <li><strong><code>run_plugin()</code> / <code>async_run_plugin()</code></strong> — source-driven whole-plugin
   entry points. They discover roots once, preserve one <code>RunResult</code> per root,
   and return aggregate counts and source-indexed errors in <code>PluginRunResult</code>.</li>
@@ -1932,6 +1934,9 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
+<li><strong>Backend-agnostic adapter and runner typing</strong> — <code>Source</code>, <code>Expander</code>,
+  <code>Sink</code>, their async counterparts, and runner signatures now accept either
+  native or curl-cffi factory results under strict type checking.</li>
 <li><strong>Polite retry pacing</strong> — retries now enforce per-host rate limits, including
   robots.txt <code>Crawl-delay</code> overrides, on every attempt and merge that wait with
   Retry-After or backoff into one sleep. The default backoff is now a safe
