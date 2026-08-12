@@ -1573,7 +1573,7 @@ Its counters describe separate parts of the pipeline:</p>
 </tr>
 <tr>
 <td><code>leaves_failed</code></td>
-<td>Leaves whose <code>Sink.consume()</code> raised <code>LeafUnavailableError</code>. Callback failures are not included; find their count with <code>leaves_consumed - leaves_persisted</code>.</td>
+<td>Leaves whose <code>Sink.consume()</code> raised a non-fatal exception, whether a classified <code>LeafUnavailableError</code> or an unexpected exception. Callback failures are not included; find their count with <code>leaves_consumed - leaves_persisted</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -1592,9 +1592,15 @@ recorded as <code>ref[N] callback failed: ...</code>. This lets a caller disting
 partial traversal from an individual leaf or persistence failure without
 parsing logs.</p>
 <h2 id="plugin-errors-typed-recovery-signals">Plugin errors: typed recovery signals</h2>
-<p>The runner catches only the plugin exceptions whose recovery meaning it knows.
-That is intentional: a broad <code>except Exception</code> would turn programming bugs
-and unexpected failures into a misleading partial result.</p>
+<p>Expansion exceptions retain typed recovery meanings because a failed branch
+can affect the shape or completeness of the whole crawl. Phase 3 has a
+different boundary: a crawl may process thousands of independent leaves, so
+one leaf's unexpected exception should not discard records already fetched or
+prevent the remaining leaves from being attempted. The runner therefore
+records ordinary <code>Exception</code> values raised by <code>Sink.consume()</code> in
+<code>RunResult.errors</code>, increments <code>leaves_failed</code>, and continues. The exception's
+text is preserved in the <code>ref[N] consume failed: ...</code> diagnostic rather than
+being silently dropped.</p>
 <table>
 <thead>
 <tr>
@@ -1622,7 +1628,7 @@ and unexpected failures into a misleading partial result.</p>
 <tr>
 <td><code>LeafUnavailableError</code></td>
 <td>One leaf cannot be fetched or parsed.</td>
-<td>Records a leaf error, increments <code>leaves_failed</code>, and continues with the next leaf.</td>
+<td>Records a leaf error, increments <code>leaves_failed</code>, and continues with the next leaf, as for other non-fatal <code>Exception</code> values from <code>Sink.consume()</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -1632,9 +1638,12 @@ the rest of the tree. <code>PartialExpansionError</code> and
 <code>ChildListUnavailableError</code> are separate because the former says the payload
 was valid but incomplete, while the latter says there is no usable child list.</p>
 <p><code>AssetDownloadError</code> is deliberately outside this recovery taxonomy. The
-runner does not catch it: it propagates and aborts the run. If an asset failure
-should be non-fatal for a plugin, catch it inside that plugin before returning
-from its Expander or Sink.</p>
+runner does not recover from it: it propagates and aborts the run. If an asset
+failure should be non-fatal for a plugin, catch it inside that plugin before
+returning from its Expander or Sink.</p>
+<p>Cancellation and other non-<code>Exception</code> <code>BaseException</code> subclasses also
+propagate unchanged. In particular, an async leaf cancellation is never
+reported as a completed crawl with that leaf counted as failed.</p>
 <p>For the scheduling-boundary pattern, see <a href="../cookbook/#resume-a-not-ready-or-partial-crawl">Resume a not-ready or partial crawl</a>.</p>
 <h2 id="result-ok-and-err-http-outcomes-without-exceptions"><code>Result</code>, <code>Ok</code>, and <code>Err</code>: HTTP outcomes without exceptions</h2>
 <p>At the HTTP boundary, <code>HttpClient</code> returns a frozen <code>Result</code> rather than

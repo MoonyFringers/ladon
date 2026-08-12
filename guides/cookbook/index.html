@@ -2009,9 +2009,11 @@ at later levels the runner skips only that branch and adds its message to
 <a id="__codelineno-3-160" name="__codelineno-3-160" href="#__codelineno-3-160"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
 <a id="__codelineno-3-161" name="__codelineno-3-161" href="#__codelineno-3-161"></a>    <span class="n">run_example</span><span class="p">()</span>
 </code></pre></div>
-<p><code>LeafUnavailableError</code> is different: the runner records it in <code>result.errors</code>,
-increments <code>leaves_failed</code>, and continues with other leaves. Make persistence
-idempotent so a scheduled retry can safely revisit successful leaves too.</p>
+<p>Leaf failures are different: the runner records <code>LeafUnavailableError</code> and
+other non-fatal exceptions from <code>Sink.consume()</code> in <code>result.errors</code>, increments
+<code>leaves_failed</code>, and continues with other leaves. Make persistence idempotent
+so a scheduled retry can safely revisit successful leaves too. Cancellation
+and explicitly fatal <code>AssetDownloadError</code> still propagate.</p>
 <h2 id="async-leaf-processing-for-high-throughput">Async leaf processing for high throughput</h2>
 <p>Implement the async protocols (<code>async def expand</code> and <code>async def consume</code>) and
 pass an <code>AsyncHttpClient</code>. Expanders are awaited in tree order; leaf

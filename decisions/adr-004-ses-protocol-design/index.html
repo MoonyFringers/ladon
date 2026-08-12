@@ -1269,6 +1269,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Error Taxonomy and Isolation Semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-leaf-exception-isolation-amendment-2026-08-11-issue-164" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase-3 leaf-exception isolation amendment (2026-08-11, Issue #164)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1756,6 +1773,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Error Taxonomy and Isolation Semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-leaf-exception-isolation-amendment-2026-08-11-issue-164" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase-3 leaf-exception isolation amendment (2026-08-11, Issue #164)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2057,18 +2091,18 @@ where exceptions carry semantic meaning that drives control flow:</p>
 <tbody>
 <tr>
 <td><code>ExpansionNotReadyError</code></td>
-<td>Any Expander</td>
+<td>Any Expander or Sink</td>
 <td>Re-raise — run is globally premature; caller retries on next schedule</td>
 </tr>
 <tr>
 <td><code>PartialExpansionError</code></td>
-<td>Expander</td>
-<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code></td>
+<td>Expander or Sink</td>
+<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code>. Always fatal from the Sink (no branch to isolate).</td>
 </tr>
 <tr>
 <td><code>ChildListUnavailableError</code></td>
-<td>Expander</td>
-<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code></td>
+<td>Expander or Sink</td>
+<td>First expander: re-raise. Non-first: isolate branch, record in <code>errors</code>. Always fatal from the Sink (no branch to isolate).</td>
 </tr>
 <tr>
 <td><code>LeafUnavailableError</code></td>
@@ -2082,6 +2116,21 @@ where exceptions carry semantic meaning that drives control flow:</p>
 </tr>
 </tbody>
 </table>
+<h3 id="phase-3-leaf-exception-isolation-amendment-2026-08-11-issue-164">Phase-3 leaf-exception isolation amendment (2026-08-11, Issue #164)</h3>
+<p>An unclassified <code>Exception</code> raised by <code>Sink.consume()</code> now receives the same
+non-fatal treatment as <code>LeafUnavailableError</code>: it is recorded in <code>errors</code>,
+counted in <code>leaves_failed</code>, and the run continues. A crawl over many independent
+leaves should not lose already-fetched results because one leaf exposes a
+parsing bug, and preserving the exception text in <code>RunResult.errors</code> keeps the
+failure visible instead of silently masking it. The Decision Driver against
+catch-all exception handling is therefore addressed through visibility rather
+than aborting during Phase 3. That driver continues to apply unchanged to
+orchestrator-level Phase 1 and Phase 2 expansion handling; this amendment
+narrows its scope rather than retracting it.</p>
+<p><code>ExpansionNotReadyError</code>, <code>PartialExpansionError</code>, and
+<code>ChildListUnavailableError</code> retain their documented behaviour whether raised
+by an Expander or the Sink. Phase 3 has no branch into which a Sink call can be
+isolated, so each exception propagates unchanged when raised there.</p>
 <p>The first-expander vs non-first-expander distinction reflects the <strong>Bulkhead
 pattern</strong>: a failure in one branch of the tree does not abort sibling
 branches. A failure in the first Expander (which produces the entire tree's

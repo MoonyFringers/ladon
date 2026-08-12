@@ -1932,6 +1932,13 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
+<li><strong>Consistent runner leaf-exception semantics</strong> — sync crawls now record an
+  unexpected non-fatal <code>Sink.consume()</code> exception and continue with remaining
+  leaves instead of aborting and losing the partial result. Async crawls now
+  propagate leaf cancellation instead of silently counting it as a failure.
+  Consequently, the CLI now exits with code 2 for an ordinary
+  <code>Sink.consume()</code> exception recorded as a partial leaf failure; exit code 1
+  remains reserved for exceptions the runner does not isolate.</li>
 <li><strong>Circuit-breaker HTTP 5xx accounting</strong> — returned 5xx responses now count
   as origin-health failures without changing their <code>Ok(...)</code> result contract;
   non-retryable 4xx responses remain successful breaker outcomes.</li>

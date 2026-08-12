@@ -1743,12 +1743,16 @@ specific meaning that tells the runner exactly what to do:</p>
 <tr>
 <td><code>LeafUnavailableError</code></td>
 <td>Leaf fetch failed</td>
-<td>Log, skip this leaf, continue</td>
+<td>Log, record the failure, and continue, as for other non-fatal Sink exceptions</td>
 </tr>
 </tbody>
 </table>
-<p>Your plugin raises the right exception; the runner decides what to do with it.
-No catch-all <code>except Exception</code> that masks real bugs.</p>
+<p>Your plugin raises the right typed exception when it can. During leaf
+processing, the runner also records unexpected <code>Exception</code> text in
+<code>RunResult.errors</code> and continues with independent leaves, so a single bad leaf
+does not discard the rest of the crawl. Explicitly fatal
+<code>AssetDownloadError</code>, cancellation, and other <code>BaseException</code> subclasses still
+propagate to the caller.</p>
 <h2 id="persistence-is-injected-not-built-in">Persistence is injected, not built in</h2>
 <p>The runner has no database dependency. You inject persistence as a callback:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_persist</span><span class="p">(</span><span class="n">leaf_record</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">parent_record</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

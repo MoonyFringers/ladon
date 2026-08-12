@@ -1684,7 +1684,7 @@ plus the child refs to process next (e.g. catalog record + product URLs):</p>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">        &quot;&quot;&quot;</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        <span class="o">...</span>
 </code></pre></div>
-<p>Exceptions that halt expansion:</p>
+<p>Expansion exception handling depends on where the failure occurs:</p>
 <table>
 <thead>
 <tr>
@@ -1699,11 +1699,11 @@ plus the child refs to process next (e.g. catalog record + product URLs):</p>
 </tr>
 <tr>
 <td><code>PartialExpansionError</code></td>
-<td>Some children unavailable; runner logs and continues</td>
+<td>Some children unavailable; abort from the first Expander, otherwise record and skip only the failing branch</td>
 </tr>
 <tr>
 <td><code>ChildListUnavailableError</code></td>
-<td>Child list fetch failed; runner logs and continues</td>
+<td>Child list fetch failed; abort from the first Expander, otherwise record and skip only the failing branch</td>
 </tr>
 </tbody>
 </table>
@@ -1715,7 +1715,13 @@ plus the child refs to process next (e.g. catalog record + product URLs):</p>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="o">...</span>
 </code></pre></div>
 <p><code>LeafUnavailableError</code> signals that the leaf is temporarily unavailable;
-the runner records the failure and moves on.</p>
+the runner records the failure and moves on. Unexpected exceptions from a
+Sink are recorded the same way so other independent leaves still run; their
+text remains visible in <code>RunResult.errors</code>. Cancellation and explicitly fatal
+<code>AssetDownloadError</code> propagate instead of being counted as leaf failures.
+Expansion exceptions also retain their typed contract when raised by a Sink:
+<code>ExpansionNotReadyError</code>, <code>PartialExpansionError</code>, and
+<code>ChildListUnavailableError</code> propagate unchanged.</p>
 <h3 id="crawlplugin">CrawlPlugin</h3>
 <p>Combine expanders and sink into a plugin:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClient</span>
