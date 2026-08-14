@@ -567,6 +567,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -607,7 +618,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#changed" class="md-nav__link">
+  <a href="#changed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Changed
@@ -1689,6 +1700,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1729,7 +1751,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#changed" class="md-nav__link">
+  <a href="#changed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Changed
@@ -1923,6 +1945,12 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 <h2 id="unreleased"><a href="https://github.com/MoonyFringers/ladon/compare/v0.3.1...HEAD">Unreleased</a></h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Generic SES protocol types</strong> — <code>Ref[RawT]</code>,
+  <code>Expansion[RecordT, ChildRawT]</code>, <code>Source</code>, <code>Expander</code>, <code>Sink</code>,
+  <code>CrawlPlugin</code>, and <code>CrawlPlan</code> now preserve concrete adapter types under
+  strict type checking. New <code>OnLeafCallback</code> / <code>OnPlannedLeafCallback</code> type
+  aliases and async equivalents let adapter authors annotate callbacks
+  precisely.</li>
 <li><strong><code>SyncHttpClientProtocol</code> / <code>AsyncHttpClientProtocol</code></strong> — public structural
   HTTP client contracts implemented by both native and curl-cffi backends.</li>
 <li><strong><code>run_plugin()</code> / <code>async_run_plugin()</code></strong> — source-driven whole-plugin
@@ -1955,6 +1983,13 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
   rate-limit slots instead of waking in a batch, and HALF_OPEN circuit
   breakers admit exactly one probe. Both guards are cancellation-safe and
   remain independent across hosts.</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li><strong>Breaking: planned-crawl callback keyword renamed</strong> —
+  <code>execute_plan_sync(..., on_leaf=...)</code> and <code>execute_plan(..., on_leaf=...)</code>
+  must now use <code>on_planned_leaf=</code>, making their <code>(leaf_record, leaf_ref)</code>
+  contract distinct from the runners' <code>(leaf_record, parent_record)</code> callback.</li>
 </ul>
 <hr />
 <h2 id="032-2026-06-08">[0.3.2] — 2026-06-08</h2>
@@ -1990,7 +2025,7 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
   the loop continues instead of propagating.  <code>NotImplementedError</code> is
   re-raised to preserve the subclass contract.</li>
 </ul>
-<h3 id="changed">Changed</h3>
+<h3 id="changed_1">Changed</h3>
 <hr />
 <h2 id="031-2026-05-20"><a href="https://github.com/MoonyFringers/ladon/compare/v0.3.0...v0.3.1">0.3.1</a> — 2026-05-20</h2>
 <h3 id="added_2">Added</h3>

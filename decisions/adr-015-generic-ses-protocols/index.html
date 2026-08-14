@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-015-generic-ses-protocols/">
       
       
-        <link rel="prev" href="../api/plugins/">
-      
-      
-        <link rel="next" href="adr-001-ladon-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/logo.svg">
+      <link rel="icon" href="../../assets/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Overview - Ladon</title>
+        <title>Adr 015 generic ses protocols - Ladon</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -63,17 +59,17 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Overview - Ladon" />
+<meta property="og:title" content="Adr 015 generic ses protocols - Ladon" />
 <meta property="og:description" content="Resilient, extensible web crawling framework." />
-<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/index.png" />
+<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-015-generic-ses-protocols.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/" />
+<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/adr-015-generic-ses-protocols/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Overview - Ladon" />
+<meta property="twitter:title" content="Adr 015 generic ses protocols - Ladon" />
 <meta property="twitter:description" content="Resilient, extensible web crawling framework." />
-<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/index.png" />
+<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-015-generic-ses-protocols.png" />
 </head>
   
   
@@ -93,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-decision-records" class="md-skip">
+        <a href="#adr-015-generic-ses-protocol-types" class="md-skip">
           Skip to content
         </a>
       
@@ -107,9 +103,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-header__button md-logo" aria-label="Ladon" data-md-component="logo">
       
-  <img src="../assets/logo.svg" alt="logo">
+  <img src="../../assets/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -126,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Adr 015 generic ses protocols
             
           </span>
         </div>
@@ -237,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -256,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../alternatives/" class="md-tabs__link">
+      <a href="../../alternatives/" class="md-tabs__link">
         
   
   
@@ -275,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../changelog/" class="md-tabs__link">
+      <a href="../../changelog/" class="md-tabs__link">
         
   
   
@@ -294,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
+      <a href="../../getting-started/" class="md-tabs__link">
         
   
   
@@ -315,7 +311,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/how-ladon-works/" class="md-tabs__link">
+        <a href="../../guides/how-ladon-works/" class="md-tabs__link">
           
   
   
@@ -335,7 +331,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/networking/" class="md-tabs__link">
+        <a href="../../api/networking/" class="md-tabs__link">
           
   
   
@@ -351,13 +347,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -391,9 +385,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
+    <a href="../.." title="Ladon" class="md-nav__button md-logo" aria-label="Ladon" data-md-component="logo">
       
-  <img src="../assets/logo.svg" alt="logo">
+  <img src="../../assets/logo.svg" alt="logo">
 
     </a>
     Ladon
@@ -420,7 +414,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -447,7 +441,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../alternatives/" class="md-nav__link">
+      <a href="../../alternatives/" class="md-nav__link">
         
   
   
@@ -474,7 +468,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../changelog/" class="md-nav__link">
+      <a href="../../changelog/" class="md-nav__link">
         
   
   
@@ -501,7 +495,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -580,7 +574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/how-ladon-works/" class="md-nav__link">
+      <a href="../../guides/how-ladon-works/" class="md-nav__link">
         
   
   
@@ -608,7 +602,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/concepts/" class="md-nav__link">
+      <a href="../../guides/concepts/" class="md-nav__link">
         
   
   
@@ -636,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/cookbook/" class="md-nav__link">
+      <a href="../../guides/cookbook/" class="md-nav__link">
         
   
   
@@ -664,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/authoring-plugins/" class="md-nav__link">
+      <a href="../../guides/authoring-plugins/" class="md-nav__link">
         
   
   
@@ -692,7 +686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/cloudflare-bypass/" class="md-nav__link">
+      <a href="../../guides/cloudflare-bypass/" class="md-nav__link">
         
   
   
@@ -779,7 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/networking/" class="md-nav__link">
+      <a href="../../api/networking/" class="md-nav__link">
         
   
   
@@ -807,7 +801,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/runner/" class="md-nav__link">
+      <a href="../../api/runner/" class="md-nav__link">
         
   
   
@@ -835,7 +829,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plugins/" class="md-nav__link">
+      <a href="../../api/plugins/" class="md-nav__link">
         
   
   
@@ -867,31 +861,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -909,7 +898,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -924,37 +913,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -970,37 +932,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1013,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-001-ladon-architecture/" class="md-nav__link">
+      <a href="../adr-001-ladon-architecture/" class="md-nav__link">
         
   
   
@@ -1048,7 +979,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-002-http-status-result-contract/" class="md-nav__link">
+      <a href="../adr-002-http-status-result-contract/" class="md-nav__link">
         
   
   
@@ -1083,7 +1014,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-003-plugin-adapter-interface/" class="md-nav__link">
+      <a href="../adr-003-plugin-adapter-interface/" class="md-nav__link">
         
   
   
@@ -1118,7 +1049,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-004-ses-protocol-design/" class="md-nav__link">
+      <a href="../adr-004-ses-protocol-design/" class="md-nav__link">
         
   
   
@@ -1153,7 +1084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-005-asset-storage/" class="md-nav__link">
+      <a href="../adr-005-asset-storage/" class="md-nav__link">
         
   
   
@@ -1188,7 +1119,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-006-persistence-layer/" class="md-nav__link">
+      <a href="../adr-006-persistence-layer/" class="md-nav__link">
         
   
   
@@ -1223,7 +1154,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-007-circuit-breaker/" class="md-nav__link">
+      <a href="../adr-007-circuit-breaker/" class="md-nav__link">
         
   
   
@@ -1258,7 +1189,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-008-robots-txt/" class="md-nav__link">
+      <a href="../adr-008-robots-txt/" class="md-nav__link">
         
   
   
@@ -1286,7 +1217,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-009-observability/" class="md-nav__link">
+      <a href="../adr-009-observability/" class="md-nav__link">
         
   
   
@@ -1321,7 +1252,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-010-dual-license-model/" class="md-nav__link">
+      <a href="../adr-010-dual-license-model/" class="md-nav__link">
         
   
   
@@ -1349,7 +1280,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-011-curl-cffi-cloudflare-bypass/" class="md-nav__link">
+      <a href="../adr-011-curl-cffi-cloudflare-bypass/" class="md-nav__link">
         
   
   
@@ -1377,7 +1308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="adr-012-session-contract-boundary/" class="md-nav__link">
+      <a href="../adr-012-session-contract-boundary/" class="md-nav__link">
         
   
   
@@ -1432,10 +1363,71 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format" class="md-nav__link">
+  <a href="#context-and-problem-statement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rejected-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Options
       
     </span>
   </a>
@@ -1462,96 +1454,152 @@
   
 
 
-<h1 id="architecture-decision-records">Architecture Decision Records</h1>
-<p>This directory contains the Architecture Decision Records (ADRs) for Ladon.
-Each ADR documents a significant technical decision: the context, the options
-considered, the chosen option, and — crucially — <strong>why</strong> that option was
-chosen over the alternatives.</p>
-<table>
-<thead>
-<tr>
-<th>ADR</th>
-<th>Title</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="adr-001-ladon-architecture/">ADR-001</a></td>
-<td>Ladon Architecture</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-002-http-status-result-contract/">ADR-002</a></td>
-<td>HTTP Result Contract</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-003-plugin-adapter-interface/">ADR-003</a></td>
-<td>Plugin Adapter Interface</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-004-ses-protocol-design/">ADR-004</a></td>
-<td>Source / Expander / Sink Protocol Design</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-005-asset-storage/">ADR-005</a></td>
-<td>Asset Storage (<code>ladon.storage</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-006-persistence-layer/">ADR-006</a></td>
-<td>Persistence Layer (<code>ladon.persistence</code>)</td>
-<td>Accepted — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-007-circuit-breaker/">ADR-007</a></td>
-<td>Per-Host Circuit Breaker</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-008-robots-txt/">ADR-008</a></td>
-<td>robots.txt Enforcement</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-009-observability/">ADR-009</a></td>
-<td>Observability (metrics, structured logs)</td>
-<td>Proposed — Phase 3</td>
-</tr>
-<tr>
-<td><a href="adr-010-dual-license-model/">ADR-010</a></td>
-<td>Dual-License Model (AGPL-3.0-only + Commercial)</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-011-curl-cffi-cloudflare-bypass/">ADR-011</a></td>
-<td>curl-cffi as the Cloudflare-Bypass HTTP Backend</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-012-session-contract-boundary/">ADR-012</a></td>
-<td>Session Contract Boundary in <code>SyncPolicyBase</code></td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-014-http-client-protocols/">ADR-014</a></td>
-<td>Structural HTTP Client Protocols</td>
-<td>Accepted</td>
-</tr>
-<tr>
-<td><a href="adr-015-generic-ses-protocols/">ADR-015</a></td>
-<td>Generic SES Protocol Types</td>
-<td>Proposed</td>
-</tr>
-</tbody>
-</table>
-<h2 id="format">Format</h2>
-<p>ADRs follow the <a href="https://adr.github.io/madr/">MADR</a> template.
-To propose a new decision, copy <code>docs/decisions/adr-template.md</code>,
-fill in the sections, and open a PR.</p>
+<hr />
+<p>status: proposed
+date: 2026-08-13
+decision-makers: [Maintainers]
+informed: [Contributors]
+refs: [ADR-004, ADR-011, ADR-014, Issue #162]</p>
+<hr />
+<h1 id="adr-015-generic-ses-protocol-types">ADR-015 — Generic SES Protocol Types</h1>
+<h2 id="context-and-problem-statement">Context and Problem Statement</h2>
+<p><code>Source</code>, <code>Expander</code>, <code>Sink</code>, <code>CrawlPlugin</code>, <code>Ref</code>, <code>Expansion</code>, and
+<code>CrawlPlan</code> are all typed against <code>object</code> (ADR-004). <code>Protocol</code> method
+parameters are contravariant, so a concrete adapter method narrower than
+<code>object</code> — e.g. <code>expand(self, ref: Ref, ...)</code> — does not structurally
+satisfy <code>Expander.expand(self, ref: object, ...)</code> under strict Pyright.
+Three shipped cookbook examples work around this today with
+<code>cast("CrawlPlugin", plugin)</code> / <code>cast(dict[str, object], leaf_record)</code> / a
+throwaway local <code>Protocol</code> built purely to regain attribute access on an
+<code>object</code>-typed callback parameter. The external <code>ladon-hackernews</code> adapter
+carries a live <code># type: ignore[arg-type]</code> on <code>ref.raw</code> for the same root
+cause.</p>
+<p>Separately, <code>execute_plan_sync</code>'s <code>on_leaf</code> callback has always had a
+<em>different</em> parameter contract — <code>(leaf_record, leaf_ref)</code> — than
+<code>run_crawl</code>'s <code>on_leaf</code> — <code>(leaf_record, parent_record)</code> — a distinction
+ADR-011 established but that only a docstring sentence enforces today. A
+caller can pass either shape to either function and get a plausible-looking
+<code>object, object</code> signature match with no error until runtime.</p>
+<h2 id="decision-drivers">Decision Drivers</h2>
+<ul>
+<li>Eliminate the three shipped <code>cast(...)</code> call sites without narrowing any
+  concrete backend or adapter capability (the same bar ADR-014 already met).</li>
+<li>Make the <code>run_crawl</code> vs <code>execute_plan_sync</code> <code>on_leaf</code> contract mismatch a
+  compile-time error, not a docstring warning.</li>
+<li>Preserve every existing bare (unsubscripted) <code>Ref</code>, <code>Expansion</code>,
+  <code>RunResult</code>, <code>CrawlPlan</code>, <code>PluginRunResult</code> usage — this repo's strict
+  Pyright config makes <code>reportMissingTypeArgument</code> a hard error for any
+  unbound generic, so this is not optional.</li>
+<li>Preserve <code>expanders: Sequence[Expander]</code>'s existing homogeneous-list shape
+  — third-party adapters (e.g. <code>ladon-hackernews</code>) already implement it and
+  must not be forced to restructure.</li>
+<li>Follow the structural-Protocol pattern this repo already uses for
+  <code>Source</code>/<code>Expander</code>/<code>Sink</code>, the same pattern ADR-014 cited as precedent
+  for its own client protocols.</li>
+</ul>
+<h2 id="considered-options">Considered Options</h2>
+<ul>
+<li><strong>A — Generic Protocols with per-variance-role TypeVars, defaults via
+  <code>typing_extensions.TypeVar</code> (chosen)</strong></li>
+<li><strong>B — Keep <code>object</code> everywhere; rely on <code>cast()</code> at every adapter
+  boundary (status quo)</strong></li>
+<li><strong>C — Fully variadic per-expansion-level typing (<code>TypeVarTuple</code>-based)</strong></li>
+<li><strong>D — Concrete unions at every boundary</strong></li>
+</ul>
+<h2 id="decision-outcome">Decision Outcome</h2>
+<p><strong>Chosen: Option A.</strong></p>
+<p><code>Ref[RawT]</code> and <code>Expansion[RecordT, ChildRawT]</code> become <code>Generic</code>, covariant
+— the same variance already used for the one existing generic in this
+codebase, <code>Result[T, E]</code> (<code>networking/types.py</code>). Both use
+<code>typing_extensions.TypeVar(..., default=...)</code> (the PEP 696 backport; this
+repo supports Python <code>&gt;=3.11</code>, and native <code>TypeVar</code> defaults require 3.13+)
+so that every existing bare usage keeps compiling unchanged: <code>RawT</code>
+defaults to <code>Mapping[str, object]</code>, matching <code>Ref.raw</code>'s current field
+type exactly.</p>
+<p><code>Source[RefT]</code>, <code>Expander[RefT, RecordT, ChildRawT]</code>, and
+<code>Sink[RefT, RecordT]</code> each get one <code>TypeVar</code> per variance role — never a
+<code>TypeVar</code> reused across roles, which strict Pyright's
+<code>reportInvalidTypeVarUse</code> rejects for <code>Protocol</code> subclasses.</p>
+<p><code>CrawlPlugin[TopRefT, LeafRefT, LeafRecordT]</code> takes exactly three type
+parameters — not one per pipeline stage. <code>expanders: Sequence[Expander]</code>
+is a single, homogeneous list covering an unbounded, heterogeneous chain:
+there is no way to express "expander <em>i</em> consumes what expander <em>i-1</em>
+produced" without variadic generics that would force a fixed maximum
+depth and break every existing adapter's <code>expanders</code> shape, including
+<code>ladon-hackernews</code>'s. <code>expanders</code> therefore stays
+<code>Sequence[Expander[Any, Any, Any]]</code> — one explicit, documented escape
+hatch for the chain interior. Only <code>source</code> and <code>sink</code> — single properties
+with single, fully knowable signatures — carry real type precision through
+<code>CrawlPlugin</code>.</p>
+<p><code>CrawlPlan[LeafRefT]</code> becomes generic: leaf refs have one unambiguous
+source, <code>Sink</code>'s own ref parameter type. <code>RunResult</code> and
+<code>PluginRunResult</code> stay <code>object</code>-typed for <code>.record</code>/<code>.top_refs</code> — the
+<em>top</em> record has no equivalently clean single-boundary source, for the
+same chain-interior reason <code>expanders</code> does not.</p>
+<p>Two new callback type aliases replace the bare
+<code>Callable[[object, object], ...]</code> signatures and encode the ADR-011
+distinction in the type system:</p>
+<ul>
+<li><code>OnLeafCallback[RecordT, ParentT]</code> — used by <code>run_crawl</code>, <code>run_plugin</code>,
+  and their async equivalents. <code>ParentT</code> is pinned to <code>object</code>: <code>run_crawl</code>
+  threads <code>parent_record</code> across <code>plugin.expanders</code>, which is itself
+  <code>Any</code>-typed at the chain interior, so there is no type-safe source for a
+  precise <code>ParentT</code> here.</li>
+<li><code>OnPlannedLeafCallback[RecordT, LeafRefT]</code> — used by <code>execute_plan_sync</code>
+  and <code>execute_plan</code>, whose callback parameter is renamed from <code>on_leaf</code> to
+  <code>on_planned_leaf</code>. <code>LeafRefT</code> is fully precise, sourced from
+  <code>CrawlPlan[LeafRefT]</code>.</li>
+</ul>
+<p>Passing an <code>OnPlannedLeafCallback</code>-shaped function to <code>run_crawl</code>'s
+<code>on_leaf=</code> (or vice versa) is now a Pyright error instead of a silent
+runtime mismatch — this is the strongest concrete case for the change:
+today the only thing preventing that mistake is a sentence in a docstring.</p>
+<p><code>persistence.protocol.Repository[T]</code> genericization is explicitly out of
+scope for this ADR. Its docstring already points at ADR-006, a distinct
+design context whose generic value depends on adapter-specific persistence
+wiring the runner does not control; conflating it with the SES boundary
+here would blur the review scope of both. A follow-up issue tracks it
+separately.</p>
+<h3 id="consequences">Consequences</h3>
+<ul>
+<li><strong>Good</strong>: the three shipped example <code>cast(...)</code> call sites are
+  eliminated.</li>
+<li><strong>Good</strong>: the <code>run_crawl</code> vs <code>execute_plan_sync</code> callback-shape mismatch
+  becomes a compile-time error.</li>
+<li><strong>Good</strong>: zero runtime behavior change — <code>Protocol</code> <code>isinstance()</code> checks
+  and concrete method dispatch are unaffected by type parameters, the same
+  caveat ADR-014 already documents for its own protocols.</li>
+<li><strong>Good</strong>: existing untyped third-party adapters (e.g. <code>ladon-hackernews</code>)
+  need no code changes — <code>object</code>-typed methods trivially satisfy any
+  generic binding, and Pyright simply infers <code>object</code> at the call site,
+  matching today's behavior exactly.</li>
+<li><strong>Neutral</strong>: <code>expanders</code> and the runner's own Phase-1 loop body stay
+  <code>Any</code>/<code>object</code>-typed internally — only the plugin's <code>source</code>/<code>sink</code>
+  boundary and each adapter class's own method signatures gain precision.
+  This is a deliberate, bounded scope.</li>
+<li><strong>Bad</strong>: <code>execute_plan_sync</code>'s and <code>execute_plan</code>'s <code>on_leaf=</code> keyword
+  argument is renamed to <code>on_planned_leaf=</code> — a real, if narrow, breaking
+  change for any caller using the keyword form.</li>
+<li><strong>Bad</strong>: adds a new direct dependency, <code>typing_extensions&gt;=4.6</code> (needed
+  for <code>TypeVar</code> defaults), already present transitively today.</li>
+</ul>
+<h2 id="rejected-options">Rejected Options</h2>
+<p><strong>B — status quo:</strong> leaves the three shipped example casts and the
+external <code>ladon-hackernews</code> <code># type: ignore[arg-type]</code> uncorrected; the
+<code>on_leaf</code>/<code>on_planned_leaf</code> confusion stays a docstring-only convention
+with no compiler backing.</p>
+<p><strong>C — fully variadic per-level typing:</strong> would require <code>TypeVarTuple</code>/
+<code>Unpack</code> threading one type per expansion depth, with no clean way to
+express "arbitrary but unknown length" short of a fixed maximum depth or a
+redesigned <code>expanders</code> property shape — breaking every existing adapter,
+including third-party ones. Rejected for the same reason ADR-014 rejected
+its own Option B (shared ABC): disproportionately invasive for the
+benefit.</p>
+<p><strong>D — concrete unions at every boundary:</strong> the same rejection ADR-014
+already gave for its own Option C — duplicates adapter-shape knowledge
+into every public signature and requires every consumer annotation to
+change whenever a new adapter shape appears, defeating the purpose of the
+Source/Expander/Sink pipeline.</p>
 
 
 
@@ -1632,10 +1680,10 @@ fill in the sections, and open a PR.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
