@@ -126,6 +126,7 @@ reportMissingImports = "none"
 reportUntypedFunctionDecorator = "none"
 executionEnvironments = [
     { root = "examples", reportUnknownVariableType = "none", reportUnknownMemberType = "none", reportUnknownArgumentType = "none" },
+    { root = "scripts", reportUnknownVariableType = "none", reportUnknownMemberType = "none", reportUnknownArgumentType = "none" },
 ]
 
 # ----------------------------------------
