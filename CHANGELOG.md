@@ -22,9 +22,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`run_plugin()` / `async_run_plugin()`** — source-driven whole-plugin
   entry points. They discover roots once, preserve one `RunResult` per root,
   and return aggregate counts and source-indexed errors in `PluginRunResult`.
+- **`Verdict` and `FetchPredicate.evaluate()`** — three-valued predicate
+  results make `ACCEPT`, `CONTINUE`, and `REJECT` explicit. Rejected candidates
+  are excluded from acceptance and fallback selection while remaining sources
+  are searched; `AllOf`, `AnyOf`, and `Not` preserve `REJECT` as an absolute
+  veto.
 - **`rejection_info()`** — optional duck-typed extension point on
   `FetchPredicate` implementations for adding predicate-specific diagnostics
   to `predicate_rejected` decision-event metadata.
+
+### Deprecated
+
+- **`FetchPredicate.accepts() -> bool`** — use `evaluate() -> Verdict` instead.
+  The boolean API remains supported for one full minor release and emits a
+  `DeprecationWarning` on every legacy invocation.
 
 ### Fixed
 

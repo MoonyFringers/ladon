@@ -26,6 +26,7 @@ from .protocol import CrawlPlugin, Expander, Sink, Source
 from .resolution import (
     FetchPredicate,
     MultiSourceSink,
+    Verdict,
 )
 
 __all__ = [
@@ -45,6 +46,7 @@ __all__ = [
     # Resolution
     "FetchPredicate",
     "MultiSourceSink",
+    "Verdict",
     "AllOf",
     "AnyOf",
     "Not",

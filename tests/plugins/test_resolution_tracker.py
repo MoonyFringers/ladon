@@ -8,14 +8,16 @@ point, and that metadata fields carry the expected values.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 from unittest.mock import MagicMock
 
+from ladon.contrib.sqlite_tracker import SqliteDecisionTracker
 from ladon.networking.errors import TransientNetworkError
 from ladon.observability import DecisionEvent
 from ladon.plugins.errors import LeafUnavailableError
 from ladon.plugins.models import Ref
-from ladon.plugins.resolution import MultiSourceSink
+from ladon.plugins.resolution import MultiSourceSink, Verdict
 
 # ---------------------------------------------------------------------------
 # Test helpers — shared with test_resolution.py by convention, not import
@@ -51,6 +53,13 @@ class _CapturingTracker:
         return [e for e in self.events if e.event == name]
 
 
+class _RaisingTracker:
+    """Simulates an unavailable third-party tracker backend."""
+
+    def record(self, event: DecisionEvent) -> None:  # noqa: ARG002
+        raise RuntimeError("tracker unavailable")
+
+
 class _SimpleSink(MultiSourceSink):
     def _fetch_from_source(
         self, source: _SimpleSource, ref: Ref, client: object  # noqa: ARG002
@@ -65,6 +74,37 @@ class _MinLengthPredicate:
 
     def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
         return len(data) >= self._min_len
+
+
+class _BrokenTypeNameMeta(type):
+    def __getattribute__(cls, name: str) -> object:
+        if name == "__name__":
+            raise RuntimeError("type name unavailable")
+        return super().__getattribute__(name)
+
+
+def test_sqlite_tracker_stringifies_non_json_rejection_metadata() -> None:
+    class _DiagnosticPredicate:
+        def evaluate(self, data: bytes, ref: Ref) -> Verdict:  # noqa: ARG002
+            return Verdict.CONTINUE
+
+        def rejection_info(self) -> dict[str, Any]:
+            return {"verdict_seen": Verdict.REJECT}
+
+    source = _SimpleSource("a", b"DATA")
+    with SqliteDecisionTracker(":memory:") as tracker:
+        sink = _SimpleSink(
+            sources=[source],
+            predicates=[_DiagnosticPredicate()],
+            tracker=tracker,
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
+        rows = tracker.query(
+            "SELECT metadata FROM decisions WHERE event = 'predicate_rejected'"
+        )
+
+    assert json.loads(str(rows[0][0]))["verdict_seen"] == "Verdict.REJECT"
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +152,35 @@ class TestSourceSkippedEvent:
             tracker.by_event("source_skipped")[0].ref
             == "https://example.com/99"
         )
+
+    def test_non_string_source_name_is_normalized_for_tracker(self) -> None:
+        class _NumericNameSource(_SimpleSource):
+            name = 42
+
+            def __init__(self) -> None:
+                self._data = b"DATA"
+
+        tracker = _CapturingTracker()
+        source = _NumericNameSource()
+        sink = _SimpleSink(sources=[source], tracker=tracker)
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
+        assert {event.source for event in tracker.events} == {"42"}
+
+    def test_broken_ref_url_does_not_abort_diagnostic_events(self) -> None:
+        class _BrokenUrlRef(Ref):
+            def __getattribute__(self, name: str) -> object:
+                if name == "url":
+                    raise RuntimeError("ref URL unavailable")
+                return super().__getattribute__(name)
+
+        tracker = _CapturingTracker()
+        source = _SimpleSource("source", b"DATA")
+        sink = _SimpleSink(sources=[source], tracker=tracker)
+        ref = _BrokenUrlRef("https://example.com/inaccessible")
+
+        assert sink.resolve_multi(ref, MagicMock()) == (b"DATA", source)
+        assert {event.ref for event in tracker.events} == {"_BrokenUrlRef"}
 
 
 # ---------------------------------------------------------------------------
@@ -195,6 +264,96 @@ class TestSourceFailedEvent:
         assert len(failed) == 1
         assert failed[0].source == "fail"
         assert failed[0].metadata["exception_type"] == "LeafUnavailableError"
+
+    def test_broken_optional_status_code_does_not_interrupt_recovery(
+        self,
+    ) -> None:
+        class _BrokenStatusError(TransientNetworkError):
+            @property
+            def status_code(self) -> int:
+                raise RuntimeError("status unavailable")
+
+        class _PartialFailSink(_SimpleSink):
+            def _fetch_from_source(
+                self,
+                source: _SimpleSource,
+                ref: Ref,
+                client: object,  # noqa: ARG002
+            ) -> bytes | None:
+                if source.name == "fail":
+                    raise _BrokenStatusError("network error")
+                return source.fetch()
+
+        tracker = _CapturingTracker()
+        good = _SimpleSource("ok", b"GOOD")
+        sink = _PartialFailSink(
+            sources=[_SimpleSource("fail", None), good], tracker=tracker
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"GOOD", good)
+        assert (
+            tracker.by_event("source_failed")[0].metadata["status_code"] is None
+        )
+
+    def test_unstringifiable_recoverable_error_does_not_interrupt_recovery(
+        self,
+    ) -> None:
+        class _UnstringifiableError(TransientNetworkError):
+            def __str__(self) -> str:
+                raise RuntimeError("error text unavailable")
+
+        class _PartialFailSink(_SimpleSink):
+            def _fetch_from_source(
+                self,
+                source: _SimpleSource,
+                ref: Ref,
+                client: object,  # noqa: ARG002
+            ) -> bytes | None:
+                if source.name == "fail":
+                    raise _UnstringifiableError()
+                return source.fetch()
+
+        tracker = _CapturingTracker()
+        good = _SimpleSource("ok", b"GOOD")
+        sink = _PartialFailSink(
+            sources=[_SimpleSource("fail", None), good], tracker=tracker
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"GOOD", good)
+        assert tracker.by_event("source_failed")[0].reason == (
+            "_UnstringifiableError"
+        )
+
+    def test_broken_exception_type_name_does_not_interrupt_recovery(
+        self,
+    ) -> None:
+        class _NamelessNetworkError(
+            TransientNetworkError, metaclass=_BrokenTypeNameMeta
+        ):
+            pass
+
+        class _PartialFailSink(_SimpleSink):
+            def _fetch_from_source(
+                self,
+                source: _SimpleSource,
+                ref: Ref,
+                client: object,  # noqa: ARG002
+            ) -> bytes | None:
+                if source.name == "fail":
+                    raise _NamelessNetworkError("network error")
+                return source.fetch()
+
+        tracker = _CapturingTracker()
+        good = _SimpleSource("ok", b"GOOD")
+        sink = _PartialFailSink(
+            sources=[_SimpleSource("fail", None), good], tracker=tracker
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"GOOD", good)
+        assert (
+            tracker.by_event("source_failed")[0].metadata["exception_type"]
+            == "_NamelessNetworkError"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -329,6 +488,36 @@ class TestPredicateRejectedEvent:
         ev = tracker.by_event("predicate_rejected")[0]
         assert ev.metadata["predicate_name"] == "<subclass-override>"
 
+    def test_override_rejection_does_not_reuse_predicate_diagnostics(
+        self,
+    ) -> None:
+        class _FallbackPredicate:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.CONTINUE
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {"reason": "undersized_image", "width": 100}
+
+        class _OverrideSink(_SimpleSink):
+            def _all_predicates_pass(
+                self, data: bytes, ref: Ref  # noqa: ARG002
+            ) -> bool:
+                return False
+
+        tracker = _CapturingTracker()
+        sink = _OverrideSink(
+            sources=[_SimpleSource("blocked", b"DATA")],
+            predicates=[_FallbackPredicate()],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())
+
+        event = tracker.by_event("predicate_rejected")[0]
+        assert event.metadata == {"predicate_name": "<subclass-override>"}
+
     def test_predicate_rejected_not_fired_when_predicates_pass(self) -> None:
         tracker = _CapturingTracker()
         sink = _SimpleSink(
@@ -338,6 +527,80 @@ class TestPredicateRejectedEvent:
         )
         sink.resolve_multi(_ref(), MagicMock())
         assert "predicate_rejected" not in tracker.event_names()
+
+
+class TestCandidateDisqualifiedEvent:
+    def test_candidate_disqualified_carries_rejection_metadata(self) -> None:
+        class _PoisonPredicate:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.REJECT
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {
+                    "detail": "known_placeholder",
+                    "predicate_name": "cannot-overwrite",
+                }
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("poisoned", b"DATA")],
+            predicates=[_PoisonPredicate()],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())
+
+        events = tracker.by_event("candidate_disqualified")
+        assert len(events) == 1
+        assert events[0].source == "poisoned"
+        assert events[0].reason == (
+            "predicate verdict REJECT; candidate can never be accepted or "
+            "used as fallback"
+        )
+        assert events[0].metadata == {
+            "detail": "known_placeholder",
+            "predicate_name": "_PoisonPredicate",
+        }
+        assert "candidate_accepted" not in tracker.event_names()
+        assert "predicate_rejected" not in tracker.event_names()
+
+    def test_disqualification_metadata_comes_from_rejecting_predicate(
+        self,
+    ) -> None:
+        class _Continues:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.CONTINUE
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {"detail": "fallback_only"}
+
+        class _Rejects:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.REJECT
+
+            def rejection_info(self) -> dict[str, Any]:
+                return {"detail": "disqualified"}
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("poisoned", b"DATA")],
+            predicates=[_Continues(), _Rejects()],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())
+
+        event = tracker.by_event("candidate_disqualified")[0]
+        assert event.metadata == {
+            "detail": "disqualified",
+            "predicate_name": "_Rejects",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -395,6 +658,36 @@ class TestResolvedAndNoResultEvents:
         sink.resolve_multi(_ref(), MagicMock())
         resolved = tracker.by_event("resolved")[0]
         assert resolved.source == "winner"
+
+    def test_fallback_resolved_reuses_ranked_source_name(self) -> None:
+        class _RenamingSource(_SimpleSource):
+            def __init__(self) -> None:
+                super().__init__("unused", b"DATA")
+                self._name_reads = 0
+
+            @property
+            def name(self) -> str:
+                self._name_reads += 1
+                return f"source-name-{self._name_reads}"
+
+            @name.setter
+            def name(self, value: str) -> None:  # noqa: ARG002
+                pass
+
+        tracker = _CapturingTracker()
+        source = _RenamingSource()
+        sink = _SimpleSink(
+            sources=[source],
+            predicates=[_MinLengthPredicate(100)],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())
+
+        candidate = tracker.by_event("candidate_accepted")[0]
+        resolved = tracker.by_event("resolved")[0]
+        assert candidate.source == "source-name-1"
+        assert resolved.source == candidate.source
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +753,49 @@ class TestNullTrackerDefault:
         data, src = sink.resolve_multi(_ref(), MagicMock())
         assert data == b"DATA"
         assert src.name == "a"  # type: ignore[union-attr]
+
+
+# ---------------------------------------------------------------------------
+# Tracker failures must not abort resolution
+# ---------------------------------------------------------------------------
+
+
+class TestRaisingTracker:
+    def test_immediate_accept_still_resolves(self) -> None:
+        source = _SimpleSource("a", b"DATA")
+        sink = _SimpleSink(sources=[source], tracker=_RaisingTracker())
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
+
+    def test_subclass_record_method_does_not_shadow_tracker_guard(self) -> None:
+        class _BookkeepingSink(_SimpleSink):
+            def _record(self, key: str, value: str) -> None:  # noqa: ARG002
+                pass
+
+        source = _SimpleSource("a", b"DATA")
+        sink = _BookkeepingSink(sources=[source])
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
+
+    def test_source_failure_still_recovers_and_resolves(self) -> None:
+        class _PartialFailSink(_SimpleSink):
+            def _fetch_from_source(
+                self,
+                source: _SimpleSource,
+                ref: Ref,
+                client: object,  # noqa: ARG002
+            ) -> bytes | None:
+                if source.name == "fail":
+                    raise TransientNetworkError("network error")
+                return source.fetch()
+
+        source = _SimpleSource("ok", b"DATA")
+        sink = _PartialFailSink(
+            sources=[_SimpleSource("fail", None), source],
+            tracker=_RaisingTracker(),
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
 
 
 # ---------------------------------------------------------------------------
@@ -558,6 +894,82 @@ class TestRejectionInfoMetadata:
         sink.resolve_multi(_ref(), MagicMock())  # must not raise
         ev = tracker.by_event("predicate_rejected")[0]
         assert ev.metadata["predicate_name"] == "_BrokenInfoPredicate"
+
+    def test_unstringifiable_rejection_info_error_is_not_logged_directly(
+        self, monkeypatch: Any
+    ) -> None:
+        from ladon.plugins import resolution
+
+        class _UnstringifiableInfoError(RuntimeError):
+            def __str__(self) -> str:
+                raise RuntimeError("error text unavailable")
+
+        class _BrokenInfoPredicate:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return False
+
+            def rejection_info(self) -> dict[str, Any]:
+                raise _UnstringifiableInfoError()
+
+        def _format_debug(message: str, *args: object) -> None:
+            _ = message % args
+
+        monkeypatch.setattr(resolution.logger, "debug", _format_debug)
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_BrokenInfoPredicate()],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())
+        assert tracker.by_event("predicate_rejected")[0].metadata == {
+            "predicate_name": "_BrokenInfoPredicate"
+        }
+
+    def test_broken_predicate_type_name_does_not_abort_metadata(self) -> None:
+        class _NamelessPredicate(metaclass=_BrokenTypeNameMeta):
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.CONTINUE
+
+        tracker = _CapturingTracker()
+        source = _SimpleSource("a", b"x")
+        sink = _SimpleSink(
+            sources=[source],
+            predicates=[_NamelessPredicate()],
+            tracker=tracker,
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"x", source)
+        assert tracker.by_event("predicate_rejected")[0].metadata == {
+            "predicate_name": "_NamelessPredicate"
+        }
+
+    def test_rejection_info_descriptor_raising_does_not_propagate(self) -> None:
+        """Descriptor lookup failures are diagnostic failures too."""
+
+        class _BrokenInfoDescriptorPredicate:
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return False
+
+            @property
+            def rejection_info(self) -> object:
+                raise RuntimeError("info descriptor unavailable")
+
+        tracker = _CapturingTracker()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("a", b"x")],
+            predicates=[_BrokenInfoDescriptorPredicate()],
+            tracker=tracker,
+        )
+
+        sink.resolve_multi(_ref(), MagicMock())  # must not raise
+        ev = tracker.by_event("predicate_rejected")[0]
+        assert ev.metadata == {
+            "predicate_name": "_BrokenInfoDescriptorPredicate"
+        }
 
     def test_rejection_info_cannot_overwrite_predicate_name(self) -> None:
         """predicate_name in metadata is always authoritative; rejection_info()

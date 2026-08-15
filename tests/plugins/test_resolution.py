@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -13,6 +14,7 @@ from ladon.plugins.models import Ref
 from ladon.plugins.resolution import (
     FetchPredicate,
     MultiSourceSink,
+    Verdict,
 )
 
 
@@ -33,6 +35,31 @@ class _MinLengthPredicate:
 
     def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
         return len(data) >= self._min_len
+
+
+class _VerdictByPayload:
+    def __init__(self, verdicts: dict[bytes, Verdict]) -> None:
+        self._verdicts = verdicts
+
+    def evaluate(self, data: bytes, ref: Ref) -> Verdict:  # noqa: ARG002
+        return self._verdicts[data]
+
+
+class _BooleanEvaluatePredicate:
+    def evaluate(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+        return False
+
+
+class _BrokenEvaluateDescriptor:
+    @property
+    def evaluate(self) -> object:
+        raise RuntimeError("broken descriptor")
+
+
+class _BrokenAcceptsDescriptor:
+    @property
+    def accepts(self) -> object:
+        raise RuntimeError("broken descriptor")
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +140,36 @@ class TestMultiSourceSinkLoop:
         assert data == b"DATA_A"
         assert src is s1
         assert s2.calls == 0  # stopped at first
+
+    def test_named_source_does_not_require_string_conversion(self) -> None:
+        class _UnstringifiableSource(_SimpleSource):
+            def __str__(self) -> str:
+                raise RuntimeError("source cannot be stringified")
+
+        source = _UnstringifiableSource("named", b"DATA")
+        sink = _SimpleSink(sources=[source])
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
+
+    def test_broken_source_name_descriptor_does_not_abort_resolution(
+        self,
+    ) -> None:
+        class _BrokenNameSource(_SimpleSource):
+            @property
+            def name(self) -> str:
+                raise RuntimeError("source name unavailable")
+
+            @name.setter
+            def name(self, value: str) -> None:  # noqa: ARG002
+                pass
+
+            def __str__(self) -> str:
+                return "fallback-name"
+
+        source = _BrokenNameSource("unused", b"DATA")
+        sink = _SimpleSink(sources=[source])
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"DATA", source)
 
     def test_skips_none_results_and_tries_next(self) -> None:
         s1 = _SimpleSource("a", None)
@@ -206,6 +263,272 @@ class TestMultiSourceSinkLoop:
 
 
 class TestMultiSourceSinkPredicates:
+    def test_legacy_accepts_predicate_warns_and_still_resolves(self) -> None:
+        source = _SimpleSource("legacy", b"long enough")
+        sink = _SimpleSink(
+            sources=[source], predicates=[_MinLengthPredicate(5)]
+        )
+
+        with pytest.warns(DeprecationWarning) as caught:
+            data, resolved_source = sink.resolve_multi(_ref(), MagicMock())
+
+        assert data == b"long enough"
+        assert resolved_source is source
+        assert Path(caught[0].filename).resolve() == Path(__file__).resolve()
+
+    def test_protocol_subclass_with_only_accepts_warns_and_resolves(
+        self,
+    ) -> None:
+        class _LegacyProtocolPredicate(FetchPredicate):
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return True
+
+        source = _SimpleSource("legacy", b"data")
+        sink = _SimpleSink(
+            sources=[source],
+            predicates=[_LegacyProtocolPredicate()],  # type: ignore[abstract]
+        )
+
+        with pytest.warns(DeprecationWarning):
+            assert sink.resolve_multi(_ref(), MagicMock()) == (b"data", source)
+
+    def test_fetch_predicate_spec_mock_with_only_accepts_warns_and_resolves(
+        self,
+    ) -> None:
+        predicate = MagicMock(spec=FetchPredicate)
+        predicate.accepts.return_value = True
+        source = _SimpleSource("legacy", b"data")
+        sink = _SimpleSink(sources=[source], predicates=[predicate])
+
+        with pytest.warns(DeprecationWarning):
+            assert sink.resolve_multi(_ref(), MagicMock()) == (b"data", source)
+
+    def test_invalid_predicate_fails_with_clear_consumer_error(self) -> None:
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[object()],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match="must implement callable evaluate.*or accepts",
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+    @pytest.mark.parametrize(
+        "predicate", [_BrokenEvaluateDescriptor(), _BrokenAcceptsDescriptor()]
+    )
+    def test_broken_predicate_descriptor_is_rejected_with_type_error(
+        self, predicate: object
+    ) -> None:
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[predicate],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match="must implement callable evaluate.*or accepts",
+        ) as caught:
+            sink.resolve_multi(_ref(), MagicMock())
+
+        assert isinstance(caught.value.__cause__, RuntimeError)
+
+    def test_evaluate_must_return_verdict(self) -> None:
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[_BooleanEvaluatePredicate()],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match=r"evaluate\(data, ref\) must return a Verdict, got bool",
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+    def test_invalid_concrete_evaluate_does_not_fall_back_to_accepts(
+        self,
+    ) -> None:
+        class _BuggyMigratingPredicate:
+            def __init__(self) -> None:
+                self.accepts_calls = 0
+
+            def evaluate(self, data: bytes, ref: Ref) -> str:  # noqa: ARG002
+                return Verdict.REJECT.value
+
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                self.accepts_calls += 1
+                return True
+
+        predicate = _BuggyMigratingPredicate()
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[predicate],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match=r"evaluate\(data, ref\) must return a Verdict, got str",
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+        assert predicate.accepts_calls == 0
+
+    def test_configured_spec_mock_invalid_evaluate_does_not_fall_back(
+        self,
+    ) -> None:
+        predicate = Mock(spec=FetchPredicate)
+        predicate.evaluate.return_value = Verdict.REJECT.value
+        predicate.accepts.return_value = True
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[predicate],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match=r"evaluate\(data, ref\) must return a Verdict, got str",
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+        predicate.accepts.assert_not_called()
+
+    def test_instance_patched_evaluate_invalid_result_raises(self) -> None:
+        class _LegacyProtocolPredicate(FetchPredicate):
+            def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
+                return True
+
+        predicate = _LegacyProtocolPredicate()  # type: ignore[abstract]
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[predicate],
+        )
+
+        with patch.object(
+            predicate, "evaluate", return_value=Verdict.REJECT.value
+        ):
+            with pytest.raises(
+                TypeError,
+                match=r"evaluate\(data, ref\) must return a Verdict, got str",
+            ):
+                sink.resolve_multi(_ref(), MagicMock())
+
+    def test_mock_spoofed_verdict_is_rejected(self) -> None:
+        class _SpoofedVerdictPredicate:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return MagicMock(spec=Verdict)  # type: ignore[return-value]
+
+        sink = _SimpleSink(
+            sources=[_SimpleSource("invalid", b"data")],
+            predicates=[_SpoofedVerdictPredicate()],
+        )
+
+        with pytest.raises(
+            TypeError,
+            match=r"evaluate\(data, ref\) must return a Verdict, got MagicMock",
+        ):
+            sink.resolve_multi(_ref(), MagicMock())
+
+    def test_accept_verdict_returns_immediately(self) -> None:
+        first = _SimpleSource("first", b"accepted")
+        second = _SimpleSource("second", b"unused")
+        sink = _SimpleSink(
+            sources=[first, second],
+            predicates=[_VerdictByPayload({b"accepted": Verdict.ACCEPT})],
+        )
+
+        data, source = sink.resolve_multi(_ref(), MagicMock())
+
+        assert (data, source) == (b"accepted", first)
+        assert second.calls == 0
+
+    def test_continue_verdict_uses_existing_fallback_behavior(self) -> None:
+        first = _SimpleSource("first", b"candidate")
+        second = _SimpleSource("empty", None)
+        sink = _SimpleSink(
+            sources=[first, second],
+            predicates=[_VerdictByPayload({b"candidate": Verdict.CONTINUE})],
+        )
+
+        data, source = sink.resolve_multi(_ref(), MagicMock())
+
+        assert (data, source) == (b"candidate", first)
+        assert second.calls == 1
+
+    def test_reject_verdict_tries_next_source(self) -> None:
+        rejected = _SimpleSource("rejected", b"poison")
+        accepted = _SimpleSource("accepted", b"good")
+        sink = _SimpleSink(
+            sources=[rejected, accepted],
+            predicates=[
+                _VerdictByPayload(
+                    {
+                        b"poison": Verdict.REJECT,
+                        b"good": Verdict.ACCEPT,
+                    }
+                )
+            ],
+        )
+
+        data, source = sink.resolve_multi(_ref(), MagicMock())
+
+        assert (data, source) == (b"good", accepted)
+        assert accepted.calls == 1
+
+    def test_reject_does_not_discard_earlier_fallback(self) -> None:
+        earlier = _SimpleSource("earlier", b"good")
+        poisoned = _SimpleSource("poisoned", b"much-wider-poison")
+
+        class _RankedSink(_SimpleSink):
+            def _is_better_candidate(
+                self,
+                data: bytes,
+                source: _SimpleSource,
+                best_data: bytes | None,
+                best_source: _SimpleSource | None,
+                ref: Ref,  # noqa: ARG002
+            ) -> bool:
+                return best_source is None or len(data) > len(best_data or b"")
+
+        sink = _RankedSink(
+            sources=[earlier, poisoned],
+            predicates=[
+                _VerdictByPayload(
+                    {
+                        b"good": Verdict.CONTINUE,
+                        b"much-wider-poison": Verdict.REJECT,
+                    }
+                )
+            ],
+        )
+
+        data, source = sink.resolve_multi(_ref(), MagicMock())
+
+        assert (data, source) == (b"good", earlier)
+
+    def test_reject_only_candidate_is_never_fallback(self) -> None:
+        poisoned = _SimpleSource("poisoned", b"widest-poison")
+
+        class _RankingMustNotRun(_SimpleSink):
+            def _is_better_candidate(
+                self,
+                data: bytes,
+                source: _SimpleSource,
+                best_data: bytes | None,
+                best_source: _SimpleSource | None,
+                ref: Ref,
+            ) -> bool:
+                raise AssertionError("REJECT candidate must not be ranked")
+
+        sink = _RankingMustNotRun(
+            sources=[poisoned],
+            predicates=[_VerdictByPayload({b"widest-poison": Verdict.REJECT})],
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (None, None)
+
     def test_stops_when_predicate_passes(self) -> None:
         s1 = _SimpleSource("short", b"x" * 5)
         s2 = _SimpleSource("long", b"x" * 20)
@@ -287,6 +610,106 @@ class TestMultiSourceSinkPredicates:
         sink.resolve_multi(_ref(), MagicMock())
         assert predicate.call_count == 1
 
+    @pytest.mark.parametrize("delegates_to_super", [False, True])
+    def test_registered_predicate_reject_is_absolute_even_with_legacy_override_hook(
+        self, delegates_to_super: bool
+    ) -> None:
+        class _LegacyOverrideSink(_SimpleSink):
+            def _all_predicates_pass(
+                self, data: bytes, ref: Ref  # noqa: ARG002
+            ) -> bool:
+                if delegates_to_super:
+                    return super()._all_predicates_pass(data, ref)
+                return False
+
+        source = _SimpleSource("rejected", b"data")
+        sink = _LegacyOverrideSink(
+            sources=[source],
+            predicates=[_VerdictByPayload({b"data": Verdict.REJECT})],
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (None, None)
+
+    def test_registered_reject_does_not_resolve_legacy_override_hook(
+        self,
+    ) -> None:
+        class _ExplodingLookupSink(_SimpleSink):
+            def __getattribute__(self, name: str) -> object:
+                if name == "_all_predicates_pass":
+                    raise AssertionError("legacy hook must not be resolved")
+                return super().__getattribute__(name)
+
+        sink = _ExplodingLookupSink(
+            sources=[_SimpleSource("rejected", b"data")],
+            predicates=[_VerdictByPayload({b"data": Verdict.REJECT})],
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (None, None)
+
+    def test_legacy_override_hook_own_rejection_cannot_produce_reject_verdict(
+        self,
+    ) -> None:
+        class _LegacyOverrideSink(_SimpleSink):
+            def _all_predicates_pass(
+                self, data: bytes, ref: Ref  # noqa: ARG002
+            ) -> bool:
+                return False
+
+        source = _SimpleSource("fallback", b"data")
+        sink = _LegacyOverrideSink(
+            sources=[source],
+            predicates=[_VerdictByPayload({b"data": Verdict.ACCEPT})],
+        )
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"data", source)
+
+    def test_instance_level_legacy_override_hook_is_honored(self) -> None:
+        first = _SimpleSource("blocked", b"blocked")
+        second = _SimpleSource("allowed", b"allowed")
+        sink = _SimpleSink(
+            sources=[first, second],
+            predicates=[
+                _VerdictByPayload(
+                    {
+                        b"blocked": Verdict.ACCEPT,
+                        b"allowed": Verdict.ACCEPT,
+                    }
+                )
+            ],
+        )
+        sink._all_predicates_pass = lambda data, ref: data != b"blocked"  # type: ignore[method-assign]  # noqa: ARG005
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"allowed", second)
+
+    def test_cross_instance_bound_legacy_override_hook_is_honored(self) -> None:
+        first = _SimpleSource("blocked", b"blocked")
+        second = _SimpleSource("allowed", b"allowed")
+        policy_sink = _SimpleSink(
+            sources=[],
+            predicates=[
+                _VerdictByPayload(
+                    {
+                        b"blocked": Verdict.CONTINUE,
+                        b"allowed": Verdict.ACCEPT,
+                    }
+                )
+            ],
+        )
+        sink = _SimpleSink(
+            sources=[first, second],
+            predicates=[
+                _VerdictByPayload(
+                    {
+                        b"blocked": Verdict.ACCEPT,
+                        b"allowed": Verdict.ACCEPT,
+                    }
+                )
+            ],
+        )
+        sink._all_predicates_pass = policy_sink._all_predicates_pass  # type: ignore[method-assign]
+
+        assert sink.resolve_multi(_ref(), MagicMock()) == (b"allowed", second)
+
 
 # ---------------------------------------------------------------------------
 # MultiSourceSink — abstract method contract
@@ -367,21 +790,26 @@ class TestMultiSourceSinkContract:
 
 
 class TestFetchPredicateProtocol:
-    def test_custom_predicate_satisfies_protocol(self) -> None:
-        class _Always:
+    def test_runtime_protocol_requires_both_compatibility_methods(self) -> None:
+        legacy_only = _MinLengthPredicate(5)
+        native_only = _VerdictByPayload({b"data": Verdict.ACCEPT})
+
+        assert not isinstance(legacy_only, FetchPredicate)
+        assert not isinstance(native_only, FetchPredicate)
+
+    def test_runtime_checkable_isinstance(self) -> None:
+        """The full compatibility-window protocol is runtime checkable."""
+
+        class _BothApis:
+            def evaluate(
+                self, data: bytes, ref: Ref
+            ) -> Verdict:  # noqa: ARG002
+                return Verdict.ACCEPT
+
             def accepts(self, data: bytes, ref: Ref) -> bool:  # noqa: ARG002
                 return True
 
-        p: FetchPredicate = _Always()
-        assert p.accepts(b"anything", _ref()) is True
-
-    def test_min_length_predicate_satisfies_protocol(self) -> None:
-        p: FetchPredicate = _MinLengthPredicate(5)
-        assert p.accepts(b"x" * 10, _ref()) is True
-
-    def test_runtime_checkable_isinstance(self) -> None:
-        """FetchPredicate is @runtime_checkable — isinstance works on instances."""
-        p = _MinLengthPredicate(5)
+        p = _BothApis()
         assert isinstance(p, FetchPredicate)
 
     def test_runtime_checkable_rejects_non_protocol(self) -> None:

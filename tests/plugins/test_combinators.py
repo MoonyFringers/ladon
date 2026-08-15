@@ -3,13 +3,23 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import replace
+from itertools import product
+from pathlib import Path
 from typing import cast
 
 import pytest
 
 from ladon.networking.protocols import SyncHttpClientProtocol
-from ladon.plugins import AllOf, AnyOf, FetchPredicate, MultiSourceSink, Not
+from ladon.plugins import (
+    AllOf,
+    AnyOf,
+    FetchPredicate,
+    MultiSourceSink,
+    Not,
+    Verdict,
+)
 from ladon.plugins.models import Ref
 
 
@@ -35,8 +45,28 @@ class _PayloadIs:
         return data == self._expected
 
 
-class _RaisesIfCalled:
-    def accepts(self, data: bytes, ref: Ref) -> bool:
+class _StaticVerdictPredicate:
+    """Native three-valued predicate returning one configured verdict."""
+
+    def __init__(self, verdict: Verdict) -> None:
+        self._verdict = verdict
+
+    def evaluate(self, data: bytes, ref: Ref) -> Verdict:
+        return self._verdict
+
+
+class _BooleanEvaluatePredicate:
+    def evaluate(self, data: bytes, ref: Ref) -> bool:
+        return False
+
+
+class _Rejects:
+    def evaluate(self, data: bytes, ref: Ref) -> Verdict:
+        return Verdict.REJECT
+
+
+class _RaisesOnEvaluate:
+    def evaluate(self, data: bytes, ref: Ref) -> Verdict:
         raise AssertionError("should not have been called")
 
 
@@ -50,12 +80,28 @@ class _BrokenAcceptsDescriptor:
         raise RuntimeError("broken descriptor")
 
 
+class _BrokenEvaluateDescriptor:
+    @property
+    def evaluate(self) -> object:
+        raise RuntimeError("broken descriptor")
+
+
+class _BrokenTypeNameMeta(type):
+    def __getattribute__(cls, name: str) -> object:
+        if name == "__name__":
+            raise RuntimeError("type name unavailable")
+        return super().__getattribute__(name)
+
+
+class _NamelessInvalidPredicate(metaclass=_BrokenTypeNameMeta):
+    pass
+
+
 # Static conformance check: a concrete adapter-shaped predicate can be passed
 # through each combinator under strict Pyright checking.
-_typed_predicate: FetchPredicate = _StaticPredicate(True)
-_typed_all: FetchPredicate = AllOf(_typed_predicate)
-_typed_any: FetchPredicate = AnyOf(_typed_predicate)
-_typed_not: FetchPredicate = Not(_typed_predicate)
+_typed_all: FetchPredicate = AllOf(_StaticPredicate(True))
+_typed_any: FetchPredicate = AnyOf(_StaticPredicate(True))
+_typed_not: FetchPredicate = Not(_StaticPredicate(True))
 
 
 @pytest.mark.parametrize(
@@ -96,7 +142,7 @@ def test_all_of_empty_input_accepts() -> None:
     assert AllOf().accepts(b"data", _ref()) is True
 
 
-def test_any_of_empty_input_rejects() -> None:
+def test_any_of_empty_input_collapses_continue_to_false() -> None:
     assert AnyOf().accepts(b"data", _ref()) is False
 
 
@@ -119,16 +165,111 @@ def test_combinators_nest() -> None:
     assert predicate.accepts(b"acceptable", _ref("https://example.com/7"))
 
 
-def test_all_of_short_circuits_after_rejection() -> None:
-    predicate = AllOf(_StaticPredicate(False), _RaisesIfCalled())
+def test_all_of_short_circuits_after_reject() -> None:
+    predicate = AllOf(_Rejects(), _RaisesOnEvaluate())
 
     assert predicate.accepts(b"data", _ref()) is False
 
 
-def test_any_of_short_circuits_after_acceptance() -> None:
-    predicate = AnyOf(_StaticPredicate(True), _RaisesIfCalled())
+def test_any_of_short_circuits_after_reject() -> None:
+    predicate = AnyOf(_Rejects(), _RaisesOnEvaluate())
 
-    assert predicate.accepts(b"data", _ref()) is True
+    assert predicate.accepts(b"data", _ref()) is False
+
+
+@pytest.mark.parametrize("results", list(product(Verdict, repeat=3)))
+def test_all_of_verdict_truth_table(results: tuple[Verdict, ...]) -> None:
+    expected = (
+        Verdict.REJECT
+        if Verdict.REJECT in results
+        else (
+            Verdict.ACCEPT
+            if all(result is Verdict.ACCEPT for result in results)
+            else Verdict.CONTINUE
+        )
+    )
+    predicate = AllOf(*(_StaticVerdictPredicate(result) for result in results))
+
+    assert predicate.evaluate(b"data", _ref()) is expected
+
+
+@pytest.mark.parametrize("results", list(product(Verdict, repeat=3)))
+def test_any_of_verdict_truth_table(results: tuple[Verdict, ...]) -> None:
+    expected = (
+        Verdict.REJECT
+        if Verdict.REJECT in results
+        else Verdict.ACCEPT if Verdict.ACCEPT in results else Verdict.CONTINUE
+    )
+    predicate = AnyOf(*(_StaticVerdictPredicate(result) for result in results))
+
+    assert predicate.evaluate(b"data", _ref()) is expected
+
+
+@pytest.mark.parametrize(
+    ("component", "expected"),
+    [
+        (Verdict.ACCEPT, Verdict.CONTINUE),
+        (Verdict.CONTINUE, Verdict.ACCEPT),
+        (Verdict.REJECT, Verdict.REJECT),
+    ],
+)
+def test_not_verdict_truth_table(component: Verdict, expected: Verdict) -> None:
+    predicate = Not(_StaticVerdictPredicate(component))
+
+    assert predicate.evaluate(b"data", _ref()) is expected
+
+
+def test_empty_combinator_verdicts() -> None:
+    assert AllOf().evaluate(b"data", _ref()) is Verdict.ACCEPT
+    assert AnyOf().evaluate(b"data", _ref()) is Verdict.CONTINUE
+
+
+@pytest.mark.parametrize(
+    "predicate",
+    [
+        AllOf(_BooleanEvaluatePredicate()),
+        AnyOf(_BooleanEvaluatePredicate()),
+        Not(_BooleanEvaluatePredicate()),
+    ],
+)
+def test_combinators_require_verdict_results(predicate: FetchPredicate) -> None:
+    with pytest.raises(
+        TypeError,
+        match=r"evaluate\(data, ref\) must return a Verdict, got bool",
+    ):
+        predicate.evaluate(b"data", _ref())
+
+
+def test_mixed_legacy_and_native_predicates() -> None:
+    predicate = AllOf(
+        _StaticPredicate(True),
+        AnyOf(
+            _StaticPredicate(False),
+            _StaticVerdictPredicate(Verdict.ACCEPT),
+        ),
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert predicate.evaluate(b"data", _ref()) is Verdict.ACCEPT
+
+    assert len(caught) == 2
+    assert all(
+        Path(warning.filename).resolve() == Path(__file__).resolve()
+        for warning in caught
+    )
+
+
+@pytest.mark.parametrize("combinator", [AllOf, AnyOf])
+def test_non_reject_does_not_hide_later_reject(combinator: object) -> None:
+    first = (
+        _StaticVerdictPredicate(Verdict.CONTINUE)
+        if combinator is AllOf
+        else _StaticVerdictPredicate(Verdict.ACCEPT)
+    )
+    predicate = combinator(first, _Rejects())  # type: ignore[operator]
+
+    assert predicate.evaluate(b"data", _ref()) is Verdict.REJECT
 
 
 def test_combinators_satisfy_fetch_predicate_at_runtime() -> None:
@@ -141,23 +282,41 @@ def test_non_predicates_are_rejected_at_construction() -> None:
     for value in ("not a predicate", _NonCallableAccepts()):
         invalid = cast(FetchPredicate, value)
 
-        with pytest.raises(TypeError, match="must implement callable accepts"):
+        with pytest.raises(TypeError, match="must implement callable evaluate"):
             AllOf(invalid)
-        with pytest.raises(TypeError, match="must implement callable accepts"):
+        with pytest.raises(TypeError, match="must implement callable evaluate"):
             AnyOf(invalid)
-        with pytest.raises(TypeError, match="must implement callable accepts"):
+        with pytest.raises(TypeError, match="must implement callable evaluate"):
             Not(invalid)
 
 
 def test_broken_accepts_descriptor_is_rejected_with_type_error() -> None:
     invalid = cast(FetchPredicate, _BrokenAcceptsDescriptor())
 
-    with pytest.raises(TypeError, match="must implement callable accepts"):
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
         AllOf(invalid)
-    with pytest.raises(TypeError, match="must implement callable accepts"):
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
         AnyOf(invalid)
-    with pytest.raises(TypeError, match="must implement callable accepts"):
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
         Not(invalid)
+
+
+def test_broken_evaluate_descriptor_is_rejected_with_type_error() -> None:
+    invalid = cast(FetchPredicate, _BrokenEvaluateDescriptor())
+
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
+        AllOf(invalid)
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
+        AnyOf(invalid)
+    with pytest.raises(TypeError, match="must implement callable evaluate"):
+        Not(invalid)
+
+
+def test_invalid_predicate_with_broken_type_name_reports_shape_error() -> None:
+    invalid = cast(FetchPredicate, _NamelessInvalidPredicate())
+
+    with pytest.raises(TypeError, match="got _NamelessInvalidPredicate"):
+        AllOf(invalid)
 
 
 def test_dataclasses_replace_preserves_variadic_combinators() -> None:
@@ -214,7 +373,7 @@ def test_multi_source_sink_falls_through_until_combinator_accepts() -> None:
     assert second.calls == 1
 
 
-def test_multi_source_sink_returns_fallback_after_combinator_rejects() -> None:
+def test_sink_returns_fallback_after_combinator_continues() -> None:
     source = _Source("only", b"fallback")
     sink = _Sink(
         sources=[source],

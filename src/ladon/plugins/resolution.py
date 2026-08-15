@@ -18,25 +18,35 @@ The loop pattern
             continue                              # unexpected errors propagate
         if not data:
             continue                               # source returned nothing / empty bytes
+        verdict = predicates.evaluate(data, ref)   # implicit AllOf
+        if verdict is REJECT:
+            continue                               # never a fallback
         if _is_better_candidate(data, ...):        # update best-seen fallback
             best = (data, source)
-        if not predicates or all predicates pass:
+        if verdict is ACCEPT:
             return (data, source)                  # accepted — stop
     return best                                    # best-seen fallback (may be None)
 
-``FetchPredicate`` is the extension point: adapters inject domain-specific
-acceptance criteria (image width, placeholder detection, price tolerance …)
-without modifying the loop mechanics.
+``FetchPredicate`` is the extension point: adapters return a three-valued
+:class:`Verdict` from ``evaluate()`` to inject domain-specific acceptance and
+disqualification criteria (image width, placeholder detection, price
+tolerance …) without modifying the loop mechanics.  Legacy ``accepts()``
+predicates remain supported through a deprecated automatic adapter.
 
-ADR: ADR-013
+Ladon issues: #122 (predicate combinators), #123 (this three-valued Verdict)
 """
 
 from __future__ import annotations
 
+import enum
+import inspect
 import logging
 import uuid
+import warnings
 from datetime import datetime, timezone
+from types import MethodType
 from typing import Any, Protocol, Sequence, runtime_checkable
+from unittest.mock import NonCallableMock
 
 from ..networking.errors import HttpClientError
 from ..networking.protocols import SyncHttpClientProtocol
@@ -47,6 +57,40 @@ from .models import Ref
 logger = logging.getLogger(__name__)
 
 _NULL_TRACKER = NullDecisionTracker()
+_PREDICATE_SHAPE_ERROR = (
+    "predicate must implement callable evaluate(data, ref) or "
+    "accepts(data, ref); got {name}"
+)
+
+
+def _type_name(value: object) -> str:
+    """Return the concrete type name without invoking its metaclass hooks."""
+    return type.__getattribute__(type(value), "__name__")
+
+
+def _diagnostic_attribute(value: object, attribute: str) -> str:
+    """Return a stable string attribute without breaking resolution."""
+    try:
+        diagnostic_value = getattr(value, attribute)
+    except Exception:
+        diagnostic_value = value
+
+    if isinstance(diagnostic_value, str):
+        return diagnostic_value
+    try:
+        return str(diagnostic_value)
+    except Exception:
+        if diagnostic_value is not value:
+            try:
+                return str(value)
+            except Exception:
+                pass
+        return _type_name(value)
+
+
+def _source_name(source: object) -> str:
+    """Return a best-effort diagnostic name without breaking resolution."""
+    return _diagnostic_attribute(source, "name")
 
 
 # ---------------------------------------------------------------------------
@@ -54,33 +98,121 @@ _NULL_TRACKER = NullDecisionTracker()
 # ---------------------------------------------------------------------------
 
 
+class Verdict(enum.Enum):
+    """A predicate's decision for one fetched candidate."""
+
+    ACCEPT = "accept"  # stop the loop, use this result
+    REJECT = "reject"  # never usable: not accepted, never a fallback;
+    # the loop still tries the next source
+    CONTINUE = "continue"  # keep as fallback candidate, try next source
+
+
 @runtime_checkable
 class FetchPredicate(Protocol):
-    """Acceptance criterion on a raw fetch result.
+    """Three-valued criterion on a raw fetch result.
 
-    Returns ``True`` if *data* is good enough to stop the resolution loop.
-    Returns ``False`` to keep *data* as a fallback candidate and continue to
-    the next source in search of a better result.
+    ``evaluate()`` is the primary API.  It returns :attr:`Verdict.ACCEPT` to
+    stop resolution with *data*, :attr:`Verdict.CONTINUE` to retain *data* as
+    a possible fallback while trying the next source, or
+    :attr:`Verdict.REJECT` to permanently disqualify only this candidate.
+
+    ``accepts()`` is the deprecated boolean API retained for the compatibility
+    window.  Runtime consumers accept predicate objects implementing either
+    callable method: legacy ``True`` maps to ``ACCEPT`` and ``False`` maps to
+    ``CONTINUE``.
 
     .. note::
-        ``isinstance(obj, FetchPredicate)`` only checks that an ``accepts``
-        attribute *exists* — it does not verify callability or signature.
-        Passing a mis-shaped object will raise ``TypeError`` at call time
-        inside :meth:`MultiSourceSink.resolve_multi`, not at construction.
+        Because both compatibility-window methods are declared for static
+        type checkers, ``isinstance(obj, FetchPredicate)`` checks for both
+        attributes.  Runtime predicate consumers intentionally use duck typing
+        and require only one callable method.
 
     Predicates may optionally expose a duck-typed, zero-argument
     ``rejection_info() -> dict[str, Any]`` method; it is deliberately not a
     Protocol member, so existing predicates without it continue to work.
-    When a predicate rejects a result, :meth:`MultiSourceSink.resolve_multi`
-    merges the returned mapping into that ``predicate_rejected`` event's
+    On ``CONTINUE`` or ``REJECT``, :meth:`MultiSourceSink.resolve_multi` may
+    merge the returned mapping into the corresponding tracker event's
     metadata. Exceptions from this method are swallowed and logged at DEBUG
     level. Its ``predicate_name`` value, if any, is always overwritten by the
-    authoritative rejecting predicate name.
+    authoritative predicate name.
     """
 
-    def accepts(self, data: bytes, ref: Ref) -> bool:
-        """Return True if this result is acceptable."""
+    def evaluate(self, data: bytes, ref: Ref) -> Verdict:
+        """Return the three-valued verdict for this result."""
         ...
+
+    def accepts(self, data: bytes, ref: Ref) -> bool:
+        """Return whether this result is acceptable (deprecated)."""
+        ...
+
+
+def _evaluate_predicate(predicate: object, data: bytes, ref: Ref) -> Verdict:
+    """Evaluate a native or legacy predicate and return its verdict."""
+    evaluate_returned_invalid_result = False
+    invalid_evaluate_result: object = None
+    try:
+        evaluate = getattr(predicate, "evaluate", None)
+    except Exception as exc:
+        raise TypeError(
+            _PREDICATE_SHAPE_ERROR.format(name=_type_name(predicate))
+        ) from exc
+    if callable(evaluate):
+        result = evaluate(data, ref)
+        if type(result) is Verdict:
+            return result
+        if not (
+            isinstance(result, NonCallableMock)
+            or getattr(evaluate, "__func__", None) is FetchPredicate.evaluate
+        ):
+            raise TypeError(
+                "evaluate(data, ref) must return a Verdict, "
+                f"got {_type_name(result)}"
+            )
+        evaluate_returned_invalid_result = True
+        invalid_evaluate_result = result
+
+    try:
+        accepts = getattr(predicate, "accepts", None)
+    except Exception as exc:
+        if evaluate_returned_invalid_result:
+            raise TypeError(
+                "evaluate(data, ref) must return a Verdict, "
+                f"got {_type_name(invalid_evaluate_result)}"
+            ) from exc
+        raise TypeError(
+            _PREDICATE_SHAPE_ERROR.format(name=_type_name(predicate))
+        ) from exc
+    if not callable(accepts):
+        if evaluate_returned_invalid_result:
+            raise TypeError(
+                "evaluate(data, ref) must return a Verdict, "
+                f"got {_type_name(invalid_evaluate_result)}"
+            )
+        raise TypeError(
+            _PREDICATE_SHAPE_ERROR.format(name=_type_name(predicate))
+        )
+
+    # Skip however many internal consumer frames led here so the warning
+    # identifies the adapter/user call that caused the compatibility path to
+    # run. This also handles arbitrarily nested combinators.
+    stacklevel = 2
+    frame = inspect.currentframe()
+    if frame is not None:
+        frame = frame.f_back
+        while frame is not None and frame.f_globals.get("__name__") in {
+            __name__,
+            "ladon.plugins.combinators",
+        }:
+            stacklevel += 1
+            frame = frame.f_back
+    del frame
+    warnings.warn(
+        "FetchPredicate.accepts() is deprecated; implement "
+        "evaluate() -> Verdict instead",
+        DeprecationWarning,
+        stacklevel=stacklevel,
+    )
+    return Verdict.ACCEPT if accepts(data, ref) else Verdict.CONTINUE
 
 
 # ---------------------------------------------------------------------------
@@ -104,9 +236,10 @@ class MultiSourceSink:
         below-threshold results exist).
 
     ``_all_predicates_pass(data, ref) → bool``
-        Acceptance customization when at least one predicate is registered.
-        Default: all registered predicates must accept. Override to add
-        criteria beyond the registered predicates. The predicate-free fast
+        Deprecated boolean customization hook retained for subclass backward
+        compatibility. Default: all registered predicates must return
+        ``ACCEPT``. An override maps ``True`` to ``ACCEPT`` and ``False`` to
+        ``CONTINUE``; it cannot produce ``REJECT``. The predicate-free fast
         path accepts the first non-empty result without calling this hook.
 
     ``_fetch_from_source(source, ref, client) → bytes | None``
@@ -126,11 +259,11 @@ class MultiSourceSink:
     def __init__(
         self,
         sources: list[Any],
-        predicates: Sequence[FetchPredicate] = (),
+        predicates: Sequence[object] = (),
         tracker: DecisionTracker = _NULL_TRACKER,
     ) -> None:
         self._ms_sources: list[Any] = list(sources)
-        self._ms_predicates: list[FetchPredicate] = list(predicates)
+        self._ms_predicates: list[object] = list(predicates)
         self._tracker = tracker
 
     # ------------------------------------------------------------------
@@ -151,7 +284,7 @@ class MultiSourceSink:
     ) -> bytes | None:
         """Fetch raw bytes from *source* for *ref*. Must be overridden."""
         raise NotImplementedError(
-            f"{type(self).__name__} must implement _fetch_from_source"
+            f"{_type_name(self)} must implement _fetch_from_source"
         )
 
     def _should_try_source(self, _source: Any, _ref: Ref) -> bool:
@@ -184,28 +317,61 @@ class MultiSourceSink:
         """
         return best_source is None
 
+    def __record(self, event: DecisionEvent) -> None:
+        """Persist *event* without letting tracker failures abort resolution."""
+        try:
+            self._tracker.record(event)
+        except Exception as exc:
+            logger.debug(
+                "tracker.record() for event %r raised %s — ignoring",
+                event.event,
+                _type_name(exc),
+            )
+
     # ------------------------------------------------------------------
     # Loop
     # ------------------------------------------------------------------
 
-    def _first_failing_predicate(
+    def _evaluate_predicates(
         self, data: bytes, ref: Ref
-    ) -> FetchPredicate | None:
-        """Return the first registered predicate that rejects *data*, evaluating
-        each predicate at most once. Returns None if every predicate accepts
-        (or none are registered)."""
-        for p in self._ms_predicates:
-            if not p.accepts(data, ref):
-                return p
-        return None
+    ) -> tuple[Verdict, object | None]:
+        """Evaluate registered predicates with the ``AllOf`` truth table.
+
+        Evaluation stops only on ``REJECT``.  The predicate returned for
+        metadata is the predicate that produced ``REJECT`` when the aggregate
+        is ``REJECT``, otherwise the first component that produced
+        ``CONTINUE``, or ``None`` when all components accepted.
+        """
+        aggregate = Verdict.ACCEPT
+        first_non_accept: object | None = None
+        for predicate in self._ms_predicates:
+            verdict = _evaluate_predicate(predicate, data, ref)
+            if verdict is not Verdict.ACCEPT and first_non_accept is None:
+                first_non_accept = predicate
+            if verdict is Verdict.REJECT:
+                return Verdict.REJECT, predicate
+            if verdict is Verdict.CONTINUE:
+                aggregate = Verdict.CONTINUE
+        return aggregate, first_non_accept
 
     def _all_predicates_pass(self, data: bytes, ref: Ref) -> bool:
         """Return True if *data* satisfies every registered predicate.
 
         Override to add acceptance criteria beyond registered predicates.
         This hook is not called when no predicates are registered.
+        A registered predicate's ``REJECT`` verdict is absolute and cannot be
+        bypassed or suppressed by this hook. When no predicate rejects, an
+        override's ``True`` maps to ``ACCEPT`` and ``False`` maps to
+        ``CONTINUE``. This boolean hook cannot itself produce ``REJECT``; only
+        registered predicates using ``evaluate()`` can do so.
+        An override that delegates to
+        ``super()._all_predicates_pass(data, ref)`` evaluates registered
+        predicates twice per candidate. Adapters with expensive or stateful
+        predicates should prefer composing ``evaluate()``-native predicates
+        via ``AllOf``/``AnyOf`` instead of overriding this legacy hook.
         """
-        return self._first_failing_predicate(data, ref) is None
+        verdict, _ = self._evaluate_predicates(data, ref)
+        return verdict is Verdict.ACCEPT
 
     def resolve_multi(
         self, ref: Ref, client: SyncHttpClientProtocol, *, run_id: str = ""
@@ -229,18 +395,20 @@ class MultiSourceSink:
             "subclass must override" contract is preserved.
         """
         _run_id = run_id or str(uuid.uuid4())
+        ref_name = _diagnostic_attribute(ref, "url")
         best_data: bytes | None = None
         best_source: Any | None = None
+        best_source_name: str | None = None
 
         for source in self._ms_sources:
-            source_name: str = getattr(source, "name", str(source))
+            source_name = _source_name(source)
 
             if not self._should_try_source(source, ref):
-                self._tracker.record(
+                self.__record(
                     DecisionEvent(
                         run_id=_run_id,
                         timestamp=datetime.now(timezone.utc),
-                        ref=ref.url,
+                        ref=ref_name,
                         source=source_name,
                         event="source_skipped",
                         reason="source guard returned False",
@@ -249,7 +417,7 @@ class MultiSourceSink:
                 logger.debug(
                     "resolution: skipping source %r for %s",
                     source_name,
-                    ref.url,
+                    ref_name,
                 )
                 continue
 
@@ -258,25 +426,34 @@ class MultiSourceSink:
             except NotImplementedError:
                 raise
             except (HttpClientError, LeafUnavailableError) as exc:
-                self._tracker.record(
+                exception_type = _type_name(exc)
+                try:
+                    failure_reason = str(exc)
+                except Exception:
+                    failure_reason = exception_type
+                try:
+                    status_code = getattr(exc, "status_code", None)
+                except Exception:
+                    status_code = None
+                self.__record(
                     DecisionEvent(
                         run_id=_run_id,
                         timestamp=datetime.now(timezone.utc),
-                        ref=ref.url,
+                        ref=ref_name,
                         source=source_name,
                         event="source_failed",
-                        reason=str(exc),
+                        reason=failure_reason,
                         metadata={
-                            "exception_type": type(exc).__name__,
-                            "status_code": getattr(exc, "status_code", None),
+                            "exception_type": exception_type,
+                            "status_code": status_code,
                         },
                     )
                 )
                 logger.warning(
                     "resolution: source %r raised %s for %s; trying next",
                     source_name,
-                    type(exc).__name__,
-                    ref.url,
+                    exception_type,
+                    ref_name,
                 )
                 continue
 
@@ -284,24 +461,89 @@ class MultiSourceSink:
                 logger.debug(
                     "resolution: %r returned no data for %s",
                     source_name,
-                    ref.url,
+                    ref_name,
                 )
                 continue
 
-            # Update the best-seen fallback before checking predicates.
-            # If predicates pass we return data/source directly (not best_data),
-            # so the update is a no-op in that path. If predicates fail, the
-            # updated best_data becomes the last-resort fallback after the loop.
+            if not self._ms_predicates:
+                verdict, failing = Verdict.ACCEPT, None
+            else:
+                verdict, failing = self._evaluate_predicates(data, ref)
+                if verdict is not Verdict.REJECT:
+                    predicate_check = self._all_predicates_pass
+                    is_default_hook = (
+                        isinstance(predicate_check, MethodType)
+                        and predicate_check.__self__ is self
+                        and predicate_check.__func__
+                        is MultiSourceSink._all_predicates_pass
+                    )
+                    if not is_default_hook:
+                        # An override may add its own criteria on top of the
+                        # registered predicates, but its legacy bool result can
+                        # neither produce REJECT nor suppress a registered veto.
+                        accepted = predicate_check(data, ref)
+                        verdict = (
+                            Verdict.ACCEPT if accepted else Verdict.CONTINUE
+                        )
+                        failing = None
+
+            rejection_meta: dict[str, Any] | None = None
+            if verdict is not Verdict.ACCEPT:
+                predicate_name = (
+                    _type_name(failing)
+                    if failing is not None
+                    else "<subclass-override>"
+                )
+                rejection_meta = {}
+                if failing is not None:
+                    try:
+                        _get_info = getattr(failing, "rejection_info", None)
+                        if callable(_get_info):
+                            rejection_meta.update(_get_info())  # type: ignore[arg-type]
+                    except Exception as _info_exc:
+                        logger.debug(
+                            "rejection_info on %r raised %s — ignoring",
+                            predicate_name,
+                            _type_name(_info_exc),
+                        )
+                # predicate_name is written last so a badly-behaved rejection_info()
+                # cannot overwrite it.
+                rejection_meta["predicate_name"] = predicate_name
+
+            if verdict is Verdict.REJECT:
+                assert rejection_meta is not None
+                self.__record(
+                    DecisionEvent(
+                        run_id=_run_id,
+                        timestamp=datetime.now(timezone.utc),
+                        ref=ref_name,
+                        source=source_name,
+                        event="candidate_disqualified",
+                        reason="predicate verdict REJECT; candidate can never be accepted or used as fallback",
+                        metadata=rejection_meta,
+                    )
+                )
+                logger.debug(
+                    "resolution: %r was disqualified for %s; trying next",
+                    source_name,
+                    ref_name,
+                )
+                continue
+
+            # ACCEPT and CONTINUE candidates remain eligible for fallback
+            # ranking. REJECT candidates have already continued above and are
+            # never offered to this hook.
             if self._is_better_candidate(
                 data, source, best_data, best_source, ref
             ):
                 best_data = data
                 best_source = source
-                self._tracker.record(
+                best_source_name = source_name
+                self.__record(
                     DecisionEvent(
                         run_id=_run_id,
                         timestamp=datetime.now(timezone.utc),
-                        ref=ref.url,
+                        ref=ref_name,
                         source=source_name,
                         event="candidate_accepted",
                         reason="new best candidate",
@@ -310,51 +552,26 @@ class MultiSourceSink:
                 logger.debug(
                     "resolution: %r is new best candidate for %s",
                     source_name,
-                    ref.url,
+                    ref_name,
                 )
             else:
-                self._tracker.record(
+                self.__record(
                     DecisionEvent(
                         run_id=_run_id,
                         timestamp=datetime.now(timezone.utc),
-                        ref=ref.url,
+                        ref=ref_name,
                         source=source_name,
                         event="candidate_rejected",
                         reason="not stored as best-seen fallback; may still be resolved if predicates pass",
                     )
                 )
 
-            if not self._ms_predicates:
-                accepted, failing = True, None
-            else:
-                predicate_check = self._all_predicates_pass
-                if (
-                    getattr(predicate_check, "__func__", None)
-                    is MultiSourceSink._all_predicates_pass
-                ):
-                    # Default path: one evaluation pass serves both the accept
-                    # decision and (on rejection) the failing predicate's identity
-                    # for metadata.
-                    failing = self._first_failing_predicate(data, ref)
-                    accepted = failing is None
-                else:
-                    # A dynamically resolved _all_predicates_pass override has
-                    # logic we can't introspect; call it for the decision. Only
-                    # re-scan registered predicates (a second, unavoidable pass)
-                    # to attribute the rejection if it rejects.
-                    accepted = predicate_check(data, ref)
-                    failing = (
-                        None
-                        if accepted
-                        else self._first_failing_predicate(data, ref)
-                    )
-
-            if accepted:
-                self._tracker.record(
+            if verdict is Verdict.ACCEPT:
+                self.__record(
                     DecisionEvent(
                         run_id=_run_id,
                         timestamp=datetime.now(timezone.utc),
-                        ref=ref.url,
+                        ref=ref_name,
                         source=source_name,
                         event="resolved",
                         reason="accepted from active source",
@@ -364,37 +581,16 @@ class MultiSourceSink:
                 logger.debug(
                     "resolution: accepted result from %r for %s",
                     source_name,
-                    ref.url,
+                    ref_name,
                 )
                 return data, source
 
-            # If failing is None, the rejection came from an
-            # _all_predicates_pass override rather than a registered predicate.
-            predicate_name = (
-                type(failing).__name__
-                if failing is not None
-                else "<subclass-override>"
-            )
-            rejection_meta: dict[str, Any] = {}
-            if failing is not None:
-                _get_info = getattr(failing, "rejection_info", None)
-                if callable(_get_info):
-                    try:
-                        rejection_meta.update(_get_info())  # type: ignore[arg-type]
-                    except Exception as _info_exc:
-                        logger.debug(
-                            "rejection_info() on %r raised %s — ignoring",
-                            predicate_name,
-                            _info_exc,
-                        )
-            # predicate_name is written last so a badly-behaved rejection_info()
-            # cannot overwrite it.
-            rejection_meta["predicate_name"] = predicate_name
-            self._tracker.record(
+            assert rejection_meta is not None
+            self.__record(
                 DecisionEvent(
                     run_id=_run_id,
                     timestamp=datetime.now(timezone.utc),
-                    ref=ref.url,
+                    ref=ref_name,
                     source=source_name,
                     event="predicate_rejected",
                     reason="one or more predicates rejected the result",
@@ -404,31 +600,27 @@ class MultiSourceSink:
             logger.debug(
                 "resolution: %r did not pass all predicates for %s; trying next",
                 source_name,
-                ref.url,
+                ref_name,
             )
 
         if best_data is not None:
-            self._tracker.record(
+            self.__record(
                 DecisionEvent(
                     run_id=_run_id,
                     timestamp=datetime.now(timezone.utc),
-                    ref=ref.url,
-                    source=(
-                        getattr(best_source, "name", str(best_source))
-                        if best_source is not None
-                        else None
-                    ),
+                    ref=ref_name,
+                    source=best_source_name,
                     event="resolved",
                     reason="best-seen fallback returned after loop exhausted",
                     metadata={"via_fallback": True},
                 )
             )
         else:
-            self._tracker.record(
+            self.__record(
                 DecisionEvent(
                     run_id=_run_id,
                     timestamp=datetime.now(timezone.utc),
-                    ref=ref.url,
+                    ref=ref_name,
                     source=None,
                     event="no_result",
                     reason="no source produced a usable result",

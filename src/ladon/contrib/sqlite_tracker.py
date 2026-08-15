@@ -6,7 +6,8 @@ for the common post-run query shapes:
 
 - All decisions for a specific issue: ``SELECT * FROM decisions WHERE ref = ?``
 - All decisions from a run: ``SELECT * FROM decisions WHERE run_id = ?``
-- Rejection rate by source: ``SELECT source, COUNT(*) FROM decisions WHERE event = 'predicate_rejected' GROUP BY source``
+- Rejection rate by source: ``SELECT source, COUNT(*) FROM decisions WHERE event
+  IN ('predicate_rejected', 'candidate_disqualified') GROUP BY source``
 
 Schema
 ------
@@ -104,7 +105,11 @@ class SqliteDecisionTracker:
                 event.source,
                 event.event,
                 event.reason,
-                json.dumps(event.metadata) if event.metadata else None,
+                (
+                    json.dumps(event.metadata, default=str)
+                    if event.metadata
+                    else None
+                ),
             ),
         )
         self._conn.commit()
