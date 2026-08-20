@@ -557,6 +557,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#fixed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1690,6 +1701,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#fixed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1956,9 +1978,20 @@ Versioning follows <a href="https://semver.org/spec/v2.0.0.html">Semantic Versio
 <li><strong><code>run_plugin()</code> / <code>async_run_plugin()</code></strong> — source-driven whole-plugin
   entry points. They discover roots once, preserve one <code>RunResult</code> per root,
   and return aggregate counts and source-indexed errors in <code>PluginRunResult</code>.</li>
+<li><strong><code>Verdict</code> and <code>FetchPredicate.evaluate()</code></strong> — three-valued predicate
+  results make <code>ACCEPT</code>, <code>CONTINUE</code>, and <code>REJECT</code> explicit. Rejected candidates
+  are excluded from acceptance and fallback selection while remaining sources
+  are searched; <code>AllOf</code>, <code>AnyOf</code>, and <code>Not</code> preserve <code>REJECT</code> as an absolute
+  veto.</li>
 <li><strong><code>rejection_info()</code></strong> — optional duck-typed extension point on
   <code>FetchPredicate</code> implementations for adding predicate-specific diagnostics
   to <code>predicate_rejected</code> decision-event metadata.</li>
+</ul>
+<h3 id="deprecated">Deprecated</h3>
+<ul>
+<li><strong><code>FetchPredicate.accepts() -&gt; bool</code></strong> — use <code>evaluate() -&gt; Verdict</code> instead.
+  The boolean API remains supported for one full minor release and emits a
+  <code>DeprecationWarning</code> on every legacy invocation.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>

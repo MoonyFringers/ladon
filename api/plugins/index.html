@@ -2330,12 +2330,12 @@ LeafRecordT]</code> bundles all three.</p>
 <span class="normal"><a href="#__codelineno-0-60">60</a></span>
 <span class="normal"><a href="#__codelineno-0-61">61</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="nd">@runtime_checkable</span>
 <a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">SourceRefT_co</span><span class="p">]):</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Discover top-level refs from an external source.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">    </span><span class="sd">"""Discover top-level refs from an external source."""</span>
 <a id="__codelineno-0-56" name="__codelineno-0-56"></a>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SourceRefT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all discoverable top-level references.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="w">        </span><span class="sd">"""Return all discoverable top-level references."""</span>
 <a id="__codelineno-0-61" name="__codelineno-0-61"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -2376,7 +2376,7 @@ LeafRecordT]</code> bundles all three.</p>
 <span class="normal"><a href="#__codelineno-0-61">61</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SourceRefT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return all discoverable top-level references.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="w">    </span><span class="sd">"""Return all discoverable top-level references."""</span>
 <a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2448,18 +2448,18 @@ LeafRecordT]</code> bundles all three.</p>
 <a id="__codelineno-0-69" name="__codelineno-0-69"></a>        <span class="n">ExpanderChildRawT_co</span><span class="p">,</span>
 <a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="p">]</span>
 <a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="p">):</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand one ref into a record plus child refs.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="w">    </span><span class="sd">"""Expand one ref into a record plus child refs."""</span>
 <a id="__codelineno-0-73" name="__codelineno-0-73"></a>
 <a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span>
 <a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">ExpanderRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expansion</span><span class="p">[</span><span class="n">ExpanderRecordT_co</span><span class="p">,</span> <span class="n">ExpanderChildRawT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch ref, return its record and the child refs to process next.</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">        </span><span class="sd">"""Fetch ref, return its record and the child refs to process next.</span>
 <a id="__codelineno-0-78" name="__codelineno-0-78"></a>
 <a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">        Raises:</span>
 <a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="sd">            ExpansionNotReadyError: ref is not yet ready to be expanded.</span>
 <a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">            PartialExpansionError: child list is incomplete.</span>
 <a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">            ChildListUnavailableError: child list could not be retrieved.</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">        """</span>
 <a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -2549,13 +2549,13 @@ LeafRecordT]</code> bundles all three.</p>
 <span class="normal"><a href="#__codelineno-0-84">84</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span>
 <a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">ExpanderRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expansion</span><span class="p">[</span><span class="n">ExpanderRecordT_co</span><span class="p">,</span> <span class="n">ExpanderChildRawT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch ref, return its record and the child refs to process next.</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">    </span><span class="sd">"""Fetch ref, return its record and the child refs to process next.</span>
 <a id="__codelineno-0-78" name="__codelineno-0-78"></a>
 <a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">    Raises:</span>
 <a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="sd">        ExpansionNotReadyError: ref is not yet ready to be expanded.</span>
 <a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">        PartialExpansionError: child list is incomplete.</span>
 <a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">        ChildListUnavailableError: child list could not be retrieved.</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    """</span>
 <a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2616,19 +2616,19 @@ LeafRecordT]</code> bundles all three.</p>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="nd">@runtime_checkable</span>
 <a id="__codelineno-0-88" name="__codelineno-0-88"></a><span class="k">class</span><span class="w"> </span><span class="nc">Sink</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">SinkRefT_contra</span><span class="p">,</span> <span class="n">SinkRecordT_co</span><span class="p">]):</span>
-<a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Consume a leaf ref and return its final record.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="w">    </span><span class="sd">"""Consume a leaf ref and return its final record."""</span>
 <a id="__codelineno-0-90" name="__codelineno-0-90"></a>
 <a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span>
 <a id="__codelineno-0-92" name="__codelineno-0-92"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">SinkRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-93" name="__codelineno-0-93"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SinkRecordT_co</span><span class="p">:</span>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch and parse one leaf ref, returning a complete record.</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="w">        </span><span class="sd">"""Fetch and parse one leaf ref, returning a complete record.</span>
 <a id="__codelineno-0-95" name="__codelineno-0-95"></a>
 <a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        Context for the leaf (e.g. parent data) flows through</span>
 <a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        ``ref.raw`` — no parent-record parameter is needed here.</span>
 <a id="__codelineno-0-98" name="__codelineno-0-98"></a>
 <a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">        Raises:</span>
 <a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">            LeafUnavailableError: ref could not be fetched or parsed.</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">        """</span>
 <a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -2701,14 +2701,14 @@ LeafRecordT]</code> bundles all three.</p>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span>
 <a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">SinkRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">SyncHttpClientProtocol</span>
 <a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SinkRecordT_co</span><span class="p">:</span>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch and parse one leaf ref, returning a complete record.</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="w">    </span><span class="sd">"""Fetch and parse one leaf ref, returning a complete record.</span>
 <a id="__codelineno-0-95" name="__codelineno-0-95"></a>
 <a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">    Context for the leaf (e.g. parent data) flows through</span>
 <a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">    ``ref.raw`` — no parent-record parameter is needed here.</span>
 <a id="__codelineno-0-98" name="__codelineno-0-98"></a>
 <a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">    Raises:</span>
 <a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">        LeafUnavailableError: ref could not be fetched or parsed.</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">    """</span>
 <a id="__codelineno-0-102" name="__codelineno-0-102"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2811,10 +2811,10 @@ check — it is a CLI convention only and not part of this protocol.</p>
 <a id="__codelineno-0-110" name="__codelineno-0-110"></a>        <span class="n">PluginLeafRecordT_co</span><span class="p">,</span>
 <a id="__codelineno-0-111" name="__codelineno-0-111"></a>    <span class="p">]</span>
 <a id="__codelineno-0-112" name="__codelineno-0-112"></a><span class="p">):</span>
-<a id="__codelineno-0-113" name="__codelineno-0-113"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle of all adapters for one crawl domain.</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a><span class="w">    </span><span class="sd">"""Bundle of all adapters for one crawl domain.</span>
 <a id="__codelineno-0-114" name="__codelineno-0-114"></a>
 <a id="__codelineno-0-115" name="__codelineno-0-115"></a><span class="sd">    ``name`` is a short identifier used in log lines and error messages</span>
-<a id="__codelineno-0-116" name="__codelineno-0-116"></a><span class="sd">    (e.g. ``&quot;acme_shop&quot;``, ``&quot;widgetco&quot;``). ``source`` produces</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a><span class="sd">    (e.g. ``"acme_shop"``, ``"widgetco"``). ``source`` produces</span>
 <a id="__codelineno-0-117" name="__codelineno-0-117"></a><span class="sd">    top-level refs. ``expanders`` is an ordered list of expansion steps</span>
 <a id="__codelineno-0-118" name="__codelineno-0-118"></a><span class="sd">    (one per tree level above the leaves). ``sink`` consumes the leaf</span>
 <a id="__codelineno-0-119" name="__codelineno-0-119"></a><span class="sd">    refs produced by the last expander.</span>
@@ -2829,7 +2829,7 @@ check — it is a CLI convention only and not part of this protocol.</p>
 <a id="__codelineno-0-128" name="__codelineno-0-128"></a><span class="sd">    intended for CLI use **must** accept ``client`` as a keyword argument</span>
 <a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="sd">    in ``__init__``.  This constraint is not enforced by the Protocol</span>
 <a id="__codelineno-0-130" name="__codelineno-0-130"></a><span class="sd">    check — it is a CLI convention only and not part of this protocol.</span>
-<a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="sd">    """</span>
 <a id="__codelineno-0-132" name="__codelineno-0-132"></a>
 <a id="__codelineno-0-133" name="__codelineno-0-133"></a>    <span class="nd">@property</span>
 <a id="__codelineno-0-134" name="__codelineno-0-134"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
@@ -2959,12 +2959,12 @@ all three.</p>
 <span class="normal"><a href="#__codelineno-0-68">68</a></span>
 <span class="normal"><a href="#__codelineno-0-69">69</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="nd">@runtime_checkable</span>
 <a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="k">class</span><span class="w"> </span><span class="nc">AsyncSource</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">AsyncSourceRefT_co</span><span class="p">]):</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Discover top-level refs from an external source, asynchronously.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="w">    </span><span class="sd">"""Discover top-level refs from an external source, asynchronously."""</span>
 <a id="__codelineno-0-64" name="__codelineno-0-64"></a>
 <a id="__codelineno-0-65" name="__codelineno-0-65"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span>
 <a id="__codelineno-0-66" name="__codelineno-0-66"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span>
 <a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AsyncSourceRefT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all discoverable top-level references.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="w">        </span><span class="sd">"""Return all discoverable top-level references."""</span>
 <a id="__codelineno-0-69" name="__codelineno-0-69"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -3009,7 +3009,7 @@ all three.</p>
 <span class="normal"><a href="#__codelineno-0-69">69</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span>
 <a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span>
 <a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AsyncSourceRefT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return all discoverable top-level references.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="w">    </span><span class="sd">"""Return all discoverable top-level references."""</span>
 <a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3083,20 +3083,20 @@ all three.</p>
 <a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="n">AsyncExpanderChildRawT_co</span><span class="p">,</span>
 <a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="p">]</span>
 <a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="p">):</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand one ref into a record plus child refs, asynchronously.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="w">    </span><span class="sd">"""Expand one ref into a record plus child refs, asynchronously."""</span>
 <a id="__codelineno-0-81" name="__codelineno-0-81"></a>
 <a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span>
 <a id="__codelineno-0-83" name="__codelineno-0-83"></a>        <span class="bp">self</span><span class="p">,</span>
 <a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="n">ref</span><span class="p">:</span> <span class="n">AsyncExpanderRefT_contra</span><span class="p">,</span>
 <a id="__codelineno-0-85" name="__codelineno-0-85"></a>        <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expansion</span><span class="p">[</span><span class="n">AsyncExpanderRecordT_co</span><span class="p">,</span> <span class="n">AsyncExpanderChildRawT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch ref, return its record and the child refs to process next.</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="w">        </span><span class="sd">"""Fetch ref, return its record and the child refs to process next.</span>
 <a id="__codelineno-0-88" name="__codelineno-0-88"></a>
 <a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">        Raises:</span>
 <a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">            ExpansionNotReadyError: ref is not yet ready to be expanded.</span>
 <a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">            PartialExpansionError: child list is incomplete.</span>
 <a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">            ChildListUnavailableError: child list could not be retrieved.</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">        """</span>
 <a id="__codelineno-0-94" name="__codelineno-0-94"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -3194,13 +3194,13 @@ all three.</p>
 <a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="n">ref</span><span class="p">:</span> <span class="n">AsyncExpanderRefT_contra</span><span class="p">,</span>
 <a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span><span class="p">,</span>
 <a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expansion</span><span class="p">[</span><span class="n">AsyncExpanderRecordT_co</span><span class="p">,</span> <span class="n">AsyncExpanderChildRawT_co</span><span class="p">]:</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch ref, return its record and the child refs to process next.</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="w">    </span><span class="sd">"""Fetch ref, return its record and the child refs to process next.</span>
 <a id="__codelineno-0-88" name="__codelineno-0-88"></a>
 <a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">    Raises:</span>
 <a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">        ExpansionNotReadyError: ref is not yet ready to be expanded.</span>
 <a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">        PartialExpansionError: child list is incomplete.</span>
 <a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">        ChildListUnavailableError: child list could not be retrieved.</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">    """</span>
 <a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3261,19 +3261,19 @@ all three.</p>
 <span class="normal"><a href="#__codelineno-0-111">111</a></span>
 <span class="normal"><a href="#__codelineno-0-112">112</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="nd">@runtime_checkable</span>
 <a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="k">class</span><span class="w"> </span><span class="nc">AsyncSink</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">AsyncSinkRefT_contra</span><span class="p">,</span> <span class="n">AsyncSinkRecordT_co</span><span class="p">]):</span>
-<a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Consume a leaf ref and return its final record, asynchronously.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="w">    </span><span class="sd">"""Consume a leaf ref and return its final record, asynchronously."""</span>
 <a id="__codelineno-0-100" name="__codelineno-0-100"></a>
 <a id="__codelineno-0-101" name="__codelineno-0-101"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span>
 <a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">AsyncSinkRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span>
 <a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncSinkRecordT_co</span><span class="p">:</span>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch and parse one leaf ref, returning a complete record.</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="w">        </span><span class="sd">"""Fetch and parse one leaf ref, returning a complete record.</span>
 <a id="__codelineno-0-105" name="__codelineno-0-105"></a>
 <a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">        Context for the leaf flows through ``ref.raw`` — no parent-record</span>
 <a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">        parameter is needed here.</span>
 <a id="__codelineno-0-108" name="__codelineno-0-108"></a>
 <a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">        Raises:</span>
 <a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">            LeafUnavailableError: ref could not be fetched or parsed.</span>
-<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">        """</span>
 <a id="__codelineno-0-112" name="__codelineno-0-112"></a>        <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -3350,14 +3350,14 @@ parameter is needed here.</p>
 <span class="normal"><a href="#__codelineno-0-112">112</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span>
 <a id="__codelineno-0-102" name="__codelineno-0-102"></a>    <span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">AsyncSinkRefT_contra</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">AsyncHttpClientProtocol</span>
 <a id="__codelineno-0-103" name="__codelineno-0-103"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncSinkRecordT_co</span><span class="p">:</span>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch and parse one leaf ref, returning a complete record.</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="w">    </span><span class="sd">"""Fetch and parse one leaf ref, returning a complete record.</span>
 <a id="__codelineno-0-105" name="__codelineno-0-105"></a>
 <a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">    Context for the leaf flows through ``ref.raw`` — no parent-record</span>
 <a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">    parameter is needed here.</span>
 <a id="__codelineno-0-108" name="__codelineno-0-108"></a>
 <a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">    Raises:</span>
 <a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">        LeafUnavailableError: ref could not be fetched or parsed.</span>
-<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">    """</span>
 <a id="__codelineno-0-112" name="__codelineno-0-112"></a>    <span class="o">...</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3446,7 +3446,7 @@ single homogeneous sequence cannot express per-stage types; see ADR-015.</p>
 <a id="__codelineno-0-120" name="__codelineno-0-120"></a>        <span class="n">AsyncPluginLeafRecordT_co</span><span class="p">,</span>
 <a id="__codelineno-0-121" name="__codelineno-0-121"></a>    <span class="p">]</span>
 <a id="__codelineno-0-122" name="__codelineno-0-122"></a><span class="p">):</span>
-<a id="__codelineno-0-123" name="__codelineno-0-123"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle of all async adapters for one crawl domain.</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a><span class="w">    </span><span class="sd">"""Bundle of all async adapters for one crawl domain.</span>
 <a id="__codelineno-0-124" name="__codelineno-0-124"></a>
 <a id="__codelineno-0-125" name="__codelineno-0-125"></a><span class="sd">    ``name`` is a short identifier used in log lines and error messages.</span>
 <a id="__codelineno-0-126" name="__codelineno-0-126"></a><span class="sd">    ``source`` discovers top-level refs. ``expanders`` is an ordered list</span>
@@ -3455,7 +3455,7 @@ single homogeneous sequence cannot express per-stage types; see ADR-015.</p>
 <a id="__codelineno-0-129" name="__codelineno-0-129"></a>
 <a id="__codelineno-0-130" name="__codelineno-0-130"></a><span class="sd">    The heterogeneous chain interior deliberately uses ``Any`` because a</span>
 <a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="sd">    single homogeneous sequence cannot express per-stage types; see ADR-015.</span>
-<a id="__codelineno-0-132" name="__codelineno-0-132"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-132" name="__codelineno-0-132"></a><span class="sd">    """</span>
 <a id="__codelineno-0-133" name="__codelineno-0-133"></a>
 <a id="__codelineno-0-134" name="__codelineno-0-134"></a>    <span class="nd">@property</span>
 <a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
@@ -3600,13 +3600,13 @@ needed by the expander). Omitting <code>raw</code> selects the default
 <span class="normal"><a href="#__codelineno-0-55">55</a></span>
 <span class="normal"><a href="#__codelineno-0-56">56</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="k">class</span><span class="w"> </span><span class="nc">Ref</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">RawT</span><span class="p">]):</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generic reference to any crawlable resource.</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="w">    </span><span class="sd">"""Generic reference to any crawlable resource.</span>
 <a id="__codelineno-0-34" name="__codelineno-0-34"></a>
 <a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    ``url`` is the canonical URL of the resource. ``raw`` carries any</span>
 <a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    house-specific data discovered alongside the URL (e.g. an ID or code</span>
 <a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    needed by the expander). Omitting ``raw`` selects the default</span>
 <a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    ``Mapping[str, object]`` specialization and supplies an empty dict.</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">    """</span>
 <a id="__codelineno-0-40" name="__codelineno-0-40"></a>
 <a id="__codelineno-0-41" name="__codelineno-0-41"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
 <a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="c1"># The constructor overloads constrain omission to the default specialization.</span>
@@ -3619,10 +3619,10 @@ needed by the expander). Omitting <code>raw</code> selects the default
 <a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">RawT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
 <a id="__codelineno-0-50" name="__codelineno-0-50"></a>
 <a id="__codelineno-0-51" name="__codelineno-0-51"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="n">_MISSING_RAW</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a reference while preserving frozen-dataclass semantics.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-53" name="__codelineno-0-53"></a>        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="w">        </span><span class="sd">"""Initialize a reference while preserving frozen-dataclass semantics."""</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a>        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
 <a id="__codelineno-0-54" name="__codelineno-0-54"></a>        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="n">_empty_raw</span><span class="p">()</span> <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="n">_MISSING_RAW</span> <span class="k">else</span> <span class="n">raw</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="bp">self</span><span class="p">,</span> <span class="s2">"raw"</span><span class="p">,</span> <span class="n">_empty_raw</span><span class="p">()</span> <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="n">_MISSING_RAW</span> <span class="k">else</span> <span class="n">raw</span>
 <a id="__codelineno-0-56" name="__codelineno-0-56"></a>        <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -3693,11 +3693,11 @@ processed next (either expanded further or consumed by a Sink).</p>
 <span class="normal"><a href="#__codelineno-0-67">67</a></span>
 <span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="k">class</span><span class="w"> </span><span class="nc">Expansion</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">RecordT_co</span><span class="p">,</span> <span class="n">ChildRawT_co</span><span class="p">]):</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of an Expander.expand() call.</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="w">    </span><span class="sd">"""Result of an Expander.expand() call.</span>
 <a id="__codelineno-0-62" name="__codelineno-0-62"></a>
 <a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    Carries the record for the expanded node plus the child refs to be</span>
 <a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">    processed next (either expanded further or consumed by a Sink).</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    """</span>
 <a id="__codelineno-0-66" name="__codelineno-0-66"></a>
 <a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="n">record</span><span class="p">:</span> <span class="n">RecordT_co</span>
 <a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="n">child_refs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Ref</span><span class="p">[</span><span class="n">ChildRawT_co</span><span class="p">]]</span>
@@ -3796,7 +3796,7 @@ are recorded independently so one bad leaf does not discard the rest of a run.</
                 <summary>Source code in <code>src/ladon/plugins/errors.py</code></summary>
                 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
 <span class="normal"><a href="#__codelineno-0-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">PluginError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all plugin-level errors.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="w">    </span><span class="sd">"""Base class for all plugin-level errors."""</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -3842,12 +3842,12 @@ on the next scheduled run.</p>
 <span class="normal"><a href="#__codelineno-0-17">17</a></span>
 <span class="normal"><a href="#__codelineno-0-18">18</a></span>
 <span class="normal"><a href="#__codelineno-0-19">19</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExpansionNotReadyError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ref is not yet ready to be expanded (e.g. content not live).</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">    </span><span class="sd">"""The ref is not yet ready to be expanded (e.g. content not live).</span>
 <a id="__codelineno-0-15" name="__codelineno-0-15"></a>
 <a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="sd">    The runner should skip this ref without writing to DB or disk.</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="sd">    Do not retry during the same run; the ref will be discovered again</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="sd">    on the next scheduled run.</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    """</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -3906,7 +3906,7 @@ parsed or the request itself failed.</p>
 <span class="normal"><a href="#__codelineno-0-33">33</a></span>
 <span class="normal"><a href="#__codelineno-0-34">34</a></span>
 <span class="normal"><a href="#__codelineno-0-35">35</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="k">class</span><span class="w"> </span><span class="nc">PartialExpansionError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The child list was fetched but is incomplete (e.g. a paginated</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="sd">"""The child list was fetched but is incomplete (e.g. a paginated</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="sd">    response returned fewer items than the declared total).</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25"></a>
 <a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">    Runner behaviour: non-fatal for non-first expanders — the affected</span>
@@ -3918,7 +3918,7 @@ parsed or the request itself failed.</p>
 <a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    response was valid but the payload signals an incomplete result.</span>
 <a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    Raise ``ChildListUnavailableError`` when the response could not be</span>
 <a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    parsed or the request itself failed.</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    """</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -3964,12 +3964,12 @@ Always fatal from a Sink because Phase 3 has no branch to isolate.</p>
 <span class="normal"><a href="#__codelineno-0-42">42</a></span>
 <span class="normal"><a href="#__codelineno-0-43">43</a></span>
 <span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="k">class</span><span class="w"> </span><span class="nc">ChildListUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The child list could not be retrieved.</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="w">    </span><span class="sd">"""The child list could not be retrieved.</span>
 <a id="__codelineno-0-40" name="__codelineno-0-40"></a>
-<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    Fatal for this ref&#39;s run. Raised when the network request succeeded</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    Fatal for this ref's run. Raised when the network request succeeded</span>
 <a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    but the response cannot be parsed into a usable child list.</span>
 <a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    Always fatal from a Sink because Phase 3 has no branch to isolate.</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    """</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -4013,11 +4013,11 @@ and continues to the next leaf.</p>
 <span class="normal"><a href="#__codelineno-0-50">50</a></span>
 <span class="normal"><a href="#__codelineno-0-51">51</a></span>
 <span class="normal"><a href="#__codelineno-0-52">52</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="k">class</span><span class="w"> </span><span class="nc">LeafUnavailableError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A single leaf ref could not be fetched or parsed.</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">    </span><span class="sd">"""A single leaf ref could not be fetched or parsed.</span>
 <a id="__codelineno-0-49" name="__codelineno-0-49"></a>
 <a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">    Non-fatal. The runner logs the failure, increments leaves_failed,</span>
 <a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">    and continues to the next leaf.</span>
-<a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    """</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -4063,12 +4063,12 @@ exception internally before returning from the Sink or Expander.</p>
 <span class="normal"><a href="#__codelineno-0-69">69</a></span>
 <span class="normal"><a href="#__codelineno-0-70">70</a></span>
 <span class="normal"><a href="#__codelineno-0-71">71</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="k">class</span><span class="w"> </span><span class="nc">AssetDownloadError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;An asset download failed.</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="w">    </span><span class="sd">"""An asset download failed.</span>
 <a id="__codelineno-0-67" name="__codelineno-0-67"></a>
 <a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    **Not recovered from by the runner** — propagates as a fatal error that</span>
 <a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">    aborts the run. Plugins requiring non-fatal handling must catch this</span>
 <a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">    exception internally before returning from the Sink or Expander.</span>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    """</span>
 </code></pre></div></td></tr></table></div>
               </details>
 

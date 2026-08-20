@@ -1738,7 +1738,7 @@ BoringSSL.  No system-level <code>curl</code> installation is required.</p>
 <h2 id="choosing-an-impersonate-target">Choosing an impersonate target</h2>
 <p>The <code>impersonate</code> argument selects the TLS fingerprint.  Pass any value from
 <code>curl_cffi.requests.BrowserType</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from curl_cffi.requests import BrowserType; print([b.value for b in BrowserType])&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from curl_cffi.requests import BrowserType; print([b.value for b in BrowserType])"</span>
 </code></pre></div>
 <p>As of curl-cffi 0.15, 43 targets are available: <code>chrome99</code> through <code>chrome136</code>,
 <code>firefox133</code> through <code>firefox147</code>, <code>safari15_3</code> through <code>safari184</code>, <code>tor145</code>,
@@ -1750,19 +1750,19 @@ and several iOS/Android variants.</p>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;curl-cffi&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">impersonate</span><span class="o">=</span><span class="s2">&quot;chrome136&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">backend</span><span class="o">=</span><span class="s2">"curl-cffi"</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">impersonate</span><span class="o">=</span><span class="s2">"chrome136"</span><span class="p">,</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">timeout_seconds</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">min_request_interval_seconds</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">with</span> <span class="n">make_http_client</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://protected-target.example/&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"https://protected-target.example/"</span><span class="p">)</span>
 <a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">[:</span><span class="mi">200</span><span class="p">])</span>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;failed:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">"failed:"</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
 </code></pre></div>
 <p><code>make_http_client()</code> and <code>make_async_http_client()</code> inspect <code>config.backend</code>
 and return a <code>CurlHttpClient</code> or <code>AsyncCurlHttpClient</code> automatically.  Swap
@@ -1772,21 +1772,21 @@ the backend by changing one field — no call-site changes required.</p>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">timeout_seconds</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">with</span> <span class="n">CurlHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">&quot;chrome136&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://protected-target.example/&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">with</span> <span class="n">CurlHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">"chrome136"</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"https://protected-target.example/"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="async">Async</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_async_http_client</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ladon.networking.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpClientConfig</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">HttpClientConfig</span><span class="p">(</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;curl-cffi&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">impersonate</span><span class="o">=</span><span class="s2">&quot;chrome136&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">backend</span><span class="o">=</span><span class="s2">"curl-cffi"</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">impersonate</span><span class="o">=</span><span class="s2">"chrome136"</span><span class="p">,</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">timeout_seconds</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">)</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">async</span> <span class="k">with</span> <span class="n">make_async_http_client</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://protected-target.example/&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"https://protected-target.example/"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="policy-parity">Policy parity</h2>
 <p><code>CurlHttpClient</code> and <code>AsyncCurlHttpClient</code> support all the same
@@ -1879,7 +1879,7 @@ the retry budget and then raise <code>TransientNetworkError</code>.</p>
 <p>Passing an unrecognised value to <code>impersonate</code> raises <code>ValueError</code> immediately
 at construction time, before any network call:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Raises ValueError at construction — no request is sent</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">CurlHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">&quot;notabrowser&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">CurlHttpClient</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">"notabrowser"</span><span class="p">)</span>
 </code></pre></div>
 <p>If curl-cffi raises <code>ImpersonateError</code> at request time (the fingerprint was
 valid but could not be applied), it maps to <code>HttpClientError</code>.</p>
@@ -1887,9 +1887,9 @@ valid but could not be applied), it maps to <code>HttpClientError</code>.</p>
 <p>Passing <code>backend="curl-cffi"</code> without <code>impersonate</code> raises <code>ValueError</code> at
 <code>HttpClientConfig</code> construction time:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Raises ValueError immediately</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;curl-cffi&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"curl-cffi"</span><span class="p">)</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Correct</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;curl-cffi&quot;</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">&quot;chrome136&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">HttpClientConfig</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"curl-cffi"</span><span class="p">,</span> <span class="n">impersonate</span><span class="o">=</span><span class="s2">"chrome136"</span><span class="p">)</span>
 </code></pre></div>
 
 

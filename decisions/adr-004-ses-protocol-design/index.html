@@ -2069,9 +2069,9 @@ result returned to the caller is sealed.</p>
 <p><code>Sink.consume(ref, client)</code> receives no <code>parent_record</code> parameter. Context
 from the Expander (e.g. metadata pre-fetched from a parent page) is pre-baked
 into <code>ref.raw</code> by the Expander before the ref is handed to the runner:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Expander: build child Ref(url=item_url, raw={&quot;category&quot;: &quot;A&quot;, &quot;currency&quot;: &quot;USD&quot;})
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Expander: build child Ref(url=item_url, raw={"category": "A", "currency": "USD"})
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>                                                   ↑
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Sink:     consume(ref, client) → reads ref.raw[&quot;category&quot;]
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Sink:     consume(ref, client) → reads ref.raw["category"]
 </code></pre></div>
 <p><strong>Rationale:</strong> adding <code>parent_record</code> to <code>Sink.consume</code> would require the
 runner to thread parent context through Phase 3, coupling the runner to a
