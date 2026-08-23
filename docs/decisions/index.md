@@ -19,8 +19,10 @@ chosen over the alternatives.
 | [ADR-010](adr-010-dual-license-model.md) | Dual-License Model (AGPL-3.0-only + Commercial) | Accepted |
 | [ADR-011](adr-011-curl-cffi-cloudflare-bypass.md) | curl-cffi as the Cloudflare-Bypass HTTP Backend | Accepted |
 | [ADR-012](adr-012-session-contract-boundary.md) | Session Contract Boundary in `SyncPolicyBase` | Accepted |
+| [ADR-013](adr-013-multi-source-fetch-resolution.md) | Multi-Source Fetch Resolution (`MultiSourceSink`, `FetchPredicate`) | Accepted |
 | [ADR-014](adr-014-http-client-protocols.md) | Structural HTTP Client Protocols | Accepted |
-| [ADR-015](adr-015-generic-ses-protocols.md) | Generic SES Protocol Types | Proposed |
+| [ADR-015](adr-015-generic-ses-protocols.md) | Generic SES Protocol Types | Accepted |
+| [ADR-016](adr-016-plan-execute-on-leaf-contract.md) | `execute_plan`'s `on_planned_leaf` Contract and `CrawlPlan.leaves` Representation | Accepted |
 
 ## Format
 

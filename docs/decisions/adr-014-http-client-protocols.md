@@ -3,7 +3,7 @@ status: accepted
 date: 2026-08-12
 decision-makers: [Maintainers]
 informed: [Contributors]
-refs: [ADR-004, ADR-011, ADR-012, Issue #161]
+refs: [ADR-004, ADR-011, ADR-012, "Issue #161"]
 ---
 
 # ADR-014 — Structural HTTP Client Protocols

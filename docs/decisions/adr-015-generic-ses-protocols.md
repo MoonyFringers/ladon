@@ -1,9 +1,9 @@
 ---
-status: proposed
+status: accepted
 date: 2026-08-13
 decision-makers: [Maintainers]
 informed: [Contributors]
-refs: [ADR-004, ADR-011, ADR-014, Issue #162]
+refs: [ADR-004, ADR-014, ADR-016, "Issue #162"]
 ---
 
 # ADR-015 — Generic SES Protocol Types
@@ -25,7 +25,7 @@ cause.
 Separately, `execute_plan_sync`'s `on_leaf` callback has always had a
 *different* parameter contract — `(leaf_record, leaf_ref)` — than
 `run_crawl`'s `on_leaf` — `(leaf_record, parent_record)` — a distinction
-ADR-011 established but that only a docstring sentence enforces today. A
+ADR-016 established but that only a docstring sentence enforces today. A
 caller can pass either shape to either function and get a plausible-looking
 `object, object` signature match with no error until runtime.
 
@@ -92,7 +92,7 @@ source, `Sink`'s own ref parameter type. `RunResult` and
 same chain-interior reason `expanders` does not.
 
 Two new callback type aliases replace the bare
-`Callable[[object, object], ...]` signatures and encode the ADR-011
+`Callable[[object, object], ...]` signatures and encode the ADR-016
 distinction in the type system:
 
 * `OnLeafCallback[RecordT, ParentT]` — used by `run_crawl`, `run_plugin`,
@@ -106,9 +106,13 @@ distinction in the type system:
   `CrawlPlan[LeafRefT]`.
 
 Passing an `OnPlannedLeafCallback`-shaped function to `run_crawl`'s
-`on_leaf=` (or vice versa) is now a Pyright error instead of a silent
-runtime mismatch — this is the strongest concrete case for the change:
-today the only thing preventing that mistake is a sentence in a docstring.
+`on_leaf=` is now a Pyright error instead of a silent runtime mismatch.
+The reverse — passing an `OnLeafCallback`-shaped function to
+`execute_plan`'s `on_planned_leaf=` — still type-checks, because
+`on_leaf`'s `parent_record: object` parameter stays assignable under
+ordinary parameter contravariance; only the narrow-to-broad direction is
+caught. This is nonetheless the strongest concrete case for the change:
+before it, nothing but a docstring sentence prevented either mistake.
 
 `persistence.protocol.Repository[T]` genericization is explicitly out of
 scope for this ADR. Its docstring already points at ADR-006, a distinct
@@ -121,8 +125,9 @@ separately.
 
 * **Good**: the three shipped example `cast(...)` call sites are
   eliminated.
-* **Good**: the `run_crawl` vs `execute_plan_sync` callback-shape mismatch
-  becomes a compile-time error.
+* **Good**: passing an `execute_plan`-shaped callback to `run_crawl`'s
+  `on_leaf=` becomes a compile-time error — the direction most likely to
+  matter in practice, since `execute_plan` is the newer, narrower contract.
 * **Good**: zero runtime behavior change — `Protocol` `isinstance()` checks
   and concrete method dispatch are unaffected by type parameters, the same
   caveat ADR-014 already documents for its own protocols.

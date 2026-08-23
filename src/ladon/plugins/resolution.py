@@ -3,6 +3,7 @@
 Provides the ``FetchPredicate`` protocol and ``MultiSourceSink`` base class,
 which together encode the *try-until-accepted* resolution loop used by any
 Sink that resolves a record field from multiple ranked sources.
+See ADR-013.
 
 The loop pattern
 ----------------

@@ -15,7 +15,8 @@ Design decisions
 ----------------
 * **argparse only** — no Click, Typer, or other CLI library.  The stdlib is
   sufficient for the v1 command surface, and adding a CLI dependency purely for
-  syntax sugar would conflict with Ladon's "no unnecessary dependencies" policy.
+  syntax sugar would conflict with keeping the CLI's own dependency footprint
+  minimal.
 * **Dynamic plugin import via dotted path** — ``ladon run --plugin a.b:Class``
   mirrors the pattern used by tools like Gunicorn and Celery.  It lets operators
   specify any importable plugin without Ladon needing to know about it at

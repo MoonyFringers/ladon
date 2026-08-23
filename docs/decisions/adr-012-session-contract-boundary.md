@@ -3,7 +3,7 @@ status: accepted
 date: 2026-05-17
 decision-makers: [Maintainers]
 informed: [Contributors]
-refs: [ADR-011, Issue #109]
+refs: [ADR-011, "Issue #109"]
 ---
 
 # ADR-012 — Session Contract Boundary in `SyncPolicyBase`

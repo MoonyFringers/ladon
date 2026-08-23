@@ -170,8 +170,18 @@ and `AsyncSink` — the same structural-protocol pattern as the sync stack.
 
 ## Status
 
-`v0.2.0` — async crawling milestone. `AsyncHttpClient`, `AsyncCrawlPlugin`,
-and `async_run_crawl()` are stable and fully tested. The sync API is unchanged.
+`v0.3.2` — plan/execute crawl phases, observability, and multi-source
+resolution. `AsyncHttpClient`, `AsyncCrawlPlugin`, `async_run_crawl()`, and
+their sync equivalents are stable and fully tested.
+
+What was added in v0.3.2:
+- **Plan/execute split** — `plan_crawl()` / `execute_plan()` (and their sync
+  equivalents) separate traversal from leaf fetching, letting callers filter
+  or limit a `CrawlPlan` before consuming it (ADR-016)
+- **Observability** — `DecisionEvent`, `DecisionTracker`, and
+  `MultiSourceSink.resolve_multi()` decision-event instrumentation
+- **`MultiSourceSink` / `FetchPredicate`** — a shared try-until-accepted
+  resolution loop for Sinks backed by multiple ranked sources (ADR-013)
 
 What was added in v0.3.0:
 - **Cloudflare bypass** — `CurlHttpClient` / `AsyncCurlHttpClient` via
@@ -198,7 +208,6 @@ What was added in v0.0.1:
 - `ladon run` / `ladon info` CLI
 
 What is coming:
-- `ladon-mimir` — async Wikipedia adapter for LLM fine-tuning (issue [#96](https://github.com/MoonyFringers/ladon/issues/96))
 - Async robots.txt enforcement in `AsyncHttpClient`
 - Structured logging baseline (ADR-009)
 

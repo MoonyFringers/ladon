@@ -60,21 +60,3 @@ class RateLimitedError(HttpClientError):
         super().__init__(msg)
         self.status_code = status_code
         self.retry_after = retry_after
-
-
-class RetryableHttpError(TransientNetworkError):
-    """Deprecated alias for ``TransientNetworkError``. Removed in v0.1.0.
-
-    Use ``TransientNetworkError`` instead.
-    """
-
-    def __init__(self, *args: object) -> None:
-        import warnings
-
-        warnings.warn(
-            "RetryableHttpError is deprecated and will be removed in v0.1.0. "
-            "Use TransientNetworkError instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__(*args)

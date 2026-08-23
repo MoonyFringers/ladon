@@ -22,7 +22,6 @@ from .networking.errors import (
     HttpClientError,
     RateLimitedError,
     RequestTimeoutError,
-    RetryableHttpError,
     RobotsBlockedError,
     TransientNetworkError,
 )
@@ -135,7 +134,6 @@ __all__ = [
     "RateLimitedError",
     "RequestTimeoutError",
     "TransientNetworkError",
-    "RetryableHttpError",  # backward-compat alias, removed in v0.1.0
     "CircuitOpenError",
     "RobotsBlockedError",
     "ProxyPool",

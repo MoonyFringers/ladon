@@ -3,7 +3,7 @@ status: accepted
 date: 2026-03-18
 decision-makers: [Maintainers]
 informed: [Contributors]
-refs: [ADR-001, RFC 9309, Issue #39]
+refs: [ADR-001, RFC 9309, "Issue #39"]
 ---
 
 # ADR-008 — robots.txt Enforcement

@@ -37,6 +37,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   The boolean API remains supported for one full minor release and emits a
   `DeprecationWarning` on every legacy invocation.
 
+### Removed
+
+- **`RetryableHttpError`** — the deprecated alias for `TransientNetworkError`
+  announced for removal in v0.1.0. Three minor releases past that
+  announcement, it is removed in this release. Use `TransientNetworkError`
+  directly.
+
 ### Fixed
 
 - **Backend-agnostic adapter and runner typing** — `Source`, `Expander`,
@@ -82,7 +89,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`execute_plan_sync` / `execute_plan`** — Phase 3 only: consume an
   existing plan against the sink.  `on_leaf` receives
   `(leaf_record, leaf_ref)` — the leaf ref, **not** a parent record
-  (ADR-011).  Optional `on_progress(done, total)` callback for real-time
+  (ADR-016).  Optional `on_progress(done, total)` callback for real-time
   progress reporting.
 - **`ladon.observability`** — `DecisionEvent` dataclass, `DecisionTracker`
   Protocol, and `NullDecisionTracker` no-op default (same pattern as
@@ -103,8 +110,6 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `_fetch_from_source` are now caught, recorded as `source_failed`, and
   the loop continues instead of propagating.  `NotImplementedError` is
   re-raised to preserve the subclass contract.
-
-### Changed
 
 ---
 
@@ -253,7 +258,8 @@ First public release.
   current counters are correct but the model will be simplified
 - Python 3.11, 3.12, and 3.13 supported; 3.10 and below are not
 
-[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/MoonyFringers/ladon/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/MoonyFringers/ladon/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/MoonyFringers/ladon/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/MoonyFringers/ladon/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/MoonyFringers/ladon/compare/v0.1.0...v0.2.0

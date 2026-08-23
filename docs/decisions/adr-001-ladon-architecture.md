@@ -1,5 +1,5 @@
 ---
-status: "proposed"
+status: "accepted"
 date: 2025-12-14
 decision-makers:
   - Ladon maintainers

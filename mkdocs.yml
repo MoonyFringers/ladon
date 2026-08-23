@@ -97,3 +97,7 @@ nav:
     - ADR-010 Dual-License Model (AGPL-3.0-only + Commercial): decisions/adr-010-dual-license-model.md
     - ADR-011 curl-cffi as the Cloudflare-Bypass HTTP Backend: decisions/adr-011-curl-cffi-cloudflare-bypass.md
     - ADR-012 Session Contract Boundary in `SyncPolicyBase`: decisions/adr-012-session-contract-boundary.md
+    - ADR-013 Multi-Source Fetch Resolution: decisions/adr-013-multi-source-fetch-resolution.md
+    - ADR-014 Structural HTTP Client Protocols: decisions/adr-014-http-client-protocols.md
+    - ADR-015 Generic SES Protocol Types: decisions/adr-015-generic-ses-protocols.md
+    - ADR-016 Plan/Execute `on_planned_leaf` Contract: decisions/adr-016-plan-execute-on-leaf-contract.md

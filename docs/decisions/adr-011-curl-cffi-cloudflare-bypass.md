@@ -3,7 +3,7 @@ status: accepted
 date: 2026-05-16
 decision-makers: [Maintainers]
 informed: [Contributors]
-refs: [ADR-001, Issue #107]
+refs: [ADR-001, "Issue #107"]
 ---
 
 # ADR-011 — curl-cffi as the Cloudflare-Bypass HTTP Backend

@@ -13,7 +13,7 @@ The plan/execute split (v0.3):
   ``async_run_crawl`` remains a self-contained Phase 1+3 entry point with the
   original ``on_leaf(leaf_record, parent_record)`` contract.
   ``execute_plan``'s ``on_planned_leaf`` receives
-  ``(leaf_record, leaf_ref)`` per ADR-011 and ADR-015 — different from
+  ``(leaf_record, leaf_ref)`` per ADR-016 and ADR-015 — different from
   ``async_run_crawl``'s contract.
 
 ``ExpansionNotReadyError`` retains the same globally-fatal semantics as in
@@ -438,7 +438,9 @@ async def execute_plan(
         on_planned_leaf: Optional async callback receiving
                      ``(leaf_record, leaf_ref)`` after each successful consume.
                      The second argument is the **leaf ref**, not a parent
-                     record; ADR-015 enforces ADR-011's distinction in types.
+                     record; ADR-015's typing catches this in one direction — an
+                     ``on_planned_leaf``-shaped callback used as ``on_leaf`` is a Pyright
+                     error, the reverse is not.
         on_progress: Optional **synchronous** callback receiving
                      ``(leaves_done, total_leaves)`` after each leaf attempt
                      (success or failure).  Called from inside concurrent leaf
