@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-009-observability/">
+        <link rel="canonical" href="https://moonyfringers.github.io/ladon/decisions/adr-013-multi-source-fetch-resolution/">
       
       
-        <link rel="prev" href="../adr-008-robots-txt/">
+        <link rel="prev" href="../adr-012-session-contract-boundary/">
       
       
-        <link rel="next" href="../adr-010-dual-license-model/">
+        <link rel="next" href="../adr-014-http-client-protocols/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>ADR-009 Observability (Structured Logging, Metrics, Alerting) - Ladon</title>
+        <title>ADR-013 Multi-Source Fetch Resolution - Ladon</title>
       
     
     
@@ -63,17 +63,17 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="ADR-009 Observability (Structured Logging, Metrics, Alerting) - Ladon" />
+<meta property="og:title" content="ADR-013 Multi-Source Fetch Resolution - Ladon" />
 <meta property="og:description" content="Resilient, extensible web crawling framework." />
-<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-009-observability.png" />
+<meta property="og:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-013-multi-source-fetch-resolution.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/adr-009-observability/" />
+<meta property="og:url" content="https://moonyfringers.github.io/ladon/decisions/adr-013-multi-source-fetch-resolution/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="ADR-009 Observability (Structured Logging, Metrics, Alerting) - Ladon" />
+<meta property="twitter:title" content="ADR-013 Multi-Source Fetch Resolution - Ladon" />
 <meta property="twitter:description" content="Resilient, extensible web crawling framework." />
-<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-009-observability.png" />
+<meta property="twitter:image" content="https://moonyfringers.github.io/ladon/assets/images/social/decisions/adr-013-multi-source-fetch-resolution.png" />
 </head>
   
   
@@ -93,7 +93,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#adr-009-observability-structured-logging-metrics-alerting" class="md-skip">
+        <a href="#adr-013-multi-source-fetch-resolution-multisourcesink-fetchpredicate" class="md-skip">
           Skip to content
         </a>
       
@@ -126,7 +126,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-009 Observability (Structured Logging, Metrics, Alerting)
+              ADR-013 Multi-Source Fetch Resolution
             
           </span>
         </div>
@@ -1232,44 +1232,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ADR-009 Observability (Structured Logging, Metrics, Alerting)
-  
-
-    
-  </span>
-  
-  
-    
-  
-  
-    <span class="md-status md-status--proposed"></span>
-  
-
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../adr-009-observability/" class="md-nav__link">
         
   
   
@@ -1292,203 +1258,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#context-and-problem-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Context and Problem Statement
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Drivers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#considered-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Considered Options
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision Outcome
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decision Outcome">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tier-1-structured-logging-refine-not-redesign" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 1 — Structured Logging (refine, not redesign)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-2-metrics-opt-in-via-metricsbackend-protocol" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 2 — Metrics (opt-in, via MetricsBackend protocol)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-3-alerting-orchestration-layer-not-runner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 3 — Alerting (orchestration layer, not runner)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-4-distributed-tracing-deferred" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 4 — Distributed Tracing (deferred)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consequences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consequences
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#confirmation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Confirmation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pros-and-cons-of-the-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pros and Cons of the Options
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Pros and Cons of the Options">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#option-a-direct-prometheus_client-import-in-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option A: Direct prometheus_client import in core
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-b-metricsbackend-protocol-with-nullmetrics-default-chosen" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option B: MetricsBackend protocol with NullMetrics default (chosen)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-c-full-opentelemetry-adoption" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option C: Full OpenTelemetry adoption
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#more-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        More Information
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1596,10 +1365,44 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../adr-013-multi-source-fetch-resolution/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-013 Multi-Source Fetch Resolution
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1622,6 +1425,109 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context-and-problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context and Problem Statement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Drivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#considered-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considered Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Outcome
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Outcome">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rejected-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More Information
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1811,65 +1717,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tier-1-structured-logging-refine-not-redesign" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 1 — Structured Logging (refine, not redesign)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-2-metrics-opt-in-via-metricsbackend-protocol" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 2 — Metrics (opt-in, via MetricsBackend protocol)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-3-alerting-orchestration-layer-not-runner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 3 — Alerting (orchestration layer, not runner)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-4-distributed-tracing-deferred" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 4 — Distributed Tracing (deferred)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#consequences" class="md-nav__link">
     <span class="md-ellipsis">
       
         Consequences
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#confirmation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Confirmation
       
     </span>
   </a>
@@ -1882,52 +1733,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pros-and-cons-of-the-options" class="md-nav__link">
+  <a href="#rejected-options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pros and Cons of the Options
+        Rejected Options
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Pros and Cons of the Options">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#option-a-direct-prometheus_client-import-in-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option A: Direct prometheus_client import in core
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-b-metricsbackend-protocol-with-nullmetrics-default-chosen" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option B: MetricsBackend protocol with NullMetrics default (chosen)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-c-full-opentelemetry-adoption" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option C: Full OpenTelemetry adoption
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1962,220 +1774,111 @@
   
 
 
-<h1 id="adr-009-observability-structured-logging-metrics-alerting">ADR-009 — Observability (Structured Logging, Metrics, Alerting)</h1>
+<h1 id="adr-013-multi-source-fetch-resolution-multisourcesink-fetchpredicate">ADR-013 — Multi-Source Fetch Resolution (<code>MultiSourceSink</code>, <code>FetchPredicate</code>)</h1>
+<blockquote>
+<p><strong>Historical note:</strong> <code>FetchPredicate.evaluate() -&gt; Verdict</code> (three-valued
+<code>ACCEPT</code> / <code>REJECT</code> / <code>CONTINUE</code>, issue #123) extends the boolean
+<code>accepts() -&gt; bool</code> contract this ADR originally decided. <code>accepts()</code>
+remains supported for one full minor release through an automatic
+compatibility adapter (<code>True</code> maps to <code>ACCEPT</code>, <code>False</code> maps to
+<code>CONTINUE</code>, never <code>REJECT</code>). See the <code>Verdict</code> and <code>FetchPredicate</code>
+entries in <code>CHANGELOG.md</code>.
+The implementation also retains a legacy <code>_all_predicates_pass(data, ref) -&gt; bool</code> override hook for subclasses migrating from the boolean <code>accepts()</code> contract; see its docstring in <code>resolution.py</code> for exact semantics.</p>
+</blockquote>
 <h2 id="context-and-problem-statement">Context and Problem Statement</h2>
-<p>Ladon currently has one tier of observability: structured logging via
-<code>logging.getLogger(__name__)</code> with <code>extra=</code> dicts at INFO and WARNING level.
-This is a solid foundation but insufficient for production operations:</p>
-<ul>
-<li>There are no <strong>metrics</strong> — no way to chart leaf counts over time, request
-  latency distributions, or error rates across runs.</li>
-<li>There is no <strong>run correlation</strong> — log lines from a single <code>run_crawl()</code> call
-  share no common identifier, making it difficult to isolate one run's output.</li>
-<li>There is no <strong>alerting</strong> — no automated notification when a run fails or
-  degrades, beyond ad-hoc wrapper scripts.</li>
-<li>There is no <strong>distributed tracing</strong> — correlating a leaf failure with the
-  HTTP request that caused it across service boundaries is not currently possible.</li>
-</ul>
-<p><strong>The question is:</strong> how should Ladon expose observability signals without
-coupling the core framework to a specific metrics library, notification channel,
-or tracing backend?</p>
+<p><code>CoverResolutionSink</code> in the <code>ladon-dylan-dog</code> adapter encodes a resolution
+loop: try cover-image sources in priority order, stop at the first result
+that meets a quality bar, and fall back to the best candidate seen if none
+does. The quality bar started as a single hardcoded check (<code>min_width_px</code>).</p>
+<p>This pattern — <em>try multiple ranked sources, accept the first result that
+passes acceptance criteria, otherwise fall back to the best-seen candidate</em>
+— is not specific to cover images or to one adapter. It recurs in any Sink
+that resolves a record field from more than one source: a lot image
+resolved from two CDNs and rejected if it is a placeholder, a price
+resolved from two feeds and accepted only within a tolerance band, an
+infobox image rejected if it is a stock placeholder. Each adapter that
+needs it would otherwise reimplement the loop independently, multiplying
+the chance of a subtle correctness bug in the fallback-selection logic —
+exactly the kind of bug the <code>ladon-dylan-dog</code> ristampa fix had to correct
+by hand.</p>
 <h2 id="decision-drivers">Decision Drivers</h2>
 <ul>
-<li>Core must remain dependency-free — <code>prometheus_client</code>, OpenTelemetry SDKs,
-  and notification clients must not become hard dependencies.</li>
-<li>Metrics and tracing must be opt-in; a worker with no observability infrastructure
-  must run without modification.</li>
-<li>Alerting logic must not live inside <code>run_crawl()</code> — the runner has no knowledge
-  of notification channels.</li>
-<li>The design must work for both a single nightly cron job and a future multi-worker
-  deployment without requiring architectural changes in the runner.</li>
-<li><code>Sink.consume</code> and <code>run_crawl</code> signatures must not change.</li>
+<li>The loop mechanics (iterate sources, track the best-seen fallback, stop
+  on acceptance) are identical across adapters; only the acceptance
+  criteria are adapter-specific.</li>
+<li>Adapters must be able to plug in domain-specific acceptance criteria
+  without touching the loop.</li>
+<li>The design must not require bidirectional coupling between pipeline
+  stages or introduce mechanisms with no concrete shipped use case yet.</li>
 </ul>
 <h2 id="considered-options">Considered Options</h2>
 <ul>
-<li>
-<p><strong>Option A: Import <code>prometheus_client</code> directly in the runner</strong> — simple, but
-  adds a mandatory runtime dependency to <code>ladon</code> core and makes metrics
-  impossible to disable.</p>
-</li>
-<li>
-<p><strong>Option B: <code>MetricsBackend</code> protocol with <code>NullMetrics</code> default (chosen)</strong> —
-  a structural protocol defines the metrics interface; <code>NullMetrics</code> is the default
-  (no-op). A <code>PrometheusMetrics</code> implementation ships as an optional extra or is
-  provided by the caller. Core imports nothing from <code>prometheus_client</code>.</p>
-</li>
-<li>
-<p><strong>Option C: OpenTelemetry full adoption from Phase 3</strong> — OpenTelemetry covers
-  logging, metrics, and tracing under one SDK. Correct long-term direction, but
-  the SDK is heavy and the Ladon codebase is not yet at the complexity level that
-  justifies the integration cost. Deferred to a future ADR.</p>
-</li>
+<li><strong>A — Framework-owned loop with a <code>FetchPredicate</code> extension point (chosen)</strong></li>
+<li><strong>B — A separate post-Sink Quality Gate stage with a <code>RetryOracle</code></strong></li>
+<li><strong>C — A <code>predicates</code> list on the <code>Sink</code> Protocol itself, no base class</strong></li>
 </ul>
 <h2 id="decision-outcome">Decision Outcome</h2>
-<p>Chosen option: <strong>Option B</strong> (tiered approach), because it provides immediate value
-(<code>run_id</code> in logs) with no infrastructure requirement, adds metrics optionally via
-a protocol that any backend can satisfy, and decouples alerting entirely from the
-runner.</p>
-<h3 id="tier-1-structured-logging-refine-not-redesign">Tier 1 — Structured Logging (refine, not redesign)</h3>
-<p>Add a <code>run_id</code> field (UUID) to every log record emitted inside <code>run_crawl()</code>. All
-log lines for a single run share the same <code>run_id</code>, making grep-based debugging
-trivial without any additional infrastructure.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Inside run_crawl():</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">run_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">extra</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"run_id"</span><span class="p">:</span> <span class="n">run_id</span><span class="p">,</span> <span class="s2">"plugin"</span><span class="p">:</span> <span class="n">plugin_name</span><span class="p">}</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"run started"</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
-</code></pre></div>
-<p>No changes to the logging library or format are required. Existing <code>plugin</code>, <code>ref</code>,
-<code>error</code>, and <code>error_type</code> fields are preserved.</p>
-<h3 id="tier-2-metrics-opt-in-via-metricsbackend-protocol">Tier 2 — Metrics (opt-in, via <code>MetricsBackend</code> protocol)</h3>
-<p>A <code>MetricsBackend</code> structural protocol is injected into the runner or the
-orchestration layer. <code>NullMetrics</code> is the default; callers that want Prometheus
-metrics pass in a <code>PrometheusMetrics</code> instance.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protocol</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">MetricsBackend</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">inc_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">observe_run_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">inc_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">outcome</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">observe_http_duration</span><span class="p">(</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
-</code></pre></div>
-<p>Core metrics to instrument:</p>
-<table>
-<thead>
-<tr>
-<th>Metric</th>
-<th>Type</th>
-<th>Labels</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>ladon_run_total</code></td>
-<td>Counter</td>
-<td><code>plugin</code>, <code>status</code></td>
-</tr>
-<tr>
-<td><code>ladon_leaves_total</code></td>
-<td>Counter</td>
-<td><code>plugin</code>, <code>outcome</code></td>
-</tr>
-<tr>
-<td><code>ladon_run_duration_seconds</code></td>
-<td>Histogram</td>
-<td><code>plugin</code></td>
-</tr>
-<tr>
-<td><code>ladon_http_request_duration_seconds</code></td>
-<td>Histogram</td>
-<td><code>plugin</code>, <code>method</code>, <code>status_code</code></td>
-</tr>
-<tr>
-<td><code>ladon_http_requests_total</code></td>
-<td>Counter</td>
-<td><code>plugin</code>, <code>method</code>, <code>status_code</code></td>
-</tr>
-<tr>
-<td><code>ladon_branch_errors_total</code></td>
-<td>Counter</td>
-<td><code>plugin</code>, <code>error_type</code></td>
-</tr>
-</tbody>
-</table>
-<h3 id="tier-3-alerting-orchestration-layer-not-runner">Tier 3 — Alerting (orchestration layer, not runner)</h3>
-<p>Alerting fires on run-level outcomes, not on individual log lines. The runner
-returns a <code>RunResult</code> with <code>status</code>; the orchestration layer decides what to do
-with it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">run_crawl</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"failed"</span><span class="p">,</span> <span class="s2">"partial"</span><span class="p">):</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">notifier</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">plugin_name</span><span class="si">}</span><span class="s2">] run </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</code></pre></div>
-<p>The <code>notifier</code> is a caller-supplied object — SMTP, Slack, PagerDuty, or a query
-against the <code>ladon_runs</code> audit table (ADR-006). The runner has no dependency on
-any notification channel.</p>
-<h3 id="tier-4-distributed-tracing-deferred">Tier 4 — Distributed Tracing (deferred)</h3>
-<p>OpenTelemetry spans are not required for Phase 3–5. The <code>run_id</code> field (Tier 1)
-provides a manual correlation key that bridges the pre-tracing and post-tracing
-eras without backfills. When tracing is introduced, it will be addressed in a
-separate ADR.</p>
+<p><strong>Chosen: Option A — <code>MultiSourceSink</code> base class plus <code>FetchPredicate</code> protocol.</strong></p>
+<p><code>ladon.plugins.resolution</code> adds two components:</p>
+<p><code>FetchPredicate</code> is a structurally-typed acceptance criterion on a raw
+fetch result: <code>accepts(self, data: bytes, ref: Ref) -&gt; bool</code>, returning
+<code>True</code> to stop the loop and <code>False</code> to keep the result only as a fallback
+candidate. Adapters implement it by structural subtyping; no inheritance is
+required. The framework does not ship a built-in domain-specific predicate (only
+the composable <code>AllOf</code>/<code>AnyOf</code>/<code>Not</code> predicate combinators, which compose
+adapter-supplied predicates rather than encoding acceptance criteria
+themselves); adapters supply their own <code>FetchPredicate</code> implementations
+for domain-specific criteria.
+<code>tests/plugins/test_resolution_verdict_scenario.py</code>'s <code>_MinWidthPredicate</code>
+is a reference implementation of the width-based quality bar this ADR was
+originally written for.</p>
+<p><code>MultiSourceSink</code> is a base class that owns the try-until-accepted loop.
+Subclasses provide a priority-ordered <code>sources</code> list and a <code>predicates</code>
+list (all must pass to stop the loop), and may override up to three hooks
+(only the first is mandatory):
+<code>_fetch_from_source(source, ref, client)</code> to call the source's native
+interface, <code>_should_try_source(source, ref)</code> for tier-skip or rate-limit
+guards, and <code>_is_better_candidate(...)</code> to control which result becomes
+the retained fallback. <code>resolve_multi(ref, client)</code> runs the loop and
+returns the best accepted result, or the best fallback if none was
+accepted.</p>
 <h3 id="consequences">Consequences</h3>
 <ul>
-<li>Good, because <code>run_id</code> in every log record is the single highest-value
-  observability improvement with zero infrastructure cost.</li>
-<li>Good, because <code>MetricsBackend</code> keeps <code>prometheus_client</code> out of core — a worker
-  with no Prometheus infrastructure runs identically to one that has it.</li>
-<li>Good, because alerting is fully decoupled from the runner — the framework makes
-  no assumptions about notification channels.</li>
-<li>Good, because the tiered design scales from a single nightly cron to a
-  multi-worker deployment without runner changes.</li>
-<li>Bad, because <code>run_id</code> requires a small change inside <code>run_crawl()</code>.</li>
-<li>Bad, because callers who want Prometheus metrics must wire up <code>PrometheusMetrics</code>
-  themselves — there is no auto-configuration.</li>
+<li><strong>Good</strong>: <code>CoverResolutionSink</code> shrinks to declaring what it needs; the
+  loop moves to the shared base.</li>
+<li><strong>Good</strong>: New multi-source Sinks get the loop for free and express
+  domain criteria purely through <code>FetchPredicate</code> implementations.</li>
+<li><strong>Good</strong>: The ristampa fix's tier-preference correctness (prefer the
+  better tier when no candidate clears the quality bar) is encoded once in
+  <code>_is_better_candidate</code>, not re-derived per adapter.</li>
+<li><strong>Neutral</strong>: <code>_fetch_from_source</code> must be implemented by every subclass
+  — the base class cannot know the source interface, and source protocols
+  are intentionally left adapter-specific rather than unified prematurely.</li>
+<li><strong>Neutral</strong>: This ADR does not change the <code>Sink</code> Protocol itself.
+  <code>MultiSourceSink</code> is a concrete base class adapters opt into; the
+  structural <code>Sink</code> Protocol used by the runner is unaffected.</li>
 </ul>
-<h3 id="confirmation">Confirmation</h3>
-<ul>
-<li><code>run_crawl()</code> emits a <code>run_id</code> UUID in every log record for the duration of
-  the call.</li>
-<li><code>MetricsBackend</code> protocol and <code>NullMetrics</code> are exported from <code>ladon</code>.</li>
-<li>No <code>prometheus_client</code> import exists in <code>ladon</code> core.</li>
-<li>Tests can pass <code>NullMetrics()</code> without any metrics infrastructure.</li>
-</ul>
-<h2 id="pros-and-cons-of-the-options">Pros and Cons of the Options</h2>
-<h3 id="option-a-direct-prometheus_client-import-in-core">Option A: Direct <code>prometheus_client</code> import in core</h3>
-<ul>
-<li>Good, because no protocol indirection is required.</li>
-<li>Bad, because <code>prometheus_client</code> becomes a mandatory runtime dependency.</li>
-<li>Bad, because metrics cannot be disabled for lightweight deployments.</li>
-</ul>
-<h3 id="option-b-metricsbackend-protocol-with-nullmetrics-default-chosen">Option B: <code>MetricsBackend</code> protocol with <code>NullMetrics</code> default (chosen)</h3>
-<ul>
-<li>Good, because core is dependency-free.</li>
-<li>Good, because any metrics backend (Prometheus, StatsD, custom) satisfies
-  the protocol without modifying core.</li>
-<li>Good, because <code>NullMetrics</code> makes the default zero-overhead.</li>
-<li>Neutral, because callers who want metrics must supply an implementation.</li>
-</ul>
-<h3 id="option-c-full-opentelemetry-adoption">Option C: Full OpenTelemetry adoption</h3>
-<ul>
-<li>Good, because it is the industry-standard unified observability SDK.</li>
-<li>Good, because it covers logging, metrics, and tracing under one API.</li>
-<li>Bad, because the SDK is heavy and adds significant integration complexity
-  before the codebase has reached the scale that justifies it.</li>
-<li>Bad, because it would be a breaking change to the logger configuration.</li>
-</ul>
+<h2 id="rejected-options">Rejected Options</h2>
+<p><strong>B — Post-Sink Quality Gate stage:</strong> The Quality Gate proposal's back-action
+is "re-call the Sink with a different source instruction from outside the
+Sink," which requires the gate to hold a reference to the Sink and invoke it
+again — bidirectional coupling between two pipeline stages. It also
+introduces a <code>RetryHint</code> datatype and an optional <code>RetryOracle</code> interface
+with no concrete use case at decision time. Every acceptance criterion that
+needed to exist (image width, reprint/ristampa detection) is evaluable
+during the resolution loop itself, not after the Record is produced. The
+broader Quality Gate concept remains a future extension; this ADR
+implements the grounded subset the evidence at hand supports.</p>
+<p><strong>C — <code>predicates</code> list on the <code>Sink</code> Protocol, no base class:</strong> Standardizes
+the injection interface but leaves the loop mechanics — where the
+correctness risk actually lives — reimplemented per Sink. A base class that
+owns the loop is strictly more useful and was chosen instead.</p>
 <h2 id="more-information">More Information</h2>
-<p>Implementation sequence:</p>
-<table>
-<thead>
-<tr>
-<th>Phase</th>
-<th>What ships</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Phase 3</td>
-<td><code>run_id</code> added to all log records inside <code>run_crawl()</code></td>
-</tr>
-<tr>
-<td>Phase 3</td>
-<td><code>MetricsBackend</code> protocol + <code>NullMetrics</code> exported from <code>ladon</code></td>
-</tr>
-<tr>
-<td>Phase 3</td>
-<td><code>PrometheusMetrics</code> implementation (separate package or extra)</td>
-</tr>
-<tr>
-<td>Future</td>
-<td>OpenTelemetry spans (separate ADR)</td>
-</tr>
-</tbody>
-</table>
-<p>Related decisions: ADR-001 (architecture), ADR-004 (SES protocol), ADR-006
-(persistence layer — <code>ladon_runs</code> audit table used for alert deduplication).</p>
+<p>Precedent: the <code>ladon-dylan-dog</code> ristampa cover-image bug fix, which is the
+only shipped adapter code exercising this exact fallback-preservation
+scenario — a bad candidate from one source must not discard fallbacks
+already accumulated from other sources. If this area is revisited, check
+that fix first.</p>
 
 
 
